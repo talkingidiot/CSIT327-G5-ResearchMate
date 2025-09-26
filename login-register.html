@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Sign Up</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container" id="container">
+
+    <!-- Logo -->
+    <div class="logo-container">
+      <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
+    </div>
+
+    <!-- Sign Up Container -->
+    <div class="form-container sign-up-container">
+      <!-- Role Selection Step -->
+      <div id="role-step" class="overlay-step">
+        <h1>Select your role</h1>
+        <div class="role-buttons">
+          <button onclick="showForm('student')">Student</button>
+          <button onclick="showForm('consultant')">Consultant</button>
+          <button onclick="showForm('admin')">Admin</button>
+        </div>
+      </div>
+
+      <!-- Register Form -->
+      <form id="register-form" class="hidden">
+        <h1 id="role-title">Register</h1>
+        <input type="text" placeholder="Full Name" required>
+        <input type="email" id="emailField" placeholder="Email" required>
+        <div id="workplace-field" class="hidden">
+          <input type="text" placeholder="Workplace">
+        </div>
+
+        <!-- Password field with toggle -->
+        <div class="password-wrapper">
+          <input type="password" id="passwordField" placeholder="Password" required>
+          <span class="toggle-password" id="toggleRegisterPassword">&#128065;</span>
+        </div>
+        <small id="passwordStrength">Password strength: </small>
+
+        <!-- Already have account link -->
+        <p class="already-account">Already have an account? <a href="#" onclick="signInRedirect()">Sign In</a></p>
+
+        <button type="submit">Sign Up</button>
+        <button type="button" class="back-btn" onclick="backToRole()">Back</button>
+      </form>
+    </div>
+
+    <!-- Sign In Container -->
+    <div class="form-container sign-in-container">
+      <form>
+        <h1>Sign in</h1>
+        <input type="email" placeholder="Email" required>
+
+        <!-- Password field with toggle inside box -->
+        <div class="password-wrapper">
+          <input type="password" id="signinPassword" placeholder="Password" required>
+          <span class="toggle-password" id="toggleSignInPassword">&#128065;</span>
+        </div>
+
+        <button type="submit">Sign In</button>
+      </form>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay-container">
+      <div class="overlay">
+        <div class="overlay-panel overlay-left">
+          <h1>Welcome Back!</h1>
+          <p>Login with your institutional account</p>
+          <button class="ghost" id="signIn">Sign In</button>
+        </div>
+        <div class="overlay-panel overlay-right">
+          <h1>Create Account</h1>
+          <p>Select your role and sign up</p>
+          <button class="ghost" id="signUp">Sign Up</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

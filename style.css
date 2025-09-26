@@ -1,0 +1,229 @@
+/* General Reset */
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: #f6f5f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25),
+                0 10px 10px rgba(0,0,0,0.22);
+    position: relative;
+    overflow: hidden;
+    width: 1200px;       /* bigger width */
+    max-width: 95%;
+    min-height: 700px;   /* taller */
+}
+
+/* Logo */
+.logo-container {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  z-index: 200;
+}
+.logo-container img {
+  width: 220px;   /* slightly bigger logo */
+  height: auto;
+}
+
+/* Panels */
+.form-container {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all 0.6s ease-in-out;
+}
+
+.sign-up-container { left: 0; width: 50%; opacity: 0; z-index: 1; }
+.sign-in-container { left: 0; width: 50%; z-index: 2; }
+
+.container.right-panel-active .sign-up-container {
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+}
+
+.container.right-panel-active .sign-in-container {
+    transform: translateX(100%);
+    z-index: 1;
+}
+
+/* Forms */
+form {
+    display: flex;
+    flex-direction: column;
+    padding: 0 60px;   /* more padding */
+    height: 100%;
+    justify-content: center;
+    text-align: center;
+    font-size: 16px;   /* slightly bigger text */
+}
+
+/* Sign Up Form background */
+.sign-up-container form { background: #000; color: #fff; }
+/* Sign In Form background */
+.sign-in-container form { background: #f0f0f0; color: #000; }
+
+/* Increase spacing between input fields */
+form input {
+    background: #eee;
+    border-radius: 5px;
+    padding: 16px;     /* bigger input fields */
+    margin: 16px 0;    /* more spacing */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Sign Up input fields (dark background) */
+.sign-up-container form input {
+    background: #222; 
+    color: #fff;
+    border: 1px solid #fff;
+    border-radius: 5px;
+    padding: 16px;
+    margin: 16px 0;
+}
+
+/* Sign In input fields (light background) */
+.sign-in-container form input {
+    background: #fff;
+    color: #000;
+    border: 1px solid #000;
+    border-radius: 5px;
+    padding: 16px;
+    margin: 16px 0;
+}
+
+/* Make workplace input same size as others */
+#workplace-field input {
+    width: 100%;
+    padding: 16px;
+    border-radius: 5px;
+    margin: 16px 0;
+    box-sizing: border-box;
+}
+
+button {
+    border: none;
+    padding: 16px 30px;  /* bigger buttons */
+    margin-top: 15px;
+    background-color: #ff4b2b;
+    color: #fff;
+    font-size: 16px;     /* bigger font */
+    cursor: pointer;
+    transition: transform 80ms ease-in;
+}
+button:active { transform: scale(0.95); }
+button.ghost { background-color: transparent; border: 2px solid #fff; }
+
+/* Overlay */
+.overlay-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    transition: transform 0.6s ease-in-out;
+    z-index: 100;
+}
+.overlay {
+    background: linear-gradient(to right, #ff4b2b, #ff416c);
+    color: #fff;
+    position: relative;
+    height: 100%;
+    width: 200%;
+    left: -100%;
+    transform: translateX(0);
+}
+.container.right-panel-active .overlay-container { transform: translateX(-100%); }
+.overlay-panel {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0 60px;  /* bigger padding */
+    text-align: center;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    transform: translateX(0);
+}
+.overlay-left { transform: translateX(-20%); left: 0; }
+.overlay-right { right: 0; transform: translateX(0); }
+
+/* Role Step Black Cover */
+.overlay-step {
+    background: #000;
+    color: #fff;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    font-size: 18px;  /* bigger text */
+}
+
+.role-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin: 30px 0;
+    width: 100%;
+}
+.role-buttons button {
+    background: #444;
+    color: #fff;
+    border-radius: 5px;
+    padding: 16px 25px;
+    font-size: 16px;
+}
+
+.hidden { display: none !important; }
+.back-btn { background: #777; margin-top: 20px; }
+
+/* Password Toggle */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+.password-wrapper input { padding-right: 50px; width: 100%; }
+.toggle-password {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    user-select: none;
+    color: #000;
+}
+small#passwordStrength {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+.already-account {
+    text-align: left;
+    font-size: 16px;
+    margin-top: 15px;
+}
+.already-account a {
+    color: #ff4b2b;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+}
