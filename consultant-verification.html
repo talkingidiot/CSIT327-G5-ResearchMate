@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultant Verification</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
+      </div>
+      <ul class="menu">
+        <li>🏠 Home</li>
+        <li>📘 Profile</li>
+        <li>⚙️ Settings</li>
+        <li>📅 Bookings</li>
+        <li>🚪 Logout</li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Consultant Verification</h1>
+        <p>Fill in your details to be verified and available for bookings</p>
+      </header>
+
+      <section class="tasks">
+        <div class="task-card">
+          <label for="fullName">Full Name</label>
+          <input type="text" id="fullName" placeholder="Your full name">
+
+          <label for="expertise">Expertise / Specialization</label>
+          <input type="text" id="expertise" placeholder="Your expertise">
+
+          <label for="qualification">Qualification</label>
+          <input type="text" id="qualification" placeholder="Your degree or certification">
+
+          <label for="bio">Short Bio</label>
+          <input type="text" id="bio" placeholder="Introduce yourself">
+
+          <button id="submitVerification" class="primary-btn">Submit Verification</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById("submitVerification").addEventListener("click", () => {
+      const fullName = document.getElementById("fullName").value.trim();
+      const expertise = document.getElementById("expertise").value.trim();
+      const qualification = document.getElementById("qualification").value.trim();
+      const bio = document.getElementById("bio").value.trim();
+
+      if(fullName && expertise && qualification && bio){
+        alert("You are now verified as a consultant!");
+        // Redirect back to dashboard with query params
+        window.location.href = `consultant-dashboard.html?verified=true&name=${encodeURIComponent(fullName)}`;
+      } else {
+        alert("Please fill in all fields before submitting.");
+      }
+    });
+  </script>
+</body>
+</html>

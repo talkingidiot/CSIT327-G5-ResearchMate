@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
+      </div>
+      <ul class="menu">
+        <li>🏠 Home</li>
+        <li>📘 Profile</li>
+        <li>⚙️ Settings</li>
+        <li>📅 Bookings</li>
+        <li>🚪 Logout</li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Welcome back, <span id="studentName">Student</span>!</h1>
+        <p>Track your consultations and research progress</p>
+      </header>
+
+      <section class="stats">
+        <div class="card purple">
+          <h2>4</h2>
+          <p>Consultations</p>
+        </div>
+        <div class="card blue">
+          <h2>2</h2>
+          <p>Ongoing Research</p>
+        </div>
+        <div class="card green">
+          <h2>1</h2>
+          <p>Completed</p>
+        </div>
+      </section>
+
+      <section class="tasks">
+        <h2>My Research Tasks</h2>
+        <div class="task-card">
+          <h3>Proposal Draft</h3>
+          <p>Meeting scheduled with consultant</p>
+          <small>Due: 9/30/2025</small>
+          <span class="status pending">Pending</span>
+        </div>
+        <div class="task-card">
+          <h3>Chapter 1 - Introduction</h3>
+          <p>Feedback received</p>
+          <small>Submitted: 9/20/2025</small>
+          <span class="status submitted">Submitted</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById("studentName").textContent =
+      localStorage.getItem("fullName") || "Student";
+  </script>
+</body>
+</html>
