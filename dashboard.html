@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ResearchMate Dashboard</title>
+  <link rel="stylesheet" href="dashboard-style.css">
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="logo">ResearchMate</div>
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar">JD</div>
+        <span id="userName">John Doe</span>
+        <span id="userRole">(Student)</span>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h3>Navigation</h3>
+      <ul class="nav-menu">
+        <li><a href="#" class="nav-link active" data-section="dashboard"><span class="nav-icon">🏠</span> Dashboard</a></li>
+        <li><a href="#" class="nav-link" data-section="research"><span class="nav-icon">🔬</span> My Research</a></li>
+        <li><a href="#" class="nav-link" data-section="collaboration"><span class="nav-icon">👥</span> Collaboration</a></li>
+        <li><a href="#" class="nav-link" data-section="resources"><span class="nav-icon">📚</span> Resources</a></li>
+        <li><a href="#" class="nav-link" data-section="analytics"><span class="nav-icon">📊</span> Analytics</a></li>
+        <li><a href="#" class="nav-link" data-section="profile"><span class="nav-icon">👤</span> Profile</a></li>
+        <li id="adminNav" style="display: none;"><a href="#" class="nav-link" data-section="admin"><span class="nav-icon">⚙️</span> Admin Panel</a></li>
+      </ul>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Dashboard Section -->
+      <div class="content-section active" id="dashboard">
+        <div class="welcome-section">
+          <h1>Welcome back, <span id="welcomeName">John</span>!</h1>
+          <p id="welcomeMessage">Continue your research journey with ResearchMate</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3 id="activeProjects">3</h3>
+            <p>Active Research Projects</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="collaborations">7</h3>
+            <p>Active Collaborations</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="publications">12</h3>
+            <p>Publications</p>
+          </div>
+          <div class="stat-card">
+            <h3 id="citations">45</h3>
+            <p>Total Citations</p>
+          </div>
+        </div>
+
+        <h2>Quick Actions</h2>
+        <div class="quick-actions">
+          <button class="action-btn" onclick="openModal('newProjectModal')">Start New Project</button>
+          <button class="action-btn secondary" onclick="openModal('collaborateModal')">Find Collaborators</button>
+          <button class="action-btn" onclick="switchSection('resources')">Browse Resources</button>
+          <button class="action-btn secondary" onclick="switchSection('analytics')">View Analytics</button>
+        </div>
+
+        <div class="recent-section">
+          <h2>📈 Recent Activities</h2>
+          <div class="activity-list" id="activityList">
+            <div class="activity-item">
+              <div class="activity-title">New collaboration request from Dr. Smith</div>
+              <div class="activity-meta">2 hours ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-title">Research paper "AI in Healthcare" published</div>
+              <div class="activity-meta">1 day ago</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-title">Project "Climate Analysis" milestone reached</div>
+              <div class="activity-meta">3 days ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Research Section -->
+      <div class="content-section" id="research">
+        <h1>My Research Projects</h1>
+        <p>Manage and track your ongoing research projects</p>
+        
+        <div class="quick-actions">
+          <button class="action-btn" onclick="openModal('newProjectModal')">Create New Project</button>
+          <button class="action-btn secondary" onclick="openModal('importProjectModal')">Import Project</button>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Project Name</th>
+              <th>Status</th>
+              <th>Progress</th>
+              <th>Last Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>AI in Healthcare Research</td>
+              <td><span class="status-badge status-active">Active</span></td>
+              <td>75%</td>
+              <td>Today</td>
+              <td>
+                <button class="action-btn" style="padding: 0.5rem 1rem; font-size: 0.8rem;">View</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Climate Change Analysis</td>
+              <td><span class="status-badge status-pending">Pending Review</span></td>
+              <td>90%</td>
+              <td>Yesterday</td>
+              <td>
+                <button class="action-btn" style="padding: 0.5rem 1rem; font-size: 0.8rem;">View</button>
+              </td>
+            </tr>
+            <tr>
+              <td>Social Media Impact Study</td>
+              <td><span class="status-badge status-completed">Completed</span></td>
+              <td>100%</td>
+              <td>1 week ago</td>
+              <td>
+                <button class="action-btn" style="padding: 0.5rem 1rem; font-size: 0.8rem;">View</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Collaboration Section -->
+      <div class="content-section" id="collaboration">
+        <h1>Research Collaboration</h1>
+        <p>Connect with other researchers and work together</p>
+        
+        <div class="quick-actions">
+          <button class="action-btn" onclick="openModal('collaborateModal')">Find Collaborators</button>
+          <button class="action-btn secondary" onclick="openModal('inviteModal')">Send Invitation</button>
+        </div>
+
+        <h2>Current Collaborations</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Dr. Sarah Johnson</h3>
+            <p>AI Research Specialist<br>Working on: Healthcare AI Project</p>
+          </div>
+          <div class="stat-card">
+            <h3>Prof. Michael Chen</h3>
+            <p>Data Science Professor<br>Working on: Climate Analysis</p>
+          </div>
+          <div class="stat-card">
+            <h3>Research Team Alpha</h3>
+            <p>5 Members<br>Working on: Social Media Impact</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resources Section -->
+      <div class="content-section" id="resources">
+        <h1>Research Resources</h1>
+        <p>Access databases, papers, and research tools</p>
+        
+        <div class="quick-actions">
+          <button class="action-btn" onclick="openModal('searchModal')">Search Literature</button>
+          <button class="action-btn secondary" onclick="openModal('toolsModal')">Research Tools</button>
+          <button class="action-btn" onclick="openModal('databaseModal')">Access Databases</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>📄 Academic Papers</h3>
+            <p>Access to 50,000+ peer-reviewed papers</p>
+          </div>
+          <div class="stat-card">
+            <h3>🔧 Research Tools</h3>
+            <p>Statistical analysis and visualization tools</p>
+          </div>
+          <div class="stat-card">
+            <h3>📊 Datasets</h3>
+            <p>Public and institutional datasets</p>
+          </div>
+          <div class="stat-card">
+            <h3>📚 Libraries</h3>
+            <p>Connected to university libraries</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Section -->
+      <div class="content-section" id="analytics">
+        <h1>Research Analytics</h1>
+        <p>Track your research performance and impact</p>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>156</h3>
+            <p>Total Publications</p>
+          </div>
+          <div class="stat-card">
+            <h3>2,341</h3>
+            <p>Total Citations</p>
+          </div>
+          <div class="stat-card">
+            <h3>15.0</h3>
+            <p>H-Index</p>
+          </div>
+          <div class="stat-card">
+            <h3>89%</h3>
+            <p>Collaboration Rate</p>
+          </div>
+        </div>
+
+        <div class="recent-section">
+          <h2>📊 Performance Trends</h2>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-title">Citation count increased by 23% this month</div>
+              <div class="activity-meta">Monthly Report</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-title">New collaborations: 3 researchers joined your network</div>
+              <div class="activity-meta">Network Analysis</div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-title">Research output: 2 papers published this quarter</div>
+              <div class="activity-meta">Quarterly Report</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Section -->
+      <div class="content-section" id="profile">
+        <h1>My Profile</h1>
+        <p>Manage your account settings and preferences</p>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Personal Information</h3>
+            <p><strong>Name:</strong> <span id="profileName">John Doe</span><br>
+               <strong>Email:</strong> <span id="profileEmail">john.doe@cit.edu</span><br>
+               <strong>Role:</strong> <span id="profileRole">Student</span></p>
+          </div>
+          <div class="stat-card">
+            <h3>Account Settings</h3>
+            <p><strong>Member since:</strong> January 2024<br>
+               <strong>Last login:</strong> Today<br>
+               <strong>Status:</strong> Active</p>
+          </div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="action-btn" onclick="openModal('editProfileModal')">Edit Profile</button>
+          <button class="action-btn secondary" onclick="openModal('changePasswordModal')">Change Password</button>
+          <button class="action-btn" onclick="openModal('preferencesModal')">Preferences</button>
+        </div>
+      </div>
+
+      <!-- Admin Section -->
+      <div class="content-section" id="admin">
+        <h1>Admin Panel</h1>
+        <p>System administration and user management</p>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>1,247</h3>
+            <p>Total Users</p>
+          </div>
+          <div class="stat-card">
+            <h3>89</h3>
+            <p>Active Projects</p>
+          </div>
+          <div class="stat-card">
+            <h3>523</h3>
+            <p>Publications</p>
+          </div>
+          <div class="stat-card">
+            <h3>99.2%</h3>
+            <p>System Uptime</p>
+          </div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="action-btn" onclick="openModal('userManagementModal')">Manage Users</button>
+          <button class="action-btn secondary" onclick="openModal('systemSettingsModal')">System Settings</button>
+          <button class="action-btn" onclick="openModal('reportsModal')">Generate Reports</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal" id="newProjectModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('newProjectModal')">&times;</span>
+      <h2>Create New Project</h2>
+      <form>
+        <div class="form-group">
+          <label>Project Title</label>
+          <input type="text" placeholder="Enter project title" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea placeholder="Describe your research project"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Research Category</label>
+          <select>
+            <option>Select category</option>
+            <option>Computer Science</option>
+            <option>Medicine</option>
+            <option>Environmental Science</option>
+            <option>Social Sciences</option>
+            <option>Engineering</option>
+          </select>
+        </div>
+        <button type="submit" class="submit-btn">Create Project</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="collaborateModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('collaborateModal')">&times;</span>
+      <h2>Find Collaborators</h2>
+      <form>
+        <div class="form-group">
+          <label>Research Area</label>
+          <input type="text" placeholder="e.g., Machine Learning, Healthcare">
+        </div>
+        <div class="form-group">
+          <label>Institution</label>
+          <input type="text" placeholder="University or organization">
+        </div>
+        <div class="form-group">
+          <label>Experience Level</label>
+          <select>
+            <option>Any level</option>
+            <option>Student</option>
+            <option>Postgraduate</option>
+            <option>Faculty</option>
+            <option>Industry Professional</option>
+          </select>
+        </div>
+        <button type="submit" class="submit-btn">Search Collaborators</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="editProfileModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal('editProfileModal')">&times;</span>
+      <h2>Edit Profile</h2>
+      <form>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" value="John Doe">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" value="john.doe@cit.edu">
+        </div>
+        <div class="form-group">
+          <label>Bio</label>
+          <textarea placeholder="Tell us about your research interests"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Research Interests</label>
+          <input type="text" placeholder="e.g., AI, Machine Learning, Data Science">
+        </div>
+        <button type="submit" class="submit-btn">Update Profile</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="dashboard-script.js"></script>
+</body>
+</html>
