@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Sign Up</title>
+  <link rel="stylesheet" href="{% static 'ConsultApp/style.css'%}">
+</head>
+<body>
+  <div class="container" id="container">
+
+    <!-- Sign Up Container -->
+    <div class="form-container sign-up-container">
+      <!-- Role Selection Step -->
+      <div id="role-step" class="overlay-step">
+        <h1>Select your role</h1>
+        <div class="role-buttons">
+          <button onclick="showForm('student')">Student</button>
+          <button onclick="showForm('consultant')">Consultant</button>
+          <button onclick="showForm('admin')">Admin</button>
+        </div>
+      </div>
+
+      <!-- Register Form -->
+      <form method="POST" action="{% url 'login_register' %}" id="register-form">
+        {% csrf_token %}
+        <h2 id="role-title">Register</h2>
+
+        <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
+        <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
+        <input type="text" id="username" name="username" placeholder="Username" required>
+        <input type="email" id="email" name="email" placeholder="Email" required>
+        
+        <div id="workplace-field" class="hidden">
+          <input type="text" id="workplace" name="workplace" placeholder="Workplace">
+        </div>
+        
+         <div class="password-wrapper">
+          <input type="password" id="password" name="password" placeholder="Password" required>
+          <span class="toggle-password" id="toggleRegisterPassword">✅</span>
+        </div>
+
+        <p class="already-account">Already have an account? 
+          <a href="#" onclick="signInRedirect()">Sign In</a>
+        </p>
+
+        <input type="hidden" id="role" name="role">
+
+        
+
+        <button type="submit">Register</button>
+        <button type="button" onclick="backToRole()">Back</button>
+      </form>
+    </div>
+
+    <!-- Sign In Container -->
+    <div class="form-container sign-in-container">
+      <form method="POST">
+        {% csrf_token %}
+        <h1> Welcome back, Wildcat!</h1>
+        <p>Ready to continue your research journey?</p>
+        <input type="email" id="loginEmail" name="email" placeholder="Email" required>
+    
+        <div class="password-wrapper">
+          <input type="password" id="loginPassword" name="password" placeholder="Password" required>
+          <span class="toggle-password" id="toggleSignInPassword">✅</span>
+        </div>
+
+        <button type="submit">Sign In</button>
+
+        <p class="no-account">Don't have an account? 
+          <a href="#" onclick="container.classList.add('right-panel-active')">Sign Up</a>
+        </p>
+      </form>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay-container">
+      <div class="overlay">
+        <div class="overlay-panel overlay-left">
+          <h1>Welcome Back!</h1>
+          <p>Login with your institutional account</p>
+          <button class="ghost" id="signIn">Sign In</button>
+        </div>
+        <div class="overlay-panel overlay-right">
+          <img src="{% static 'ConsultApp/Logo-Title.png'%}" alt="ResearchMate Logo">
+          <p>Guiding Teknoys to research success, one connection at a time.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'ConsultApp/script.js'%}"></script>
+</body>
+</html> 
