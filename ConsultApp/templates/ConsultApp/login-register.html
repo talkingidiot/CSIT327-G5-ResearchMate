@@ -16,16 +16,22 @@
       <div id="role-step" class="overlay-step">
         <h1>Select your role</h1>
         <div class="role-buttons">
-          <button onclick="showForm('student')">Student</button>
-          <button onclick="showForm('consultant')">Consultant</button>
-          <button onclick="showForm('admin')">Admin</button>
+          <button type="button" onclick="showForm('student')">Student</button>
+          <button type="button" onclick="showForm('consultant')">Consultant</button>
+          <button type="button" onclick="showForm('admin')">Admin</button>
         </div>
       </div>
 
       <!-- Register Form -->
-      <form method="POST" action="{% url 'login_register' %}" id="register-form">
+      <form method="POST" action="{% url 'register_user' %}" id="register-form">
         {% csrf_token %}
         <h2 id="role-title">Register</h2>
+
+        {% if messages %}
+          {% for message in messages %}
+            <p style="color:red;">{{ message }}</p>
+          {% endfor %}
+        {% endif %}
 
         <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
         <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
@@ -36,9 +42,9 @@
           <input type="text" id="workplace" name="workplace" placeholder="Workplace">
         </div>
         
-         <div class="password-wrapper">
-          <input type="password" id="password" name="password" placeholder="Password" required>
-          <span class="toggle-password" id="toggleRegisterPassword">✅</span>
+        <div class="password-wrapper">
+          <input type="password" id="registerPassword" name="password" placeholder="Password" required>
+          <span class="toggle-password" id="toggleRegiserPassword">✅</span>
         </div>
 
         <p class="already-account">Already have an account? 
@@ -47,8 +53,6 @@
 
         <input type="hidden" id="role" name="role">
 
-        
-
         <button type="submit">Register</button>
         <button type="button" onclick="backToRole()">Back</button>
       </form>
@@ -56,15 +60,21 @@
 
     <!-- Sign In Container -->
     <div class="form-container sign-in-container">
-      <form method="POST">
+      <form method="POST" action="{% url 'login_user' %}">
         {% csrf_token %}
         <h1> Welcome back, Wildcat!</h1>
         <p>Ready to continue your research journey?</p>
+
+        {% if messages %}
+          {% for message in messages %}
+            <p style="color:red;">{{ message }}</p>
+          {% endfor %}
+        {% endif %}
+
         <input type="email" id="loginEmail" name="email" placeholder="Email" required>
-    
         <div class="password-wrapper">
           <input type="password" id="loginPassword" name="password" placeholder="Password" required>
-          <span class="toggle-password" id="toggleSignInPassword">✅</span>
+          <span class="toggle-password" id="toggleLoginPassword">✅</span>
         </div>
 
         <button type="submit">Sign In</button>
@@ -93,4 +103,4 @@
 
   <script src="{% static 'ConsultApp/script.js'%}"></script>
 </body>
-</html> 
+</html>

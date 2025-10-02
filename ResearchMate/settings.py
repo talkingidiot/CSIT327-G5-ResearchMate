@@ -13,8 +13,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-import dj_database_url
 from urllib.parse import urlparse
+import dj_database_url
+
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,9 +80,9 @@ WSGI_APPLICATION = 'ResearchMate.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
+        default="postgresql://postgres:JianMarc0401@db.vsgimcfcfurdxvsogcrp.supabase.co:5432/postgres?sslmode=require",
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=True,
     )
 }
     

@@ -68,124 +68,33 @@ function signInRedirect() {
 }
 
 /* Toggle Register Password Visibility */
-const passwordField = document.getElementById('password');
+const registerPassword = document.getElementById('registerPassword');
 const toggleRegisterPassword = document.getElementById('toggleRegisterPassword');
 
-if (toggleRegisterPassword && passwordField) {
+if (toggleRegisterPassword && registerPassword) {
   toggleRegisterPassword.addEventListener('click', () => {
-    if (passwordField.type === 'password') {
-      passwordField.type = 'text';
+    if (registerPassword.type === 'password') {
+      registerPassword.type = 'text';
       toggleRegisterPassword.textContent = '❌';
     } else {
-      passwordField.type = 'password';
+      registerPassword.type = 'password';
       toggleRegisterPassword.textContent = '✅';
     }
   });
 }
 
-/* Toggle Sign-In Password Visibility */
-const signinPassword = document.getElementById('signinPassword');
-const toggleSignInPassword = document.getElementById('toggleSignInPassword');
 
-if (toggleSignInPassword && signinPassword) {
-  toggleSignInPassword.addEventListener('click', () => {
-    if (signinPassword.type === 'password') {
-      signinPassword.type = 'text';
-      toggleSignInPassword.textContent = '❌';
+const loginPassword = document.getElementById('loginPassword');
+const toggleLoginPassword = document.getElementById('toggleLoginPassword');
+
+if (toggleLoginPassword && loginPassword) {
+  toggleLoginPassword.addEventListener('click', () => {
+    if (loginPassword.type === 'password') {
+      loginPassword.type = 'text';
+      toggleLoginPassword.textContent = '❌';
     } else {
-      signinPassword.type = 'password';
-      toggleSignInPassword.textContent = '✅';
+      loginPassword.type = 'password';
+      toggleLoginPassword.textContent = '✅';
     }
   });
 }
-
-/* Handle login redirect based on stored role */
-const loginForm = document.getElementById("login-form");
-if (loginForm) {
-  loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const data = {
-      email: document.getElementById("loginEmail").value,
-      password: document.getElementById("loginPassword").value,
-    };
-
-    try {
-      const response = await fetch("{% url 'login_user' %}", {   // ✅ correct
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCSRFToken(),
-            "X-Requested-With": "XMLHttpRequest"   // ✅ add this since your view checks for AJAX
-          },
-          body: JSON.stringify(data),
-      });
-
-
-      const result = await response.json();
-      if (result.role === "student") {
-        window.location.href = "{% url 'student_dashboard' %}";
-      } else if (result.role === "consultant") {
-          window.location.href = "{% url 'consultant_dashboard' %}";
-      } else if (result.role === "admin") {
-          window.location.href = "{% url 'admin_dashboard' %}";
-      }
-
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong. Please try again.");
-    }
-  });
-}
-
-
-/* Helper: Get CSRF Token (for Django POST requests) */
-function getCSRFToken() {
-  const cookieValue = document.cookie
-    .split('; ')
-    .find(row => row.startsWith('csrftoken='));
-  return cookieValue ? cookieValue.split('=')[1] : '';
-}
-
-/* Handle Registration Form Submit */
-const registerForm = document.getElementById("register-form");
-if (registerForm) {
-  registerForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const data = {
-      first_name: document.getElementById("first_name").value,
-      last_name: document.getElementById("last_name").value,
-      username: document.getElementById("username").value,
-      email: document.getElementById("email").value,
-      password: document.getElementById("password").value,
-      role: document.getElementById("role").value,
-      workplace: document.getElementById("workplace")?.value || "",
-    };
-
-    try {
-      const response = await fetch("/register/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCSRFToken(),
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        alert(result.message);
-        // 👇 Switch to sign-in panel
-        container.classList.remove("right-panel-active");
-      } else {
-        alert(result.error || "Registration failed");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Something went wrong. Please try again.");
-    }
-  });
-}
-
