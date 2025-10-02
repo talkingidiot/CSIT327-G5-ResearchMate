@@ -1,6 +1,4 @@
-import json
 from pyexpat.errors import messages
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login, get_user_model
@@ -17,19 +15,16 @@ def login_register_view(request):
 
 @csrf_exempt
 def register_user(request):
-    """Handle user registration (AJAX POST)."""
     if request.method == "POST":
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        role = request.POST.get("role")
+        workplace = request.POST.get("workplace", "")
+
         try:
-            data = json.loads(request.body)
-
-            first_name = data.get("first_name")
-            last_name = data.get("last_name")
-            username = data.get("username")
-            email = data.get("email")
-            password = data.get("password")
-            role = data.get("role")
-            workplace = data.get("workplace", "")
-
             # Create user
             user = User(
                 first_name=first_name,
@@ -41,7 +36,7 @@ def register_user(request):
                 password=make_password(password),
             )
 
-            # Grant admin privileges
+            # Admin privileges if role is admin
             if role == "admin":
                 user.is_staff = True
                 user.is_superuser = True
@@ -57,12 +52,14 @@ def register_user(request):
                     availability="",
                 )
 
-            return JsonResponse({"message": "Registration successful!"}, status=201)
+            messages.success(request, "Registration successful! Please log in.")
+            return redirect("login_user")
 
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            messages.error(request, f"Error: {str(e)}")
+            return redirect("register_user")
 
-    return JsonResponse({"error": "Invalid request method"}, status=400)
+    return render(request, "ConsultApp/login-register.html")
 
 @csrf_exempt
 def login_user(request):
@@ -73,31 +70,31 @@ def login_user(request):
         try:
             user_obj = User.objects.get(email=email)
         except User.DoesNotExist:
-            return JsonResponse({"error": "Invalid email or password"}, status=400)
+            messages.error(request, "Invalid email or password")
+            return redirect("login_user")  # reload form with error
 
         user = authenticate(username=user_obj.username, password=password)
-        if user:
-            login(request, user)
-            role = getattr(user, "role", "student")
-            return redirect(f"{role}_dashboard")
-        else:
-            return JsonResponse({"error": "Invalid email or password"}, status=400)
+        return redirect(f"dashboard")
 
     return render(request, "ConsultApp/login-register.html")
 
-# 🔹 Dashboards
-def admin_dashboard_view(request):
-    return render(request, "ConsultApp/admin-dashboard.html")
+
+# # 🔹 Dashboards
+# def admin_dashboard_view(request):
+#     return render(request, "ConsultApp/admin-dashboard.html")
 
 
-def student_dashboard_view(request):
-    return render(request, "ConsultApp/student-dashboard.html")
+# def student_dashboard_view(request):
+#     return render(request, "ConsultApp/student-dashboard.html")
 
 
-def consultant_dashboard_view(request):
-    return render(request, "ConsultApp/consultant-dashboard.html")
+# def consultant_dashboard_view(request):
+#     return render(request, "ConsultApp/consultant-dashboard.html")
 
 
 # 🔹 Consultant Verification
 def consultant_verification_view(request):
     return render(request, "ConsultApp/consultant-verification.html")
+
+def dashboard_view(request):
+    return render(request, "ConsultApp/dashboard.html")
