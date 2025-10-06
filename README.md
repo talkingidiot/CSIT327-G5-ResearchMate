@@ -1,5 +1,6 @@
 #
 **ResearchMate** – Find Expert Research Consultants
+
 ResearchMate is a university-exclusive web platform designed to connect students with verified research consultants. It provides the process of finding qualified mentors by allowing users to search, filter, and communicate with consultants based on expertise, availability, and department. The system also includes an admin dashboard for verification, moderation, and quality control—enhancing trust, accessibility, and academic collaboration.
 
 **Tech Stack:**
