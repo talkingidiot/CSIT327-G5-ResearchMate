@@ -1,0 +1,53 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="{% static 'ConsultApp/dashboard.css'%}">
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="{% static 'ConsultApp/Logo-Title.png'%}" alt="ResearchMate Logo">
+      </div>
+      <ul class="menu">
+        <li>🏠 Home</li>
+        <li>📘 Manage Users</li>
+        <li>⚙️ Settings</li>
+        <li>📊 Reports</li>
+        <li>🚪 Logout</li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <h1>Welcome back, <span id="adminName">Admin</span>!</h1>
+        <p>System overview and management</p>
+      </header>
+
+      <section class="stats">
+        <div class="card purple">
+          <h2>120</h2>
+          <p>Registered Students</p>
+        </div>
+        <div class="card blue">
+          <h2>25</h2>
+          <p>Registered Consultants</p>
+        </div>
+        <div class="card green">
+          <h2>50</h2>
+          <p>Total Consultations</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById("adminName").textContent =
+      localStorage.getItem("fullName") || "Admin";
+  </script>
+</body>
+</html>
