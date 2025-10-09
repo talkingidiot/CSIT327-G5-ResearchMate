@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consultant — Appointments</title>
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo"><img src="ResearchMate-logo-title.png" alt="ResearchMate"></div>
+    <ul class="menu">
+      <li data-link="consultant-dashboard.html">🏠 Dashboard</li>
+      <li data-link="consultant-profile.html">👤 My Profile</li>
+      <li data-link="consultant-students.html">🧑‍🎓 Assigned Students</li>
+      <li class="active" data-link="consultant-appointments.html">📅 Appointments</li>
+    </ul>
+    <button class="logout-btn">Logout</button>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="content-wrap">
+    <div class="hero">
+      <div class="left">
+        <span class="date">📅 October 2, 2025</span>
+        <h1>Appointments</h1>
+        <p>Check upcoming consultations with your students.</p>
+      </div>
+      <div class="brand">ResearchMate</div>
+    </div>
+
+    <div class="main-grid">
+      <!-- Appointment Cards -->
+      <div class="appointment-card">
+        <img src="student1.png" alt="Student">
+        <h3>Maria Santos</h3>
+        <p>BSIT 3A</p>
+        <p>Topic: AI in Education</p>
+        <p>Date: Oct 5, 2025</p>
+        <p>Time: 9:00 AM</p>
+        <button class="btn-primary">View Details</button>
+      </div>
+
+      <div class="appointment-card">
+        <img src="student2.png" alt="Student">
+        <h3>Carlos Dela Peña</h3>
+        <p>BSIT 3B</p>
+        <p>Topic: Cybersecurity</p>
+        <p>Date: Oct 6, 2025</p>
+        <p>Time: 2:00 PM</p>
+        <button class="btn-primary">View Details</button>
+      </div>
+
+      <div class="appointment-card">
+        <img src="student3.png" alt="Student">
+        <h3>Juan Dela Cruz</h3>
+        <p>BSIT 3C</p>
+        <p>Topic: Web Development</p>
+        <p>Date: Oct 7, 2025</p>
+        <p>Time: 10:00 AM</p>
+        <button class="btn-primary">View Details</button>
+      </div>
+
+      <div class="appointment-card">
+        <img src="student4.png" alt="Student">
+        <h3>Angela Reyes</h3>
+        <p>BSIT 3D</p>
+        <p>Topic: Data Science</p>
+        <p>Date: Oct 8, 2025</p>
+        <p>Time: 1:00 PM</p>
+        <button class="btn-primary">View Details</button>
+      </div>
+
+      <!-- Add more appointment cards as needed -->
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.menu li').forEach(item => {
+    if(item.getAttribute('data-link') === window.location.pathname.split("/").pop()){
+      item.classList.add('active');
+    } else { item.classList.remove('active'); }
+    item.addEventListener('click', () => {
+      const link = item.getAttribute('data-link');
+      if(link) window.location.href = link;
+    });
+  });
+
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    btn.addEventListener('click', () => { window.location.href='login-register.html'; });
+  });
+</script>
+</body>
+</html>

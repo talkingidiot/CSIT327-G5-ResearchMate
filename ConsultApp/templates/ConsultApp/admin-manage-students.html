@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ResearchMate — Manage Students</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo"><img src="ResearchMate-logo-title.png" alt="ResearchMate"></div>
+      <ul class="menu">
+        <li data-link="admin-dashboard.html">🏠 Dashboard</li>
+        <li class="active" data-link="admin-manage-students.html">👥 Manage Students</li>
+        <li data-link="admin-manage-consultants.html">👩‍🏫 Manage Consultants</li>
+        <li data-link="admin-reports.html">📊 Reports</li>
+        <li data-link="admin-profile-management.html">👤 Profile Management</li>
+      </ul>
+      <button class="logout-btn">Logout</button>
+    </aside>
+
+    <!-- Main content -->
+    <div class="content-wrap">
+      <div class="hero">
+        <div class="left">
+          <span class="date">📅 October 2, 2025</span>
+          <h1>Manage Students</h1>
+          <p>View and manage all registered students.</p>
+        </div>
+        <div class="brand">ResearchMate</div>
+      </div>
+
+      <div class="main-grid">
+        <div>
+          <div class="card consultants-section">
+            <h2>Student List</h2>
+            <div class="consultants-grid">
+              <div class="consultant-card">
+                <h4>Danise Catamco</h4>
+                <p>BSIT, 3rd Year</p>
+                <p>Email: dajit@cit.edu</p>
+              </div>
+              <div class="consultant-card">
+                <h4>Juan Dela Cruz</h4>
+                <p>BSIT, 2nd Year</p>
+                <p>Email: juan@cit.edu</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Navigation redirect
+  document.querySelectorAll('.menu li').forEach(item => {
+    item.addEventListener('click', () => {
+      const link = item.getAttribute('data-link');
+      if(link) window.location.href = link;
+    });
+  });
+
+  // Logout functionality
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    btn.addEventListener('click', () => window.location.href='login-register.html');
+  });
+</script>
+</body>
+</html>

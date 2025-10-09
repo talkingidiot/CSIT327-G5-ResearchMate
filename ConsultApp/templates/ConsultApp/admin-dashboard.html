@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ResearchMate — Admin Dashboard</title>
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo"><img src="ResearchMate-logo-title.png" alt="ResearchMate"></div>
+    <ul class="menu">
+      <li class="active" data-link="admin-dashboard.html">🏠 Dashboard</li>
+      <li data-link="admin-manage-students.html">👥 Manage Students</li>
+      <li data-link="admin-manage-consultants.html">👩‍🏫 Manage Consultants</li>
+      <li data-link="admin-reports.html">📊 Reports</li>
+      <li data-link="admin-profile-management.html">👤 Profile Management</li>
+    </ul>
+    <button class="logout-btn">Logout</button>
+  </aside>
+
+  <div class="content-wrap">
+    <div class="hero">
+      <div class="left">
+        <span class="date">📅 October 2, 2025</span>
+        <h1>Welcome back, <span id="adminNameDisplay">Admin User</span>!</h1>
+        <p>Monitor the platform and manage users</p>
+      </div>
+      <div class="brand">ResearchMate</div>
+    </div>
+
+    <div class="main-grid">
+      <div>
+        <div class="card overview-card">
+          <h2>📊 System Overview</h2>
+          <div class="stats-grid">
+            <div class="stat">
+              <h4>Total Students</h4>
+              <div class="num">120</div>
+            </div>
+            <div class="stat">
+              <h4>Total Consultants</h4>
+              <div class="num">25</div>
+            </div>
+            <div class="stat">
+              <h4>Active Bookings</h4>
+              <div class="num">18</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card consultants-section">
+          <h2>📝 Consultant Verification Requests</h2>
+          <div id="verificationRequests">
+            <p>No pending requests</p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="right-column">
+        <div class="card profile-card">
+          <div class="profile-top">
+            <img src="admin.png" alt="admin" class="profile-pic">
+            <div class="info">
+              <p><strong id="adminNameSidebar">Admin User</strong></p>
+              <p style="color:#777">System Administrator</p>
+            </div>
+          </div>
+          <p><strong>Email:</strong> <span id="adminEmailSidebar">admin@cit.edu</span></p>
+          <p><strong>Contact:</strong> <span id="adminContactSidebar">N/A</span></p>
+          <div style="margin-top:12px;">
+            <button class="btn-primary" style="width:100%;" onclick="goToProfile()">Edit Info</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<script>
+  function goToProfile(){ window.location.href = 'admin-profile-management.html'; }
+
+  // Sidebar navigation
+  document.querySelectorAll('.menu li').forEach(item => {
+    item.addEventListener('click', () => {
+      const link = item.getAttribute('data-link');
+      if(link) window.location.href = link;
+    });
+  });
+
+  // Logout
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    btn.addEventListener('click', () => window.location.href='login-register.html');
+  });
+
+  // Display admin info from localStorage
+  const name = localStorage.getItem('adminName') || 'Admin User';
+  const email = localStorage.getItem('adminEmail') || 'admin@cit.edu';
+  const contact = localStorage.getItem('adminContact') || 'N/A';
+  document.getElementById('adminNameDisplay').textContent = name;
+  document.getElementById('adminNameSidebar').textContent = name;
+  document.getElementById('adminEmailSidebar').textContent = email;
+  document.getElementById('adminContactSidebar').textContent = contact;
+
+  // Display verification requests
+  const container = document.getElementById("verificationRequests");
+  const requests = JSON.parse(localStorage.getItem("verificationRequests")) || [];
+  if (requests.length > 0) {
+    container.innerHTML = "";
+    requests.forEach((req, index) => {
+      const div = document.createElement("div");
+      div.classList.add("rem-item");
+      div.innerHTML = `
+        <p><strong>${req.fullName}</strong> — ${req.expertise}</p>
+        <p>📧 ${req.contact}</p>
+        <small>Qualification: ${req.qualification}</small>
+        <br>
+        <button onclick="approve(${index})" class="btn-primary">Approve</button>
+        <button onclick="reject(${index})" style="margin-left:8px;">Reject</button>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function approve(i){
+    let reqs = JSON.parse(localStorage.getItem("verificationRequests")) || [];
+    let consultant = reqs[i];
+    localStorage.setItem("verifiedConsultant", JSON.stringify(consultant));
+    reqs.splice(i,1);
+    localStorage.setItem("verificationRequests", JSON.stringify(reqs));
+    alert("Consultant verified!");
+    location.reload();
+  }
+
+  function reject(i){
+    let reqs = JSON.parse(localStorage.getItem("verificationRequests")) || [];
+    reqs.splice(i,1);
+    localStorage.setItem("verificationRequests", JSON.stringify(reqs));
+    alert("Request rejected.");
+    location.reload();
+  }
+</script>
+</body>
+</html>

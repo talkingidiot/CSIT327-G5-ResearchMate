@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ResearchMate — Bookings</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Main navigation sidebar">
+      <div class="logo">
+        <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
+      </div>
+
+      <ul class="menu">
+        <li><a href="student-dashboard.html">🏠 Dashboard</a></li>
+        <li><a href="student-profile.html">👤 Student Profile</a></li>
+        <li class="active"><a href="bookings.html">📅 Bookings</a></li>
+        <li><a href="student-history.html">📜 History</a></li>
+      </ul>
+
+      <button class="logout-btn">Logout</button>
+    </aside>
+
+    <!-- Main content -->
+    <div class="content-wrap">
+      <div class="hero">
+        <div class="left">
+          <span class="date">📅 October 9, 2025</span>
+          <h1>Bookings</h1>
+          <p>View and manage your upcoming bookings.</p>
+        </div>
+        <div class="brand">ResearchMate</div>
+      </div>
+
+      <!-- Bookings Grid -->
+      <div class="main-grid">
+        <div class="right-column">
+          <!-- Booking Card 1 -->
+          <div class="booking-card">
+            <h3 class="booking-student">Maria Santos</h3>
+            <p class="booking-course">Data Analyst</p>
+            <p><strong>Purpose:</strong>Thesis Review</p>
+            <p><strong>Date:</strong> Oct 10, 2025</p>
+            <button class="btn-primary">Details</button>
+          </div>
+
+          <!-- Booking Card 2 -->
+          <div class="booking-card">
+            <h3 class="booking-student">Juan Dela Cruz</h3>
+            <p class="booking-course">Psychologist</p>
+            <p><strong>Purpose:</strong>Personal Guidance</p>
+            <p><strong>Date:</strong> Oct 12, 2025</p>
+            <button class="btn-primary">Details</button>
+          </div>
+
+          <!-- Booking Card 3 -->
+          <div class="booking-card">
+            <h3 class="booking-student">Ana Reyes</h3>
+            <p class="booking-course">Data Analyst</p>
+            <p><strong>Purpose:</strong>Thesis Review</p>
+            <p><strong>Date:</strong> Oct 15, 2025</p>
+            <button class="btn-primary">Details</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Navigation redirect
+  document.querySelectorAll('.menu li').forEach(item => {
+    item.addEventListener('click', () => {
+      const link = item.getAttribute('data-link');
+      if(link) window.location.href = link;
+    });
+  });
+
+  // Logout functionality
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    btn.addEventListener('click', () => window.location.href='login-register.html');
+  });
+</script>
+</body>
+</html>

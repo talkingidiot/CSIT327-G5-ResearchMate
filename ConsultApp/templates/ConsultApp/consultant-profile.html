@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ResearchMate — Consultant Profile</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Main navigation sidebar">
+      <div class="logo">
+        <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
+      </div>
+
+      <ul class="menu">
+        <li><a href="consultant-dashboard.html">🏠 Dashboard</a></li>
+        <li class="active"><a href="consultant-profile.html">👤 My Profile</a></li>
+        <li><a href="consultant-students.html">🧑‍🎓 Assigned Students</a></li>
+        <li><a href="consultant-appointments.html">📅 Appointments</a></li>
+      </ul>
+
+      <button class="logout-btn">Logout</button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="content-wrap">
+      <!-- HERO -->
+      <div class="hero">
+        <div class="left">
+          <span class="date">📅 October 2, 2025</span>
+          <h1>Edit Your Profile</h1>
+          <p>Update your information to be displayed in your dashboard</p>
+        </div>
+        <div class="brand">ResearchMate</div>
+      </div>
+
+      <!-- PROFILE FORM -->
+      <div class="main-grid">
+        <div class="card profile-form-card">
+          <h2>Edit Profile</h2>
+          <form id="profileForm">
+            <div class="form-group">
+              <label for="fullName">Full Name</label>
+              <input type="text" id="fullName" placeholder="Enter full name" required>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" placeholder="Enter email" required>
+            </div>
+
+            <div class="form-group">
+              <label for="contactNumber">Contact Number</label>
+              <input type="text" id="contactNumber" placeholder="Enter contact number" required>
+            </div>
+
+            <div class="form-group">
+              <label for="expertise">Expertise</label>
+              <input type="text" id="expertise" placeholder="Enter expertise" required>
+            </div>
+
+            <button type="submit" class="btn-primary">Save Changes</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Sidebar navigation
+  document.querySelectorAll('.menu li a').forEach(item => {
+    if(item.getAttribute('href') === window.location.pathname.split("/").pop()){
+      item.parentElement.classList.add('active');
+    } else {
+      item.parentElement.classList.remove('active');
+    }
+  });
+
+  // Logout functionality
+  document.querySelector('.logout-btn').addEventListener('click', () => {
+    window.location.href='login-register.html';
+  });
+
+  // Pre-fill form from localStorage
+  const fullNameInput = document.getElementById('fullName');
+  const emailInput = document.getElementById('email');
+  const contactInput = document.getElementById('contactNumber');
+  const expertiseInput = document.getElementById('expertise');
+
+  fullNameInput.value = localStorage.getItem('consultantFullName') || '';
+  emailInput.value = localStorage.getItem('consultantEmail') || '';
+  contactInput.value = localStorage.getItem('consultantContact') || '';
+  expertiseInput.value = localStorage.getItem('consultantExpertise') || '';
+
+  // Save changes
+  document.getElementById('profileForm').addEventListener('submit', e => {
+    e.preventDefault();
+    localStorage.setItem('consultantFullName', fullNameInput.value);
+    localStorage.setItem('consultantEmail', emailInput.value);
+    localStorage.setItem('consultantContact', contactInput.value);
+    localStorage.setItem('consultantExpertise', expertiseInput.value);
+    alert('Profile updated!');
+  });
+</script>
+</body>
+</html>

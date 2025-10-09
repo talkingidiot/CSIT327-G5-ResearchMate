@@ -1,11 +1,10 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login / Sign Up</title>
-  <link rel="stylesheet" href="{% static 'ConsultApp/style.css'%}">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container" id="container">
@@ -16,70 +15,61 @@
       <div id="role-step" class="overlay-step">
         <h1>Select your role</h1>
         <div class="role-buttons">
-          <button type="button" onclick="showForm('student')">Student</button>
-          <button type="button" onclick="showForm('consultant')">Consultant</button>
-          <button type="button" onclick="showForm('admin')">Admin</button>
+          <button onclick="showForm('student')">Student</button>
+          <button onclick="showForm('consultant')">Consultant</button>
+          <button onclick="showForm('admin')">Admin</button>
         </div>
       </div>
 
       <!-- Register Form -->
-      <form method="POST" action="{% url 'register_user' %}" id="register-form">
-        {% csrf_token %}
-        <h2 id="role-title">Register</h2>
+      <form id="register-form" class="hidden">
+        <h1 id="role-title">Register</h1>
+        <input type="text" id="fullNameField" placeholder="Full Name" required>
+        <input type="email" id="emailField" placeholder="Email" required>
 
-        {% if messages %}
-          {% for message in messages %}
-            <p style="color:red;">{{ message }}</p>
-          {% endfor %}
-        {% endif %}
+        <!-- Student Info Fields -->
+        <div id="studentFields" class="hidden">
+          <input type="text" id="studentID" placeholder="Student ID">
+          <input type="text" id="course" placeholder="Course">
+          <input type="text" id="program" placeholder="Program">
+          <input type="text" id="yearLevel" placeholder="Year Level">
+        </div>
 
-        <input type="text" id="first_name" name="first_name" placeholder="First Name" required>
-        <input type="text" id="last_name" name="last_name" placeholder="Last Name" required>
-        <input type="text" id="username" name="username" placeholder="Username" required>
-        <input type="email" id="email" name="email" placeholder="Email" required>
-        
         <div id="workplace-field" class="hidden">
-          <input type="text" id="workplace" name="workplace" placeholder="Workplace">
+          <input type="text" placeholder="Workplace">
         </div>
-        
+
         <div class="password-wrapper">
-          <input type="password" id="registerPassword" name="password" placeholder="Password" required>
-          <span class="toggle-password" id="toggleRegiserPassword">✅</span>
+          <input type="password" id="passwordField" placeholder="Password" required>
+          <span class="toggle-password" id="toggleRegisterPassword">&#128065;</span>
         </div>
+
+        <input type="hidden" id="selectedRole">
 
         <p class="already-account">Already have an account? 
           <a href="#" onclick="signInRedirect()">Sign In</a>
         </p>
 
-        <input type="hidden" id="role" name="role">
-
-        <button type="submit">Register</button>
-        <button type="button" onclick="backToRole()">Back</button>
+        <button type="submit">Sign Up</button>
+        <button type="button" class="back-btn" onclick="backToRole()">Back</button>
       </form>
     </div>
 
     <!-- Sign In Container -->
     <div class="form-container sign-in-container">
-      <form method="POST" action="{% url 'login_user' %}">
-        {% csrf_token %}
+      <form onsubmit="handleLogin(event)">
         <h1> Welcome back, Wildcat!</h1>
         <p>Ready to continue your research journey?</p>
+        <input type="email" placeholder="Email" required>
 
-        {% if messages %}
-          {% for message in messages %}
-            <p style="color:red;">{{ message }}</p>
-          {% endfor %}
-        {% endif %}
-
-        <input type="email" id="loginEmail" name="email" placeholder="Email" required>
         <div class="password-wrapper">
-          <input type="password" id="loginPassword" name="password" placeholder="Password" required>
-          <span class="toggle-password" id="toggleLoginPassword">✅</span>
+          <input type="password" id="signinPassword" placeholder="Password" required>
+          <span class="toggle-password" id="toggleSignInPassword">&#128065;</span>
         </div>
 
         <button type="submit">Sign In</button>
 
-        <p class="no-account">Don't have an account? 
+        <p class="no-account">Don’t have an account? 
           <a href="#" onclick="container.classList.add('right-panel-active')">Sign Up</a>
         </p>
       </form>
@@ -94,13 +84,13 @@
           <button class="ghost" id="signIn">Sign In</button>
         </div>
         <div class="overlay-panel overlay-right">
-          <img src="{% static 'ConsultApp/Logo-Title.png'%}" alt="ResearchMate Logo">
+          <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
           <p>Guiding Teknoys to research success, one connection at a time.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="{% static 'ConsultApp/script.js'%}"></script>
+  <script src="script.js"></script>
 </body>
 </html>

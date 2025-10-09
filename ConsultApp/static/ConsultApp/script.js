@@ -18,25 +18,19 @@ if (signInButton) {
   });
 }
 
-/* STEP 1: Show the correct registration form based on role */
+// Save role on register
 function showForm(role) {
   const roleStep = document.getElementById("role-step");
   const registerForm = document.getElementById("register-form");
   const roleTitle = document.getElementById("role-title");
-  const emailField = document.getElementById("email");
+  const emailField = document.getElementById("emailField");
   const workplaceField = document.getElementById("workplace-field");
-  const roleInput = document.getElementById("role");
+  const selectedRole = document.getElementById("selectedRole");
 
-  // Toggle visibility
   if (roleStep) roleStep.classList.add("hidden");
   if (registerForm) registerForm.classList.remove("hidden");
+  if (roleTitle) roleTitle.innerText = "Register as " + role.charAt(0).toUpperCase() + role.slice(1);
 
-  // Update title text
-  if (roleTitle) {
-    roleTitle.innerText = "Register as " + role.charAt(0).toUpperCase() + role.slice(1);
-  }
-
-  // Adjust email placeholder and workplace field
   if (emailField && workplaceField) {
     if (role === "student" || role === "admin") {
       emailField.placeholder = "Email (e.g. name@cit.edu)";
@@ -47,14 +41,12 @@ function showForm(role) {
     }
   }
 
-  // Save selected role
-  if (roleInput) {
-    roleInput.value = role;
-    localStorage.setItem("userRole", role);
+  if (selectedRole) {
+    selectedRole.value = role; // save chosen role
+    localStorage.setItem("userRole", role); // persist role for login
   }
 }
 
-/* STEP 2: Back to role selection */
 function backToRole() {
   const registerForm = document.getElementById("register-form");
   const roleStep = document.getElementById("role-step");
@@ -62,39 +54,54 @@ function backToRole() {
   if (roleStep) roleStep.classList.remove("hidden");
 }
 
-/* STEP 3: Redirect to Sign In */
 function signInRedirect() {
   container.classList.remove("right-panel-active");
 }
 
-/* Toggle Register Password Visibility */
-const registerPassword = document.getElementById('registerPassword');
+// Toggle register password
+const passwordField = document.getElementById('passwordField');
 const toggleRegisterPassword = document.getElementById('toggleRegisterPassword');
 
-if (toggleRegisterPassword && registerPassword) {
+if (toggleRegisterPassword && passwordField) {
   toggleRegisterPassword.addEventListener('click', () => {
-    if (registerPassword.type === 'password') {
-      registerPassword.type = 'text';
-      toggleRegisterPassword.textContent = '❌';
+    if (passwordField.type === 'password') {
+      passwordField.type = 'text';
+      toggleRegisterPassword.textContent = '🙈';
     } else {
-      registerPassword.type = 'password';
-      toggleRegisterPassword.textContent = '✅';
+      passwordField.type = 'password';
+      toggleRegisterPassword.textContent = '👁️';
     }
   });
 }
 
+// Toggle signin password
+const signinPassword = document.getElementById('signinPassword');
+const toggleSignInPassword = document.getElementById('toggleSignInPassword');
 
-const loginPassword = document.getElementById('loginPassword');
-const toggleLoginPassword = document.getElementById('toggleLoginPassword');
-
-if (toggleLoginPassword && loginPassword) {
-  toggleLoginPassword.addEventListener('click', () => {
-    if (loginPassword.type === 'password') {
-      loginPassword.type = 'text';
-      toggleLoginPassword.textContent = '❌';
+if (toggleSignInPassword && signinPassword) {
+  toggleSignInPassword.addEventListener('click', () => {
+    if (signinPassword.type === 'password') {
+      signinPassword.type = 'text';
+      toggleSignInPassword.textContent = '🙈';
     } else {
-      loginPassword.type = 'password';
-      toggleLoginPassword.textContent = '✅';
+      signinPassword.type = 'password';
+      toggleSignInPassword.textContent = '👁️';
     }
   });
+}
+
+// Handle login redirect based on role
+function handleLogin(event) {
+  event.preventDefault();
+  const role = localStorage.getItem("userRole");
+
+  if (role === "student") {
+    window.location.href = "student-dashboard.html";
+  } else if (role === "consultant") {
+    window.location.href = "consultant-dashboard.html";
+  } else if (role === "admin") {
+    window.location.href = "admin-dashboard.html";
+  } else {
+    alert("Please select a role when registering first.");
+  }
 }

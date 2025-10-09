@@ -1,64 +1,129 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consultant Verification</title>
-  <link rel="stylesheet" href="{% static 'ConsultApp/dashboard.css'%}">
+  <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
-  <div class="container">
+  <div class="dashboard-container">
+    <!-- Sidebar -->
     <aside class="sidebar">
       <div class="logo">
-        <img src="{% static 'ConsultApp/Logo-Title.png'%}" alt="ResearchMate Logo">
+        <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
       </div>
       <ul class="menu">
-        <li>🏠 Home</li>
-        <li>📘 Profile</li>
-        <li>⚙️ Settings</li>
-        <li>📅 Bookings</li>
-        <li>🚪 Logout</li>
+        <li data-link="consultant-dashboard.html">🏠 Dashboard</li>
+        <li class="active" data-link="consultant-verification.html">👤 Verification</li>
+        <li data-link="consultant-profile.html">📘 Profile</li>
+        <li data-link="consultant-students.html">🧑‍🎓 Students</li>
+        <li data-link="consultant-appointments.html">📅 Appointments</li>
       </ul>
+      <button class="logout-btn">Logout</button>
     </aside>
 
-    <main class="main-content">
-      <header class="header">
-        <h1>Consultant Verification</h1>
-        <p>Fill in your details to be verified and available for bookings</p>
-      </header>
-
-      <section class="tasks">
-        <div class="task-card">
-          <label for="fullName">Full Name</label>
-          <input type="text" id="fullName" placeholder="Your full name">
-
-          <label for="expertise">Expertise / Specialization</label>
-          <input type="text" id="expertise" placeholder="Your expertise">
-
-          <label for="qualification">Qualification</label>
-          <input type="text" id="qualification" placeholder="Your degree or certification">
-
-          <label for="bio">Short Bio</label>
-          <input type="text" id="bio" placeholder="Introduce yourself">
-
-          <button id="submitVerification" class="primary-btn">Submit Verification</button>
+    <!-- Main Content -->
+    <div class="content-wrap">
+      <!-- HERO -->
+      <div class="hero">
+        <div class="left">
+          <span class="date">Consultant Access</span>
+          <h1>Consultant Verification</h1>
+          <p>Fill in your details to be verified and available for bookings.</p>
         </div>
-      </section>
-    </main>
+        <div class="brand">ResearchMate</div>
+      </div>
+
+      <!-- Verification Form Card -->
+      <div class="main-grid">
+        <div class="card profile-form-card">
+          <h2>Verification Form</h2>
+          <form id="verificationForm">
+            <div class="form-group">
+              <label for="fullName">Full Name</label>
+              <input type="text" id="fullName" placeholder="Your full name" required>
+            </div>
+
+            <div class="form-group">
+              <label for="contact">Contact Number</label>
+              <input type="text" id="contact" placeholder="e.g. 09123456789" required>
+            </div>
+
+            <div class="form-group">
+              <label for="expertise">Expertise / Specialization</label>
+              <input type="text" id="expertise" placeholder="Your expertise" required>
+            </div>
+
+            <div class="form-group">
+              <label for="qualification">Qualification</label>
+              <input type="text" id="qualification" placeholder="Your degree or certification" required>
+            </div>
+
+            <div class="form-group">
+              <label for="bio">Short Bio</label>
+              <textarea id="bio" placeholder="Introduce yourself" required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="validId">Upload Valid ID</label>
+              <input type="file" id="validId" required>
+            </div>
+
+            <div class="form-group">
+              <label for="license">Upload License</label>
+              <input type="file" id="license" required>
+            </div>
+
+            <div class="form-group">
+              <label for="profilePhoto">Upload Profile Photo</label>
+              <input type="file" id="profilePhoto" required>
+            </div>
+
+            <button type="button" id="submitVerification" class="btn-primary">Submit Verification</button>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
-    document.getElementById("submitVerification").addEventListener("click", () => {
-      const fullName = document.getElementById("fullName").value.trim();
-      const expertise = document.getElementById("expertise").value.trim();
-      const qualification = document.getElementById("qualification").value.trim();
-      const bio = document.getElementById("bio").value.trim();
+    // Logout button
+    document.querySelector('.logout-btn').addEventListener('click', () => {
+      window.location.href = 'login-register.html';
+    });
 
-      if(fullName && expertise && qualification && bio){
-        alert("You are now verified as a consultant!");
-        // Redirect back to dashboard with query params
-        window.location.href = `consultant-dashboard.html?verified=true&name=${encodeURIComponent(fullName)}`;
+    // Sidebar navigation
+    document.querySelectorAll('.menu li').forEach(item => {
+      item.addEventListener('click', () => {
+        const link = item.getAttribute('data-link');
+        if(link) window.location.href = link;
+      });
+    });
+
+    // Handle verification submission
+    document.getElementById("submitVerification").addEventListener("click", () => {
+      const data = {
+        fullName: document.getElementById("fullName").value.trim(),
+        contact: document.getElementById("contact").value.trim(),
+        expertise: document.getElementById("expertise").value.trim(),
+        qualification: document.getElementById("qualification").value.trim(),
+        bio: document.getElementById("bio").value.trim()
+      };
+
+      if(data.fullName && data.contact && data.expertise && data.qualification && data.bio){
+        let requests = JSON.parse(localStorage.getItem("verificationRequests")) || [];
+        requests.push(data);
+        localStorage.setItem("verificationRequests", JSON.stringify(requests));
+        alert("Your verification request has been submitted and is pending admin approval.");
+
+        // Save basic info to localStorage for dashboard display
+        localStorage.setItem("consultantFullName", data.fullName);
+        localStorage.setItem("consultantEmail", "consultant@example.com"); // default email
+        localStorage.setItem("consultantContact", data.contact);
+        localStorage.setItem("consultantExpertise", data.expertise);
+
+        window.location.href = "consultant-dashboard.html";
       } else {
         alert("Please fill in all fields before submitting.");
       }

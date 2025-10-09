@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consultant — Assigned Students</title>
+<link rel="stylesheet" href="dashboard.css">
+<style>
+  .main-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .student-card {
+    padding: 16px;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+
+  .student-card img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-bottom: 12px;
+  }
+
+  .student-card h3 {
+    margin-bottom: 6px;
+    font-size: 1.1em;
+  }
+
+  .student-card p {
+    margin: 4px 0;
+    font-size: 0.9em;
+    color: #555;
+  }
+</style>
+</head>
+<body>
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo"><img src="ResearchMate-logo-title.png" alt="ResearchMate"></div>
+    <ul class="menu">
+      <li data-link="consultant-dashboard.html">🏠 Dashboard</li>
+      <li data-link="consultant-profile.html">👤 My Profile</li>
+      <li class="active" data-link="consultant-students.html">🧑‍🎓 Assigned Students</li>
+      <li data-link="consultant-appointments.html">📅 Appointments</li>
+    </ul>
+    <button class="logout-btn">Logout</button>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="content-wrap">
+    <div class="hero">
+      <div class="left">
+        <span class="date">📅 October 2, 2025</span>
+        <h1>Assigned Students</h1>
+        <p>View and manage students assigned to you.</p>
+      </div>
+      <div class="brand">ResearchMate</div>
+    </div>
+
+    <div class="main-grid">
+      <!-- Student Cards -->
+      <div class="student-card">
+        <img src="student1.png" alt="Student">
+        <h3>Maria Santos</h3>
+        <p>BSIT 3A</p>
+        <p>Topic: AI in Education</p>
+      </div>
+      <div class="student-card">
+        <img src="student2.png" alt="Student">
+        <h3>Carlos Dela Peña</h3>
+        <p>BSIT 3B</p>
+        <p>Topic: Cybersecurity</p>
+      </div>
+      <div class="student-card">
+        <img src="student3.png" alt="Student">
+        <h3>Juan Dela Cruz</h3>
+        <p>BSIT 3C</p>
+        <p>Topic: Web Development</p>
+      </div>
+      <div class="student-card">
+        <img src="student4.png" alt="Student">
+        <h3>Angela Reyes</h3>
+        <p>BSIT 3D</p>
+        <p>Topic: Data Science</p>
+      </div>
+      <!-- Add more students as needed -->
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.menu li').forEach(item => {
+    if(item.getAttribute('data-link') === window.location.pathname.split("/").pop()){
+      item.classList.add('active');
+    } else { item.classList.remove('active'); }
+    item.addEventListener('click', () => {
+      const link = item.getAttribute('data-link');
+      if(link) window.location.href = link;
+    });
+  });
+
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    btn.addEventListener('click', () => { window.location.href='login-register.html'; });
+  });
+</script>
+</body>
+</html>

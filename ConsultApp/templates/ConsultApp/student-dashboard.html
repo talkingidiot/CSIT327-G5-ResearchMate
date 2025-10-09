@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ResearchMate — Student Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Main navigation sidebar">
+      <div class="logo">
+        <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
+      </div>
+
+      <ul class="menu">
+        <li class="active"><a href="student-dashboard.html">🏠 Dashboard</a></li>
+        <li><a href="student-profile.html">👤 Student Profile</a></li>
+        <li><a href="bookings.html">📅 Bookings</a></li>
+        <li><a href="student-history.html">📜 History</a></li>
+      </ul>
+
+      <button class="logout-btn">Logout</button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="content-wrap">
+      <!-- HERO -->
+      <div class="hero">
+        <div class="left">
+          <h1>Welcome back, <span id="studentName">Student</span>!</h1>
+          <p>Find a research consultant and manage your bookings</p>
+        </div>
+        <div class="brand">ResearchMate</div>
+      </div>
+
+      <!-- GRID -->
+      <div class="main-grid">
+        <!-- LEFT -->
+        <div>
+          <!-- Consultant Search -->
+          <div class="card request-card">
+            <h2>Find Your Research Consultant</h2>
+            <div class="dashed">
+              <input type="text" placeholder="Search by name, subject, or expertise...">
+              <button class="btn-primary">Search</button>
+            </div>
+            <p style="color:#666;">Connect with available consultants and schedule a session.</p>
+          </div>
+
+          <!-- Booking Stats -->
+          <div class="card booking-stats">
+            <h2>Bookings Overview</h2>
+            <div class="stats-grid">
+              <div class="stat"><h4>Current Bookings</h4><div class="num">2</div></div>
+              <div class="stat"><h4>Previous Bookings</h4><div class="num">5</div></div>
+              <div class="stat"><h4>Pending Approvals</h4><div class="num">1</div></div>
+              <div class="stat"><h4>Cancelled Bookings</h4><div class="num">0</div></div>
+            </div>
+          </div>
+
+          <!-- Recommended Consultants -->
+          <div class="card consultants-section">
+            <h2>Recommended Consultants</h2>
+            <div class="consultants-grid">
+              <div class="consultant-card">
+                <img src="consultant1.png" alt="Consultant 1">
+                <h4>Prof. Ana Reyes</h4>
+                <p>Qualitative Research</p>
+              </div>
+              <div class="consultant-card">
+                <img src="consultant2.png" alt="Consultant 2">
+                <h4>Dr. Mark Villanueva</h4>
+                <p>Data Analysis</p>
+              </div>
+              <div class="consultant-card">
+                <img src="consultant3.png" alt="Consultant 3">
+                <h4>Prof. Liza Santos</h4>
+                <p>Technical Writing</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <aside class="right-column" aria-label="Student information and upcoming sessions">
+          <!-- Profile Card -->
+          <div class="card profile-card">
+            <div class="profile-top">
+              <img src="profile.png" alt="profile" class="profile-pic">
+              <div class="info">
+                <br>
+                <p><strong>Name:</strong> <span id="profileName">Student</span></p>
+                <p><strong>Email:</strong> <span id="profileEmail">email@example.com</span></p>
+                <p><strong>Department:</strong> <span id="dashboardDept"></span></p>
+                <p><strong>Program:</strong> <span id="profileProgram"></span></p>
+                <p><strong>Year Level:</strong> <span id="profileYear"></span></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upcoming Sessions Card -->
+          <div class="card upcoming-sessions">
+            <h2>Upcoming Sessions</h2>
+            <div class="rem-item"><strong>Oct 5</strong><small>Consultation with Prof. Juan Dela Cruz at 2:00 PM</small></div>
+            <div class="rem-item"><strong>Oct 8</strong><small>Group session with Prof. Maria Santos at 10:00 AM</small></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Populate student info from localStorage; show empty if not set
+  const fullName = localStorage.getItem('fullName') || '';
+  const email = localStorage.getItem('email') || '';
+  const program = localStorage.getItem('program') || '';
+  const yearLevel = localStorage.getItem('yearLevel') || '';
+
+  document.getElementById('studentName').textContent = fullName || 'Student';
+  document.getElementById('profileName').textContent = fullName || 'Student';
+  document.getElementById('profileEmail').textContent = email || 'email@example.com';
+  document.getElementById('dashboardDept').textContent = localStorage.getItem('department') || '';
+  document.getElementById('profileProgram').textContent = program;
+  document.getElementById('profileYear').textContent = yearLevel;
+
+  // Logout functionality
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      localStorage.clear(); 
+      window.location.href = 'login-register.html';
+    });
+  });
+</script>
+</body>
+</html>

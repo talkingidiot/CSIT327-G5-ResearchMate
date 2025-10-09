@@ -1,13 +1,8 @@
-* { 
-    box-sizing: border-box; 
-    margin: 0; 
-    padding: 0;
-    color: #000000; 
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     font-family: 'Arial', sans-serif;
-    background: #001f54;
+    background: #a5c7d1;   /* Smoke / dirty white background */
     height: 100vh;
     width: 100vw;
     display: flex;
@@ -16,13 +11,15 @@ body {
 }
 
 .container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 0;
-    box-shadow: none;
-    background: none;
+    background: #001f54;   /* Blue card */
+    color: #fdf5e6;        /* Cream text */
+    border-radius: 16px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+    width: 950px;          /* Made card bigger */
+    max-width: 95%;
+    min-height: 600px;     /* Taller card */
     overflow: hidden;
+    position: relative;
 }
 
 .form-container {
@@ -101,8 +98,8 @@ button.ghost { background-color: transparent; border: 2px solid #fff; }
     z-index: 100;
 }
 .overlay {
-    background: linear-gradient(to right, #001f54, #fdf5e6);
-    color: #fff;
+    background: #fdf5e6;   /* Cream for right side */
+    color: #001f54;  
     position: relative;
     height: 100%;
     width: 200%;

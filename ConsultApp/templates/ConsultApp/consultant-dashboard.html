@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ResearchMate — Consultant Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo"><img src="ResearchMate-logo-title.png" alt="ResearchMate"></div>
+      <ul class="menu">
+        <li class="active" data-link="consultant-dashboard.html">🏠 Dashboard</li>
+        <li data-link="consultant-profile.html">👤 My Profile</li>
+        <li data-link="consultant-students.html">🧑‍🎓 Assigned Students</li>
+        <li data-link="consultant-appointments.html">📅 Appointments</li>
+      </ul>
+      <button class="logout-btn">Logout</button>
+    </aside>
+
+    <!-- Main content -->
+    <div class="content-wrap">
+      <div class="hero">
+        <div class="left">
+          <span class="date">📅 October 2, 2025</span>
+          <h1>
+            Welcome back, 
+            <span id="consultantName">Consultant</span>!
+          </h1>
+          <p>Manage your students and upcoming consultations</p>
+          <button id="verifyBtn" class="btn-primary">Verify to be a Consultant</button>
+        </div>
+        <div class="brand">ResearchMate</div>
+      </div>
+
+      <div class="main-grid">
+        <div>
+          <!-- Appointments -->
+          <div class="card request-card">
+            <h2>📅 Upcoming Appointments</h2>
+            <div class="consultants-grid">
+              <div class="consultant-card">
+                <img src="student1.png" alt="Student">
+                <h4>Juan Dela Cruz</h4>
+                <p>Oct 5, 2025 — 9:00 AM</p>
+              </div>
+              <div class="consultant-card">
+                <img src="student2.png" alt="Student">
+                <h4>BSIT Group 2</h4>
+                <p>Oct 6, 2025 — 2:00 PM</p>
+              </div>
+            </div>
+            <button class="btn-primary">View All</button>
+          </div>
+
+          <!-- Assigned students -->
+          <div class="card consultants-section">
+            <h2>Assigned Students</h2>
+            <div class="consultants-grid">
+              <div class="consultant-card">
+                <img src="student1.png" alt="Student">
+                <h4>Maria Santos</h4>
+                <p>Topic: AI in Education</p>
+              </div>
+              <div class="consultant-card">
+                <img src="student2.png" alt="Student">
+                <h4>Carlos Dela Peña</h4>
+                <p>Topic: Cybersecurity</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resources -->
+          <div class="card consultants-section">
+            <h2>Helpful Resources for Consultants</h2>
+            <div class="consultants-grid">
+              <div class="consultant-card">
+                <img src="calendar.png" alt="Tool">
+                <h4>Planner</h4>
+                <p>Manage appointments & deadlines</p>
+              </div>
+              <div class="consultant-card">
+                <img src="templates.png" alt="Tool">
+                <h4>Templates</h4>
+                <p>Reports & feedback forms</p>
+              </div>
+              <div class="consultant-card">
+                <img src="knowledge.png" alt="Tool">
+                <h4>Knowledge Base</h4>
+                <p>Guidelines & best practices</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column -->
+        <aside class="right-column">
+          <div class="card profile-card">
+            <div class="profile-top">
+              <img src="consultant.png" alt="consultant" class="profile-pic">
+              <div class="info">
+                <p><strong id="profileName">Consultant</strong></p>
+                <p id="profileVerified" style="font-size:14px; color:green; margin:0;"></p>
+                <p style="color:#777">Research Consultant</p>
+              </div>
+            </div>
+            <p><strong>Email:</strong> <span id="profileEmail">consultant@example.com</span></p>
+            <p><strong>Contact Number:</strong> <span id="profileContact">N/A</span></p>
+            <p><strong>Expertise:</strong> <span id="profileExpertise">N/A</span></p>
+            <div style="margin-top:12px;">
+              <button class="btn-primary" style="width:100%;" onclick="window.location.href='consultant-profile.html'">Edit Profile</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Load consultant info from localStorage
+  const consultantInfo = {
+    fullName: localStorage.getItem('consultantFullName') || 'Consultant',
+    email: localStorage.getItem('consultantEmail') || 'consultant@example.com',
+    contact: localStorage.getItem('consultantContact') || 'N/A',
+    expertise: localStorage.getItem('consultantExpertise') || 'N/A'
+  };
+
+  // Update hero and profile card
+  document.getElementById('consultantName').textContent = consultantInfo.fullName;
+  document.getElementById('profileName').textContent = consultantInfo.fullName;
+  document.getElementById('profileEmail').textContent = consultantInfo.email;
+  document.getElementById('profileContact').textContent = consultantInfo.contact;
+  document.getElementById('profileExpertise').textContent = consultantInfo.expertise;
+
+  // Verified consultant logic
+  const verifiedConsultant = JSON.parse(localStorage.getItem("verifiedConsultant"));
+  if (verifiedConsultant) {
+    document.getElementById("verifyBtn").style.display = "none";
+    document.getElementById("profileVerified").textContent = "✅ Verified";
+  } else {
+    document.getElementById("verifyBtn").style.display = "inline-block";
+    document.getElementById("profileVerified").textContent = "";
+  }
+
+  // Redirect to verification form
+  document.getElementById("verifyBtn").addEventListener("click", () => {
+    window.location.href = "consultant-verification.html";
+  });
+
+  // Logout
+  document.querySelector('.logout-btn').addEventListener('click', () => {
+    window.location.href='login-register.html';
+  });
+
+  // Sidebar navigation
+  document.querySelectorAll('.menu li').forEach(item => {
+    if(item.getAttribute('data-link') === window.location.pathname.split("/").pop()){
+      item.classList.add('active');
+    } else { item.classList.remove('active'); }
+    item.addEventListener('click', () => {
+      const link = item.getAttribute('data-link');
+      if(link) window.location.href = link;
+    });
+  });
+</script>
+</body>
+</html>
