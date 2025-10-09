@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ResearchMate — Profile Management</title>
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo"><img src="ResearchMate-logo-title.png" alt="ResearchMate"></div>
+    <ul class="menu">
+      <li data-link="admin-dashboard.html">🏠 Dashboard</li>
+      <li data-link="admin-manage-students.html">👥 Manage Students</li>
+      <li data-link="admin-manage-consultants.html">👩‍🏫 Manage Consultants</li>
+      <li data-link="admin-reports.html">📊 Reports</li>
+      <li class="active" data-link="admin-profile-management.html">👤 Profile Management</li>
+    </ul>
+    <button class="logout-btn">Logout</button>
+  </aside>
+
+  <div class="content-wrap">
+    <div class="hero">
+      <div class="left">
+        <span class="date">📅 October 2, 2025</span>
+        <h1>Profile Management</h1>
+        <p>Update your admin information</p>
+      </div>
+      <div class="brand">ResearchMate</div>
+    </div>
+
+    <div class="main-grid">
+      <div>
+        <div class="card profile-form-card">
+          <h2>Edit Profile</h2>
+          <form id="adminProfileForm">
+            <div class="form-group">
+              <label for="adminName">Full Name</label>
+              <input type="text" id="adminName" placeholder="Admin Name" required>
+            </div>
+            <div class="form-group">
+              <label for="adminEmail">Email</label>
+              <input type="email" id="adminEmail" placeholder="admin@cit.edu" required>
+            </div>
+            <div class="form-group">
+              <label for="adminContact">Contact Number</label>
+              <input type="text" id="adminContact" placeholder="e.g. 09123456789" required>
+            </div>
+            <button type="submit" class="btn-primary">Save Changes</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Pre-fill form from localStorage
+  document.getElementById('adminName').value = localStorage.getItem('adminName') || 'Admin User';
+  document.getElementById('adminEmail').value = localStorage.getItem('adminEmail') || 'admin@cit.edu';
+  document.getElementById('adminContact').value = localStorage.getItem('adminContact') || '';
+
+  // Save admin info
+  document.getElementById('adminProfileForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    localStorage.setItem('adminName', document.getElementById('adminName').value);
+    localStorage.setItem('adminEmail', document.getElementById('adminEmail').value);
+    localStorage.setItem('adminContact', document.getElementById('adminContact').value);
+    alert('Profile updated!');
+    window.location.href = 'admin-dashboard.html';
+  });
+
+  // Sidebar navigation
+  document.querySelectorAll('.menu li').forEach(item => {
+    item.addEventListener('click', () => {
+      const link = item.getAttribute('data-link');
+      if(link) window.location.href = link;
+    });
+  });
+
+  // Logout
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    btn.addEventListener('click', () => window.location.href='login-register.html');
+  });
+</script>
+</body>
+</html>

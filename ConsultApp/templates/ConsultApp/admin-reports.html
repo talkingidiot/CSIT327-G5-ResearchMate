@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ResearchMate — Reports</title>
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<div class="dashboard-container">
+  <aside class="sidebar">
+    <div class="logo"><img src="ResearchMate-logo-title.png" alt="ResearchMate"></div>
+    <ul class="menu">
+      <li data-link="admin-dashboard.html">🏠 Dashboard</li>
+      <li data-link="admin-manage-students.html">👥 Manage Students</li>
+      <li data-link="admin-manage-consultants.html">👩‍🏫 Manage Consultants</li>
+      <li class="active" data-link="admin-reports.html">📊 Reports</li>
+      <li data-link="admin-profile-management.html">👤 Profile Management</li>
+    </ul>
+    <button class="logout-btn">Logout</button>
+  </aside>
+
+  <div class="content-wrap">
+    <div class="hero">
+      <div class="left">
+        <span class="date">📅 October 2, 2025</span>
+        <h1>Reports</h1>
+        <p>Overview of system activity, bookings, and user growth.</p>
+      </div>
+      <div class="brand">ResearchMate</div>
+    </div>
+
+    <div class="main-grid">
+      <div>
+        <div class="card consultants-section">
+          <h2>Reports</h2>
+          <div class="consultants-grid">
+            <div class="consultant-card">
+              <h4>Usage Report</h4>
+              <p>Weekly activity logs</p>
+            </div>
+            <div class="consultant-card">
+              <h4>Consultation Stats</h4>
+              <p>Completed sessions</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.menu li').forEach(item => {
+  item.addEventListener('click', () => {
+    const link = item.getAttribute('data-link');
+    if(link) window.location.href = link;
+  });
+});
+
+document.querySelectorAll('.logout-btn').forEach(btn => {
+  btn.addEventListener('click', () => window.location.href='login-register.html');
+});
+</script>
+</body>
+</html>

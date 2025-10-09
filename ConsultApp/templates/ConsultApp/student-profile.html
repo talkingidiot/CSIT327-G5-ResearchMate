@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ResearchMate — Student Profile</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Main navigation sidebar">
+      <div class="logo">
+        <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
+      </div>
+
+      <ul class="menu">
+        <li><a href="student-dashboard.html">🏠 Dashboard</a></li>
+        <li class="active"><a href="student-profile.html">👤 Student Profile</a></li>
+        <li><a href="bookings.html">📅 Bookings</a></li>
+        <li><a href="student-history.html">📜 History</a></li>
+      </ul>
+
+      <button class="logout-btn">Logout</button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="content-wrap">
+      <!-- HERO -->
+      <div class="hero">
+        <div class="left">
+          <span class="date">📅 October 2, 2025</span>
+          <h1>Edit Your Profile</h1>
+          <p>Update your information to be displayed in your dashboard</p>
+        </div>
+        <div class="brand">ResearchMate</div>
+      </div>
+
+      <!-- PROFILE FORM -->
+      <div class="main-grid">
+        <div class="card profile-form-card">
+          <h2>Edit Profile</h2>
+          <form id="profileForm">
+            <div class="form-group">
+              <label for="fullName">Full Name</label>
+              <input type="text" id="fullName" placeholder="Full Name" value="">
+            </div>
+
+            <div class="form-group">
+              <label for="department">Department</label>
+              <select id="department">
+                <option value="">Select Department</option>
+                <option value="CCS">College of Computer Studies</option>
+                <option value="CEA">College of Engineering and Architecture</option>
+                <option value="CMBA">College of Management, Business & Accountancy</option>
+                <option value="CAS">College of Arts, Sciences, & Education</option>
+                <option value="CNAHS">College of Nursing & Allied Health Sciences</option>
+                <option value="CCJ">College of Criminal Justice</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="program">Program</label>
+              <select id="program">
+                <option value="">Select Program</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="yearLevel">Year Level</label>
+              <select id="yearLevel">
+                <option value="">Select Year Level</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-primary">Save</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Programs by department
+  const programsByDept = {
+    "CCS": ["BS Computer Science", "BS Information Technology"],
+    "CEA": ["BS Architecture", "BS Chemical Engineering", "BS Civil Engineering", "BS Computer Engineering", "BS Electrical Engineering", "BS Electronics Engineering", "BS Industrial Engineering", "BS Mechanical Engineering", "BS Mechanical Eng with Computational Science", "BS Mechanical Eng with Mechatronics", "BS Mining Engineering"],
+    "CMBA": ["BS Accountancy", "BS Accounting Information Systems", "BS Management Accounting", "BS Business Administration", "Banking & Financial Management", "Business Analytics", "General Business Management", "Human Resource Management", "Marketing Management", "Operations Management", "Quality Management", "BS Hospitality Management", "BS Tourism Management", "BS Office Administration", "Bachelor in Public Administration"],
+    "CAS": ["AB Communication", "AB English with Applied Linguistics", "Bachelor of Elementary Education", "Bachelor of Secondary Education", "Bachelor of Multimedia Arts", "BS Biology", "BS Math with Applied Industrial Mathematics", "BS Psychology"],
+    "CNAHS": ["BS Nursing", "BS Pharmacy", "BS Medical Technology"],
+    "CCJ": ["BS Criminology"]
+  };
+
+  const deptSelect = document.getElementById("department");
+  const programSelect = document.getElementById("program");
+
+  // Populate programs when department changes
+  deptSelect.addEventListener("change", function() {
+    const dept = this.value;
+    programSelect.innerHTML = '<option value="">Select Program</option>'; // reset
+    if (programsByDept[dept]) {
+      programsByDept[dept].forEach(prog => {
+        const option = document.createElement("option");
+        option.value = prog;
+        option.textContent = prog;
+        programSelect.appendChild(option);
+      });
+    }
+  });
+
+  // Pre-fill from localStorage
+  document.getElementById('fullName').value = localStorage.getItem('fullName') || '';
+  document.getElementById('department').value = localStorage.getItem('department') || '';
+  deptSelect.dispatchEvent(new Event('change')); // populate program dropdown
+  programSelect.value = localStorage.getItem('program') || '';
+  document.getElementById('yearLevel').value = localStorage.getItem('yearLevel') || '';
+
+  // Save form
+  document.getElementById('profileForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    localStorage.setItem('fullName', document.getElementById('fullName').value);
+    localStorage.setItem('department', document.getElementById('department').value);
+    localStorage.setItem('program', document.getElementById('program').value);
+    localStorage.setItem('yearLevel', document.getElementById('yearLevel').value);
+
+    alert('Profile updated!');
+    window.location.href = 'student-dashboard.html';
+  });
+
+  // Logout functionality
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      localStorage.clear();
+      window.location.href = 'login-register.html';
+    });
+  });
+</script>
+</body>
+</html>
