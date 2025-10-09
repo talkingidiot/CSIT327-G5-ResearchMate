@@ -10,7 +10,7 @@ User = get_user_model()
 # 🔹 Auth Pages
 def login_register_view(request):
     """Render combined login/register page."""
-    return render(request, "ConsultApp/login-register.html")
+    return render(request, 'ConsultApp/login-register.html')
 
 
 @csrf_exempt
@@ -79,22 +79,19 @@ def login_user(request):
     return render(request, "ConsultApp/login-register.html")
 
 
-# # 🔹 Dashboards
-# def admin_dashboard_view(request):
-#     return render(request, "ConsultApp/admin-dashboard.html")
+# 🔹 Dashboards
+def dashboard_view(request):
+    return render(request, "ConsultApp/dashboard.html")
+def admin_dashboard_view(request):
+    return render(request, "ConsultApp/admin-dashboard.html")
+def consultant_dashboard_view(request):
+    return render(request, "ConsultApp/consultant-dashboard.html")
+def student_dashboard_view(request):
+    return render(request, "ConsultApp/student-dashboard.html")
 
-
-# def student_dashboard_view(request):
-#     return render(request, "ConsultApp/student-dashboard.html")
-
-
-# def consultant_dashboard_view(request):
-#     return render(request, "ConsultApp/consultant-dashboard.html")
 
 
 # 🔹 Consultant Verification
 def consultant_verification_view(request):
     return render(request, "ConsultApp/consultant-verification.html")
 
-def dashboard_view(request):
-    return render(request, "ConsultApp/dashboard.html")
