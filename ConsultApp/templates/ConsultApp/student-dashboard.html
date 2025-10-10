@@ -1,10 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Student Dashboard</title>
-  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="{% static "ConsultApp/dashboard.css"%}">
 </head>
 <body>
   <div class="dashboard-container">
@@ -128,8 +129,8 @@
   // Logout functionality
   document.querySelectorAll('.logout-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      localStorage.clear(); 
-      window.location.href = 'login-register.html';
+      localStorage.clear();
+      window.location.href = "login-register.html";
     });
   });
 </script>
