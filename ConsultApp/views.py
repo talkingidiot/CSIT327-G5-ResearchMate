@@ -10,8 +10,7 @@ User = get_user_model()
 # 🔹 Auth Pages
 def login_register_view(request):
     """Render combined login/register page."""
-    return render(request, 'ConsultApp/login-register.html')
-
+    return render(request, "ConsultApp/login-register.html")
 
 @csrf_exempt
 def register_user(request):
@@ -82,16 +81,48 @@ def login_user(request):
 # 🔹 Dashboards
 def dashboard_view(request):
     return render(request, "ConsultApp/dashboard.html")
+
 def admin_dashboard_view(request):
     return render(request, "ConsultApp/admin-dashboard.html")
+
 def consultant_dashboard_view(request):
     return render(request, "ConsultApp/consultant-dashboard.html")
+
 def student_dashboard_view(request):
     return render(request, "ConsultApp/student-dashboard.html")
 
-
-
-# 🔹 Consultant Verification
+# 🔹 Consultant Views
 def consultant_verification_view(request):
     return render(request, "ConsultApp/consultant-verification.html")
 
+def consultant_appointments_view(request):
+    return render(request, "ConsultApp/consultant-appointments.html")
+
+def consultant_profile_view(request):
+    return render(request, "ConsultApp/consultant-profile.html")
+
+def consultant_students_view(request):
+    return render(request, "ConsultApp/consultant-students.html")
+
+# 🔹 Consultant Views
+def student_profile_view(request):
+    return render(request, "ConsultApp/student-profile.html")
+
+def student_history_view(request):
+    return render(request, "ConsultApp/student-history.html")
+
+def bookings_view(request):
+    return render(request, "ConsultApp/bookings.html")
+
+# 🔹 Admin Views
+def admin_manage_consultants_view(request):
+    return render(request, "ConsultApp/admin-manage-consultants.html")
+
+def admin_manage_students_view(request):
+    return render(request, "ConsultApp/admin-manage-students.html")
+
+def admin_profile_view(request):
+    return render(request, "ConsultApp/admin-profile.html")
+
+def admin_reports_view(request):
+    return render(request, "ConsultApp/admin-reports.html")
