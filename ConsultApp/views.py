@@ -36,12 +36,32 @@ def register_view(request):
         first_name = name_parts[0]
         last_name = name_parts[1] if len(name_parts) > 1 else ""
 
+        if not full_name or not email or not password or not role:
+            messages.error(request, "All fields are required.")
+            return render(request, "ConsultApp/login-register.html", {
+                "show_signup": True,
+                "form_source": "register",
+            })
+
         if User.objects.filter(first_name__iexact=first_name, last_name__iexact=last_name).exists():
             messages.error(request, "A user with that name already exists.")
             return render(request, "ConsultApp/login-register.html", {
                 "show_signup": True,
                 "form_source": "register",
             })
+        
+        if not email.endswith("@cit.edu"):
+            messages.error(request, "Please use your institutional email address.")
+            return render(request, "ConsultApp/login-register.html", {
+                "show_signup": True,
+                "form_source": "register",
+            })
+        if len(password) < 8:
+            messages.error(request, "Password must be at least 8 characters long.")
+            return render(request, "ConsultApp/login-register.html", {
+                "show_signup": True,
+                "form_source": "register",
+            })   
 
         # Create user
         user = User.objects.create_user(
@@ -51,11 +71,11 @@ def register_view(request):
             last_name=last_name,
             role=role
         )
-
+        
         if role == "student":
             Student.objects.create(
                 user=user,
-                student_year_level=request.POST.get("student_year_level") or 1,
+                student_year_level=request.POST.get("student_year_level") or "",
                 student_department=request.POST.get("student_department") or "",
                 student_course=request.POST.get("student_course") or "",
                 student_program=request.POST.get("student_program") or ""
@@ -78,10 +98,12 @@ def register_view(request):
             )
 
         messages.success(request, f"Account created successfully as {role.title()}!")
-        return redirect("login")
-    
+        # Clear session storage on success
+        response = redirect("login")
+        response["Clear-SessionStorage"] = "true"
+        return response
+            
     return render(request, "ConsultApp/login-register.html")
-
 
 # ========== LOGIN VIEW ==========
 @csrf_exempt
@@ -90,7 +112,19 @@ def login_view(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
 
+        if not email or not password:
+            messages.error(request, "Please fill in both email and password.")
+            return render(request, "ConsultApp/login-register.html", {
+                "form_source": "login"
+            })
+        
         user = authenticate(request, email=email, password=password)
+
+        if user is None:
+            messages.error(request, "Invalid credentials. Please try again.")
+            return render(request, "ConsultApp/login-register.html", {
+                "form_source": "login"
+            })
 
         if user is not None:
             login(request, user)

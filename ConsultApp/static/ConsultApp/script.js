@@ -39,6 +39,8 @@ function showForm(role) {
   document.getElementById("studentFields").classList.toggle("hidden", role !== "student");
   document.getElementById("consultantFields").classList.toggle("hidden", role !== "consultant");
   document.getElementById("adminFields").classList.toggle("hidden", role !== "admin");
+
+  
 }
 
 // Restore role after reload if show_signup is true
@@ -109,4 +111,9 @@ if (toggleSignInPassword && signinPassword) {
       toggleSignInPassword.textContent = '👁';
     }
   });
+}
+
+// Optional cleanup
+if (document.currentScript && document.currentScript.getAttribute("Clear-SessionStorage") === "true") {
+  sessionStorage.removeItem("selectedRole");
 }
