@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ResearchMate — History</title>
-  <link rel="stylesheet" href="{% static "ConsultApp/dashboard.css"%}">
+  <link rel="stylesheet" href="{% static 'ConsultApp/dashboard.css' %}">
 </head>
 <body>
   <div class="dashboard-container">
@@ -16,13 +16,15 @@
       </div>
 
       <ul class="menu">
-        <li><a href="student-dashboard.html">🏠 Dashboard</a></li>
-        <li><a href="student-profile.html">👤 Student Profile</a></li>
-        <li><a href="bookings.html">📅 Bookings</a></li>
-        <li class="active"><a href="student-history.html">📜 History</a></li>
+        <li><a href="{% url 'student_dashboard'%}">🏠 Dashboard</a></li>
+        <li><a href="{% url 'student_profile'%}">👤 Student Profile</a></li>
+        <li><a href="{% url 'bookings'%}">📅 Bookings</a></li>
+        <li class="active"><a href="{% url 'student_history'%}">📜 History</a></li>
       </ul>
-
-      <button class="logout-btn">Logout</button>
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button class="logout-btn">Logout</button>
+      </form>
     </aside>
 
     <!-- Main content -->

@@ -12,13 +12,16 @@
   <aside class="sidebar">
     <div class="logo"><img src="ResearchMate-logo-title.png" alt="ResearchMate"></div>
     <ul class="menu">
-      <li data-link="admin-dashboard.html">🏠 Dashboard</li>
-      <li data-link="admin-manage-students.html">👥 Manage Students</li>
-      <li class="active" data-link="admin-manage-consultants.html">👩‍🏫 Manage Consultants</li>
-      <li data-link="admin-reports.html">📊 Reports</li>
-      <li data-link="admin-profile-management.html">👤 Profile Management</li>
+      <li><a href="{% url 'admin_dashboard' %}">🏠 Dashboard</a></li>
+      <li><a href="{% url 'admin_students' %}">👥 Manage Students</a></li>
+      <li class="active"><a href="{% url 'admin_consultants' %}">👩‍🏫 Manage Consultants</a></li>
+      <li><a href="{% url 'admin_reports' %}">📊 Reports</a></li>
+      <li><a href="{% url 'admin_profile' %}">👤 Profile Management</a></li>
     </ul>
-    <button class="logout-btn">Logout</button>
+    <form method="POST" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="logout-btn">Logout</button>
+    </form>
   </aside>
 
   <div class="content-wrap">

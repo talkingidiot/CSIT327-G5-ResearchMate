@@ -5,7 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Consultant Profile</title>
-  <link rel="stylesheet" href="{% static "ConsultApp/dashboard.css"%}">
+<link rel="stylesheet" href="{% static 'ConsultApp/dashboard.css' %}">
 </head>
 <body>
   <div class="dashboard-container">
@@ -14,15 +14,18 @@
       <div class="logo">
         <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
       </div>
-
       <ul class="menu">
-        <li><a href="consultant-dashboard.html">🏠 Dashboard</a></li>
-        <li class="active"><a href="consultant-profile.html">👤 My Profile</a></li>
-        <li><a href="consultant-students.html">🧑‍🎓 Assigned Students</a></li>
-        <li><a href="consultant-appointments.html">📅 Appointments</a></li>
+        <li><a href="{% url 'consultant_dashboard' %}">🏠 Dashboard</a></li>
+        <li class="active"><a href="{% url 'consultant_profile' %}">👤 My Profile</a></li>
+        <li><a href="{% url 'consultant_students' %}">🧑‍🎓 Assigned Students</a></li>
+        <li><a href="{% url 'consultant_appointments' %}">📅 Appointments</a></li>
       </ul>
 
-      <button class="logout-btn">Logout</button>
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">Logout</button>
+      </form>
+
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -70,20 +73,6 @@
   </div>
 
 <script>
-  // Sidebar navigation
-  document.querySelectorAll('.menu li a').forEach(item => {
-    if(item.getAttribute('href') === window.location.pathname.split("/").pop()){
-      item.parentElement.classList.add('active');
-    } else {
-      item.parentElement.classList.remove('active');
-    }
-  });
-
-  // Logout functionality
-  document.querySelector('.logout-btn').addEventListener('click', () => {
-    window.location.href='login-register.html';
-  });
-
   // Pre-fill form from localStorage
   const fullNameInput = document.getElementById('fullName');
   const emailInput = document.getElementById('email');

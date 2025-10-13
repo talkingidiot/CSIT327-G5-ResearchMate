@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Consultant — Appointments</title>
-<link rel="stylesheet" href="{% static "ConsultApp/dashboard.css"%}">
+<link rel="stylesheet" href="{% static 'ConsultApp/dashboard.css' %}">
 </head>
 <body>
 <div class="dashboard-container">
@@ -13,12 +13,17 @@
   <aside class="sidebar">
     <div class="logo"><img src="ResearchMate-logo-title.png" alt="ResearchMate"></div>
     <ul class="menu">
-      <li data-link="consultant-dashboard.html">🏠 Dashboard</li>
-      <li data-link="consultant-profile.html">👤 My Profile</li>
-      <li data-link="consultant-students.html">🧑‍🎓 Assigned Students</li>
-      <li class="active" data-link="consultant-appointments.html">📅 Appointments</li>
+      <li><a href="{% url 'consultant_dashboard' %}">🏠 Dashboard</a></li>
+      <li><a href="{% url 'consultant_profile' %}">👤 My Profile</a></li>
+      <li><a href="{% url 'consultant_students' %}">🧑‍🎓 Assigned Students</a></li>
+      <li class="active"><a href="{% url 'consultant_appointments' %}">📅 Appointments</a></li>
     </ul>
-    <button class="logout-btn">Logout</button>
+
+    <form method="POST" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="logout-btn">Logout</button>
+    </form>
+
   </aside>
 
   <!-- Main Content -->
@@ -78,21 +83,5 @@
     </div>
   </div>
 </div>
-
-<script>
-  document.querySelectorAll('.menu li').forEach(item => {
-    if(item.getAttribute('data-link') === window.location.pathname.split("/").pop()){
-      item.classList.add('active');
-    } else { item.classList.remove('active'); }
-    item.addEventListener('click', () => {
-      const link = item.getAttribute('data-link');
-      if(link) window.location.href = link;
-    });
-  });
-
-  document.querySelectorAll('.logout-btn').forEach(btn => {
-    btn.addEventListener('click', () => { window.location.href='login-register.html'; });
-  });
-</script>
 </body>
 </html>

@@ -18,34 +18,55 @@ if (signInButton) {
   });
 }
 
-// Save role on register
 function showForm(role) {
   const roleStep = document.getElementById("role-step");
   const registerForm = document.getElementById("register-form");
   const roleTitle = document.getElementById("role-title");
-  const emailField = document.getElementById("emailField");
-  const workplaceField = document.getElementById("workplace-field");
-  const selectedRole = document.getElementById("selectedRole");
+  const selectedRoleInput = document.getElementById("selectedRole");
 
-  if (roleStep) roleStep.classList.add("hidden");
-  if (registerForm) registerForm.classList.remove("hidden");
-  if (roleTitle) roleTitle.innerText = "Register as " + role.charAt(0).toUpperCase() + role.slice(1);
+  // Hide the role selection step and show the register form
+  roleStep.classList.add("hidden");
+  registerForm.classList.remove("hidden");
 
-  if (emailField && workplaceField) {
-    if (role === "student" || role === "admin") {
-      emailField.placeholder = "Email (e.g. name@cit.edu)";
-      workplaceField.classList.add("hidden");
-    } else if (role === "consultant") {
-      emailField.placeholder = "Email (CIT or personal)";
-      workplaceField.classList.remove("hidden");
-    }
-  }
+  // Save the role in the form
+  selectedRoleInput.value = role;
+  roleTitle.textContent = "Register as " + role.charAt(0).toUpperCase() + role.slice(1);
 
-  if (selectedRole) {
-    selectedRole.value = role; // save chosen role
-    localStorage.setItem("userRole", role); // persist role for login
-  }
+  // Save the role so we can restore after reload
+  sessionStorage.setItem("selectedRole", role);
+
+  // Show fields based on the role
+  document.getElementById("studentFields").classList.toggle("hidden", role !== "student");
+  document.getElementById("consultantFields").classList.toggle("hidden", role !== "consultant");
+  document.getElementById("adminFields").classList.toggle("hidden", role !== "admin");
 }
+
+// Restore role after reload if show_signup is true
+document.addEventListener("DOMContentLoaded", function() {
+  const savedRole = sessionStorage.getItem("selectedRole");
+
+  if (!document.getElementById("role-step")) {
+    sessionStorage.removeItem("selectedRole");
+    return;
+  }
+
+  if (savedRole && container.classList.contains("right-panel-active"))  {
+    const roleStep = document.getElementById("role-step");
+    const registerForm = document.getElementById("register-form");
+    const roleTitle = document.getElementById("role-title");
+    const selectedRoleInput = document.getElementById("selectedRole");
+
+    roleStep.classList.add("hidden");
+    registerForm.classList.remove("hidden");
+    selectedRoleInput.value = savedRole;
+    roleTitle.textContent = "Register as " + savedRole.charAt(0).toUpperCase() + savedRole.slice(1);
+
+    // Show fields based on saved role
+    document.getElementById("studentFields").classList.toggle("hidden", savedRole !== "student");
+    document.getElementById("consultantFields").classList.toggle("hidden", savedRole !== "consultant");
+    document.getElementById("adminFields").classList.toggle("hidden", savedRole !== "admin");
+  }
+});
 
 function backToRole() {
   const registerForm = document.getElementById("register-form");
@@ -66,10 +87,10 @@ if (toggleRegisterPassword && passwordField) {
   toggleRegisterPassword.addEventListener('click', () => {
     if (passwordField.type === 'password') {
       passwordField.type = 'text';
-      toggleRegisterPassword.textContent = '🙈';
+      toggleRegisterPassword.textContent = 'X';
     } else {
       passwordField.type = 'password';
-      toggleRegisterPassword.textContent = '👁️';
+      toggleRegisterPassword.textContent = '👁';
     }
   });
 }
@@ -82,26 +103,10 @@ if (toggleSignInPassword && signinPassword) {
   toggleSignInPassword.addEventListener('click', () => {
     if (signinPassword.type === 'password') {
       signinPassword.type = 'text';
-      toggleSignInPassword.textContent = '🙈';
+      toggleSignInPassword.textContent = 'X';
     } else {
       signinPassword.type = 'password';
-      toggleSignInPassword.textContent = '👁️';
+      toggleSignInPassword.textContent = '👁';
     }
   });
-}
-
-// Handle login redirect based on role
-function handleLogin(event) {
-  event.preventDefault();
-  const role = localStorage.getItem("userRole");
-
-  if (role === "student") {
-    window.location.href = "student-dashboard.html";
-  } else if (role === "consultant") {
-    window.location.href = "consultant-dashboard.html";
-  } else if (role === "admin") {
-    window.location.href = "admin-dashboard.html";
-  } else {
-    alert("Please select a role when registering first.");
-  }
 }
