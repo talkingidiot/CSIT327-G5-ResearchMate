@@ -34,7 +34,7 @@ Other dependencies:
 
 Run this command to test for database connection: 
     
-    Test-NetConnection db.vsgimcfcfurdxvsogcrp.supabase.co -Port 5432
+    Test-NetConnection db.hqqgsbwkqfguzpapcjnl.supabase.co -Port 5432
     
 4. Run App
 
