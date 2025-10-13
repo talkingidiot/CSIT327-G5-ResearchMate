@@ -1,10 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consultant Verification</title>
-  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="{% static "ConsultApp/dashboard.css"%}">
 </head>
 <body>
   <div class="dashboard-container">
@@ -14,13 +15,17 @@
         <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
       </div>
       <ul class="menu">
-        <li data-link="consultant-dashboard.html">🏠 Dashboard</li>
-        <li class="active" data-link="consultant-verification.html">👤 Verification</li>
-        <li data-link="consultant-profile.html">📘 Profile</li>
-        <li data-link="consultant-students.html">🧑‍🎓 Students</li>
-        <li data-link="consultant-appointments.html">📅 Appointments</li>
+        <li><a href="{% url 'consultant_dashboard' %}">🏠 Dashboard</a></li>
+        <li><a href="{% url 'consultant_profile' %}">👤 My Profile</a></li>
+        <li><a href="{% url 'consultant_students' %}">🧑‍🎓 Assigned Students</a></li>
+        <li><a href="{% url 'consultant_appointments' %}">📅 Appointments</a></li>
       </ul>
-      <button class="logout-btn">Logout</button>
+
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">Logout</button>
+      </form>
+
     </aside>
 
     <!-- Main Content -->
@@ -80,26 +85,18 @@
               <input type="file" id="profilePhoto" required>
             </div>
 
-            <button type="button" id="submitVerification" class="btn-primary">Submit Verification</button>
+            <form method="POST" action="{% url 'consultant_verification' %}">
+              {% csrf_token %}
+              <button type="button" id="submitVerification" class="btn-primary">Submit Verification</button>
+            </form>
+            
           </form>
         </div>
       </div>
     </div>
   </div>
 
-  <script>
-    // Logout button
-    document.querySelector('.logout-btn').addEventListener('click', () => {
-      window.location.href = 'login-register.html';
-    });
-
-    // Sidebar navigation
-    document.querySelectorAll('.menu li').forEach(item => {
-      item.addEventListener('click', () => {
-        const link = item.getAttribute('data-link');
-        if(link) window.location.href = link;
-      });
-    });
+  {% comment %} <script>
 
     // Handle verification submission
     document.getElementById("submitVerification").addEventListener("click", () => {
@@ -128,6 +125,6 @@
         alert("Please fill in all fields before submitting.");
       }
     });
-  </script>
+  </script> {% endcomment %}
 </body>
 </html>

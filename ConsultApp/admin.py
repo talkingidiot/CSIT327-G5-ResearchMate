@@ -1,40 +1,87 @@
 from django.contrib import admin
-from .models import User, ConsultantProfile, Consultation, Message, Feedback, Report
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from .models import User, Student, Consultant, Admin
 
-# Register the custom User model properly
+
+# Custom User Admin
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'role', 'is_verified', 'date_joined', 'is_active')
-    list_filter = ('role', 'is_verified', 'is_active')
-    search_fields = ('username', 'email', 'role')
+class UserAdmin(BaseUserAdmin):
+    list_display = ('email', 'first_name', 'last_name', 'role', 'is_staff', 'is_active')
+    list_filter = ('role', 'is_staff', 'is_active')
+    ordering = ('email',)
+    search_fields = ('email', 'first_name', 'last_name')
 
-# Register the rest of your models
-@admin.register(ConsultantProfile)
-class ConsultantProfileAdmin(admin.ModelAdmin):
-    list_display = ('consultant', 'expertise', 'department', 'availability', 'profile_verified')
-    list_filter = ('profile_verified', 'department')
-    search_fields = ('consultant__username', 'expertise', 'department')
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal Info', {'fields': ('first_name', 'last_name')}),
+        ('Role', {'fields': ('role',)}),
+        ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important Dates', {'fields': ('last_login', 'date_joined')}),
+    )
 
-@admin.register(Consultation)
-class ConsultationAdmin(admin.ModelAdmin):
-    list_display = ('consultation_id', 'student', 'consultant', 'topic', 'status', 'requested_date', 'scheduled_date')
-    list_filter = ('status', 'requested_date')
-    search_fields = ('student__username', 'consultant__consultant__username', 'topic')
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2', 'role', 'is_staff', 'is_active'),
+        }),
+    )
 
-@admin.register(Message)
-class MessageAdmin(admin.ModelAdmin):
-    list_display = ('consultation', 'sender', 'timestamp', 'is_read')
-    list_filter = ('is_read', 'timestamp')
-    search_fields = ('sender__username', 'consultation__consultation_id', 'message_text')
+    # Since we removed username, exclude it entirely
+    exclude = ('username',)
 
-@admin.register(Feedback)
-class FeedbackAdmin(admin.ModelAdmin):
-    list_display = ('consultation', 'student', 'rating', 'created_at')
-    list_filter = ('rating', 'created_at')
-    search_fields = ('student__username', 'consultation__consultation_id')
 
-@admin.register(Report)
-class ReportAdmin(admin.ModelAdmin):
-    list_display = ('report_id', 'reported_user', 'reporter', 'status', 'created_at')
-    list_filter = ('status', 'created_at')
-    search_fields = ('reported_user__username', 'reporter__username', 'reason')
+# Inline profiles for each role
+class StudentInline(admin.StackedInline):
+    model = Student
+    can_delete = False
+    verbose_name_plural = 'Student Profile'
+
+
+class ConsultantInline(admin.StackedInline):
+    model = Consultant
+    can_delete = False
+    verbose_name_plural = 'Consultant Profile'
+
+
+class AdminInline(admin.StackedInline):
+    model = Admin
+    can_delete = False
+    verbose_name_plural = 'Admin Profile'
+
+
+# Role-based inline attachment
+class CustomUserAdmin(UserAdmin):
+    inlines = []
+
+    def get_inlines(self, request, obj):
+        if obj and obj.role == 'student':
+            return [StudentInline]
+        elif obj and obj.role == 'consultant':
+            return [ConsultantInline]
+        elif obj and obj.role == 'admin':
+            return [AdminInline]
+        return []
+
+
+# Re-register User model with custom inline handling
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)
+
+
+# Register role models separately (optional)
+@admin.register(Student)
+class StudentAdmin(admin.ModelAdmin):
+    list_display = ('user', 'student_year_level', 'student_department', 'student_course', 'student_program')
+    search_fields = ('user__email', 'student_course')
+
+
+@admin.register(Consultant)
+class ConsultantAdmin(admin.ModelAdmin):
+    list_display = ('user', 'expertise', 'workplace', 'is_verified')
+    search_fields = ('user__email', 'expertise')
+
+
+@admin.register(Admin)
+class AdminProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'contact_number')
+    search_fields = ('user__email',)
