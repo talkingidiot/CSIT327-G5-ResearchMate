@@ -32,7 +32,7 @@
       <!-- HERO -->
       <div class="hero">
         <div class="left">
-          <h1>Welcome back, <span id="studentName">Student</span>!</h1>
+          <h1>Welcome back, <span id="studentName">{{ student_name }}</span>!</h1>
           <p>Find a research consultant and manage your bookings</p>
         </div>
         <div class="brand">ResearchMate</div>
@@ -114,7 +114,7 @@
     </div>
   </div>
 
-<script>
+{% comment %} <script>
   // Populate student info from localStorage; show empty if not set
   const fullName = localStorage.getItem('fullName') || '';
   const email = localStorage.getItem('email') || '';
@@ -135,6 +135,6 @@
       window.location.href = "login-register.html";
     });
   });
-</script>
+</script> {% endcomment %} 
 </body>
 </html>

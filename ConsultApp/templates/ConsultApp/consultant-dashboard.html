@@ -32,7 +32,7 @@
           <span class="date">📅 October 2, 2025</span>
           <h1>
             Welcome back, 
-            <span id="consultantName">Consultant</span>!
+            <span id="consultantName">{{ consultant_name }}</span>!
           </h1>
           <p>Manage your students and upcoming consultations</p>
           <button id="verifyBtn" class="btn-primary">Verify to be a Consultant</button>
@@ -122,8 +122,7 @@
       </div>
     </div>
   </div>
-
-<script>
+{% comment %} <script>
   // Load consultant info from localStorage
   const consultantInfo = {
     fullName: localStorage.getItem('consultantFullName') || 'Consultant',
@@ -154,11 +153,6 @@
     window.location.href = "consultant-verification.html";
   });
 
-  // Logout
-  document.querySelector('.logout-btn').addEventListener('click', () => {
-    window.location.href='login-register.html';
-  });
-
-</script>
+</script> {% endcomment %}
 </body>
 </html>

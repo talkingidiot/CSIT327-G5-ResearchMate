@@ -2,87 +2,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>ResearchMate — Admin Dashboard</title>
-<link rel="stylesheet" href="{% static "ConsultApp/dashboard.css"%}">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ResearchMate — Admin Dashboard</title>
+  <link rel="stylesheet" href="{% static 'ConsultApp/dashboard.css' %}">
 </head>
 <body>
-<div class="dashboard-container">
-  <aside class="sidebar">
-    <div class="logo"><img src="ResearchMate-logo-title.png" alt="ResearchMate"></div>
-    <ul class="menu">
-      <li class="active"><a href="{% url 'admin_dashboard' %}">🏠 Dashboard</a></li>
-      <li><a href="{% url 'admin_students' %}">👥 Manage Students</a></li>
-      <li><a href="{% url 'admin_consultants' %}">👩‍🏫 Manage Consultants</a></li>
-      <li><a href="{% url 'admin_reports' %}">📊 Reports</a></li>
-      <li><a href="{% url 'admin_profile' %}">👤 Profile Management</a></li>
-    </ul>
-    <form method="POST" action="{% url 'logout' %}">
-      {% csrf_token %}
-      <button class="logout-btn">Logout</button>
-    </form>
-  </aside>
-
-  <div class="content-wrap">
-    <div class="hero">
-      <div class="left">
-        <span class="date">📅 October 2, 2025</span>
-        <h1>Welcome back, <span id="adminNameDisplay">Admin User</span>!</h1>
-        <p>Monitor the platform and manage users</p>
-      </div>
-      <div class="brand">ResearchMate</div>
-    </div>
-
-    <div class="main-grid">
-      <div>
-        <div class="card overview-card">
-          <h2>📊 System Overview</h2>
-          <div class="stats-grid">
-            <div class="stat">
-              <h4>Total Students</h4>
-              <div class="num">120</div>
-            </div>
-            <div class="stat">
-              <h4>Total Consultants</h4>
-              <div class="num">25</div>
-            </div>
-            <div class="stat">
-              <h4>Active Bookings</h4>
-              <div class="num">18</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card consultants-section">
-          <h2>📝 Consultant Verification Requests</h2>
-          <div id="verificationRequests">
-            <p>No pending requests</p>
-          </div>
-        </div>
+  <div class="dashboard-container">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="{% static 'ConsultApp/images/ResearchMate-logo-title.png' %}" alt="ResearchMate">
       </div>
 
-      <aside class="right-column">
-        <div class="card profile-card">
-          <div class="profile-top">
-            <img src="admin.png" alt="admin" class="profile-pic">
-            <div class="info">
-              <p><strong id="adminNameSidebar">Admin User</strong></p>
-              <p style="color:#777">System Administrator</p>
+      <ul class="menu">
+        <li class="active"><a href="{% url 'admin_dashboard' %}">🏠 Dashboard</a></li>
+        <li><a href="{% url 'admin_students' %}">👥 Manage Students</a></li>
+        <li><a href="{% url 'admin_consultants' %}">👩‍🏫 Manage Consultants</a></li>
+        <li><a href="{% url 'admin_reports' %}">📊 Reports</a></li>
+        <li><a href="{% url 'admin_profile' %}">👤 Profile Management</a></li>
+      </ul>
+
+      <form method="POST" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button class="logout-btn">Logout</button>
+      </form>
+    </aside>
+
+    <!-- ===== Main content column ===== -->
+    <main class="content-wrap">
+      <!-- Top hero section -->
+      <div class="hero">
+        <div class="left">
+          <span class="date">📅 {{ current_date }}</span>
+          <h1>Welcome back, <span id="adminNameDisplay">{{ admin_name }}</span>!</h1>
+          <p>Monitor the platform and manage users</p>
+        </div>
+        <div class="brand">ResearchMate</div>
+      </div>
+
+      <!-- Main grid below hero -->
+      <div class="main-grid">
+        <section>
+          <div class="card overview-card">
+            <h2>📊 System Overview</h2>
+            <div class="stats-grid">
+              <div class="stat">
+                <h4>Total Students</h4>
+                <div class="num">{{ total_students }}</div>
+              </div>
+              <div class="stat">
+                <h4>Total Consultants</h4>
+                <div class="num">{{ total_consultants }}</div>
+              </div>
+              <div class="stat">
+                <h4>Active Bookings</h4>
+                <div class="num">{{ active_bookings }}</div>
+              </div>
             </div>
           </div>
-          <p><strong>Email:</strong> <span id="adminEmailSidebar">admin@cit.edu</span></p>
-          <p><strong>Contact:</strong> <span id="adminContactSidebar">N/A</span></p>
-          <div style="margin-top:12px;">
-            <button class="btn-primary" style="width:100%;" onclick="goToProfile()">Edit Info</button>
+
+          <div class="card consultants-section">
+            <h2>📝 Consultant Verification Requests</h2>
+            <div id="verificationRequests">
+              {% if verification_requests %}
+                {% for req in verification_requests %}
+                  <div class="rem-item">
+                    <p><strong>{{ req.full_name }}</strong> — {{ req.expertise }}</p>
+                    <p>📧 {{ req.contact }}</p>
+                    <small>Qualification: {{ req.qualification }}</small>
+                    <form method="POST" action="{% url 'approve_consultant' req.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <button class="btn-primary" type="submit">Approve</button>
+                    </form>
+                    <form method="POST" action="{% url 'reject_consultant' req.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <button type="submit" style="margin-left:8px;">Reject</button>
+                    </form>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <p>No pending requests</p>
+              {% endif %}
+            </div>
           </div>
-        </div>
-      </aside>
-    </div>
+        </section>
+
+        <!-- Right Column -->
+        <aside class="right-column">
+          <div class="card profile-card">
+            <div class="profile-top">
+              <img src="{% static 'ConsultApp/images/admin.png' %}" alt="admin" class="profile-pic">
+              <div class="info">
+                <p><strong>{{ admin_name }}</strong></p>
+                <p style="color:#777">{{ admin_role }}</p>
+              </div>
+            </div>
+            <p><strong>Email:</strong> {{ admin_email }}</p>
+            <p><strong>Contact:</strong> {{ admin_contact }}</p>
+            <div style="margin-top:12px;">
+              <a href="{% url 'admin_profile' %}" class="btn-primary" style="display:block;text-align:center;">Edit Info</a>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
   </div>
-</div>
-
-<script>
+  
+{% comment %} <script>
   function goToProfile(){ window.location.href = 'admin-profile-management.html'; }
 
   // Sidebar navigation
@@ -144,6 +171,6 @@
     alert("Request rejected.");
     location.reload();
   }
-</script>
+</script> {% endcomment %}
 </body>
 </html>

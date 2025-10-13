@@ -5,6 +5,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import User, Student, Consultant, Admin
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -119,7 +120,13 @@ def logout_view(request):
 # 🔹 Consultant Views
 @login_required
 def consultant_dashboard(request):
-    return render(request, "ConsultApp/consultant-dashboard.html")
+    consultant_name = f"{request.user.first_name} {request.user.last_name}".strip() or "Consultant"
+    context = {
+        "consultant_name": consultant_name 
+    }
+
+    return render(request, "ConsultApp/consultant-dashboard.html", context)
+    
 
 @login_required
 def consultant_appointments_view(request):
@@ -140,7 +147,14 @@ def consultant_verification_view(request):
 # 🔹 Student Views
 @login_required
 def student_dashboard(request):
-    return render(request, "ConsultApp/student-dashboard.html")
+
+    student_name = f"{request.user.first_name} {request.user.last_name}".strip() or "Student"
+    
+    context = {
+        "student_name": student_name
+    }
+
+    return render(request, "ConsultApp/student-dashboard.html", context)
 
 @login_required
 def student_profile_view(request):
@@ -161,7 +175,18 @@ def is_admin(user):
 @login_required
 @user_passes_test(is_admin)
 def admin_dashboard(request):
-    return render(request, "ConsultApp/admin-dashboard.html")
+    context = {
+        'current_date': timezone.now().strftime("%B %d, %Y"),
+        'admin_name': request.user.get_full_name(),
+        'admin_email': request.user.email,
+        'admin_contact': getattr(request.user, 'contact', 'N/A'),
+        'admin_role': 'System Administrator',
+        'total_students': 120,
+        'total_consultants': 25,
+        'active_bookings': 18,
+        'verification_requests': [],  # Replace with actual queryset
+    }
+    return render(request, 'ConsultApp/admin-dashboard.html', context)
 
 @login_required
 @user_passes_test(is_admin)
