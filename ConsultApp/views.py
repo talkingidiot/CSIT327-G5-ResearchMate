@@ -18,7 +18,7 @@ def login_register_view(request):
 @csrf_exempt
 def register_view(request):
     if request.method == "POST":
-        full_name = request.POST.get("full_name")
+        full_name = request.POST.get("full_name", "").strip()
         email = request.POST.get("email")
         password = request.POST.get("password")
         role = request.POST.get("role")
@@ -31,10 +31,13 @@ def register_view(request):
                 "form_source": "register",
             })
 
-        # Check name uniqueness
-        name_parts = full_name.strip().split(" ", 1)
-        first_name = name_parts[0]
-        last_name = name_parts[1] if len(name_parts) > 1 else ""
+        name_parts = full_name.split()
+        if len(name_parts) == 1:
+            first_name = name_parts[0].title()
+            last_name = ""
+        else:
+            first_name = " ".join(name_parts[:-1]).title()
+            last_name = name_parts[-1].title()
 
         if not full_name or not email or not password or not role:
             messages.error(request, "All fields are required.")
@@ -42,7 +45,8 @@ def register_view(request):
                 "show_signup": True,
                 "form_source": "register",
             })
-
+        
+        # Check name uniqueness
         if User.objects.filter(first_name__iexact=first_name, last_name__iexact=last_name).exists():
             messages.error(request, "A user with that name already exists.")
             return render(request, "ConsultApp/login-register.html", {
@@ -75,7 +79,7 @@ def register_view(request):
         if role == "student":
             Student.objects.create(
                 user=user,
-                student_year_level=request.POST.get("student_year_level") or "",
+                student_year_level=request.POST.get("student_year_level") or 1,
                 student_department=request.POST.get("student_department") or "",
                 student_course=request.POST.get("student_course") or "",
                 student_program=request.POST.get("student_program") or ""
@@ -98,10 +102,10 @@ def register_view(request):
             )
 
         messages.success(request, f"Account created successfully as {role.title()}!")
-        # Clear session storage on success
         response = redirect("login")
         response["Clear-SessionStorage"] = "true"
         return response
+    
             
     return render(request, "ConsultApp/login-register.html")
 
@@ -121,7 +125,7 @@ def login_view(request):
         user = authenticate(request, email=email, password=password)
 
         if user is None:
-            messages.error(request, "Invalid credentials. Please try again.")
+            messages.error(request, "Invalid credentials. Please try again or register your account.")
             return render(request, "ConsultApp/login-register.html", {
                 "form_source": "login"
             })
@@ -135,14 +139,13 @@ def login_view(request):
                 return redirect("consultant_dashboard")
             elif user.role == "admin":
                 return redirect("admin_dashboard")
-
             else:
                 messages.error(request, "Invalid role assigned.")
         else:
-            messages.error(request, "Invalid email or password.")
+            messages.error(request, "Invalid email or password. Please try again.")
 
-    return render(request, "ConsultApp/login-register.html")
-
+    return render(request, "ConsultApp/login-register.html", {
+        "form_source": "login"})
 
 # ========== LOGOUT VIEW ==========
 @login_required
