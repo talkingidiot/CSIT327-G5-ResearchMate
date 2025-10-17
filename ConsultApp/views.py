@@ -12,9 +12,8 @@ User = get_user_model()
 # 🔹 Auth Pages
 def login_register_view(request):
     """Render combined login/register page."""
-    return render(request, "ConsultApp/login-register.html")
+    return render(request, "ConsultApp/login-register.html")    
 
-# ========== REGISTER VIEW ==========
 @csrf_exempt
 def register_view(request):
     if request.method == "POST":
@@ -23,7 +22,7 @@ def register_view(request):
         password = request.POST.get("password")
         role = request.POST.get("role")
 
-        # Check email uniqueness
+        
         if User.objects.filter(email__iexact=email).exists():
             messages.error(request, "Email is already registered.")
             return render(request, "ConsultApp/login-register.html", {
@@ -67,7 +66,6 @@ def register_view(request):
                 "form_source": "register",
             })   
 
-        # Create user
         user = User.objects.create_user(
             email=email,
             password=password,
@@ -164,7 +162,6 @@ def consultant_dashboard(request):
 
     return render(request, "ConsultApp/consultant-dashboard.html", context)
     
-
 @login_required
 def consultant_appointments_view(request):
     return render(request, "ConsultApp/consultant-appointments.html")
@@ -221,7 +218,7 @@ def admin_dashboard(request):
         'total_students': 120,
         'total_consultants': 25,
         'active_bookings': 18,
-        'verification_requests': [],  # Replace with actual queryset
+        'verification_requests': [],  
     }
     return render(request, 'ConsultApp/admin-dashboard.html', context)
 
