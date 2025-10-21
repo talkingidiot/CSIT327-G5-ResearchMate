@@ -2,86 +2,517 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consultant — Appointments</title>
-<link rel="stylesheet" href="{% static 'ConsultApp/dashboard.css' %}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultant — Appointments</title>
+  <style>
+    :root {
+      --navy: #003366;
+      --light-bg: #f5f3ed;
+      --card-bg: #ffffff;
+      --text-dark: #2c3e50;
+      --text-muted: #6c757d;
+      --border-color: #e0ddd5;
+      --shadow: 0 4px 12px rgba(0, 51, 102, 0.08);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
+      background: var(--light-bg);
+      color: var(--text-dark);
+    }
+
+    /* Top Navigation */
+    .top-nav {
+      background: var(--card-bg);
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .top-nav .logo {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links a:hover {
+      background: var(--light-bg);
+      color: var(--navy);
+    }
+
+    .nav-links a.active {
+      background: var(--navy);
+      color: white;
+    }
+
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .user-section .consultant-label {
+      color: var(--navy);
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      background: transparent;
+      border: 2px solid var(--navy);
+      color: var(--navy);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: var(--navy);
+      color: white;
+    }
+
+    /* Main Content */
+    .main-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      font-size: 16px;
+      color: var(--text-muted);
+    }
+
+    /* Filter Section */
+    .filter-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .filter-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .filter-controls select {
+      padding: 10px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: white;
+      color: var(--text-dark);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .results-count {
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* Appointments Grid */
+    .appointments-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    /* Appointment Card */
+    .appointment-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .appointment-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 28px rgba(0, 51, 102, 0.15);
+      border-color: var(--navy);
+    }
+
+    .appointment-card .student-avatar {
+      width: 90px;
+      height: 90px;
+      background: var(--navy);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 800;
+      margin: 0 auto 16px;
+    }
+
+    .appointment-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .appointment-card .program {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .appointment-details {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      font-size: 14px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+
+    .detail-item:last-child {
+      border-bottom: none;
+    }
+
+    .detail-item .label {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .detail-item .value {
+      color: var(--text-dark);
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .appointment-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-details {
+      flex: 1;
+      padding: 12px 20px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-details:hover {
+      background: #004080;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
+    }
+
+    .btn-cancel {
+      padding: 12px 20px;
+      background: transparent;
+      color: #c62828;
+      border: 2px solid #c62828;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+      background: #c62828;
+      color: white;
+    }
+
+    /* Time Badge */
+    .time-badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--light-bg);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .top-nav {
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px 20px;
+      }
+
+      .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .main-content {
+        padding: 20px;
+      }
+
+      .page-header h1 {
+        font-size: 28px;
+      }
+
+      .appointments-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-section {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+      }
+
+      .filter-controls {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .filter-controls select {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="dashboard-container">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="logo"><img src="ResearchMate-logo-title.png" alt="ResearchMate"></div>
-    <ul class="menu">
-      <li><a href="{% url 'consultant_dashboard' %}">🏠 Dashboard</a></li>
-      <li><a href="{% url 'consultant_profile' %}">👤 My Profile</a></li>
-      <li><a href="{% url 'consultant_students' %}">🧑‍🎓 Assigned Students</a></li>
-      <li class="active"><a href="{% url 'consultant_appointments' %}">📅 Appointments</a></li>
-    </ul>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="logo">ResearchMate</div>
+    
+    <div class="nav-links">
+      <a href="{% url 'consultant_dashboard' %}">🏠 Dashboard</a>
+      <a href="{% url 'consultant_profile' %}">👤 My Profile</a>
+      <a href="{% url 'consultant_students' %}">🧑‍🎓 Students</a>
+      <a href="{% url 'consultant_appointments' %}" class="active">📅 Appointments</a>
+      <a href="#">❓ Help</a>
+    </div>
 
-    <form method="POST" action="{% url 'logout' %}">
-      {% csrf_token %}
-      <button type="submit" class="logout-btn">Logout</button>
-    </form>
-
-  </aside>
+    <div class="user-section">
+      <span class="consultant-label">Consultant</span>
+      <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">🚪 Logout</button>
+      </form>
+    </div>
+  </nav>
 
   <!-- Main Content -->
-  <div class="content-wrap">
-    <div class="hero">
-      <div class="left">
-        <span class="date">📅 October 2, 2025</span>
-        <h1>Appointments</h1>
-        <p>Check upcoming consultations with your students.</p>
-      </div>
-      <div class="brand">ResearchMate</div>
+  <main class="main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Appointments</h1>
+      <p>Check upcoming consultations with your students</p>
     </div>
 
-    <div class="main-grid">
-      <!-- Appointment Cards -->
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <div class="filter-controls">
+        <select>
+          <option>All Appointments</option>
+          <option>Today</option>
+          <option>This Week</option>
+          <option>This Month</option>
+        </select>
+        <select>
+          <option>All Topics</option>
+          <option>AI in Education</option>
+          <option>Cybersecurity</option>
+          <option>Web Development</option>
+          <option>Data Science</option>
+        </select>
+      </div>
+      <div class="results-count">4 upcoming appointments</div>
+    </div>
+
+    <!-- Appointments Grid -->
+    <div class="appointments-grid">
+      <!-- Appointment Card 1 -->
       <div class="appointment-card">
-        <img src="student1.png" alt="Student">
+        <div class="time-badge">⏰ 9:00 AM</div>
+        <div class="student-avatar">MS</div>
         <h3>Maria Santos</h3>
-        <p>BSIT 3A</p>
-        <p>Topic: AI in Education</p>
-        <p>Date: Oct 5, 2025</p>
-        <p>Time: 9:00 AM</p>
-        <button class="btn-primary">View Details</button>
+        <p class="program">BSIT 3A</p>
+        
+        <div class="appointment-details">
+          <div class="detail-item">
+            <span class="label">Topic:</span>
+            <span class="value">AI in Education</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Date:</span>
+            <span class="value">Oct 5, 2025</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Duration:</span>
+            <span class="value">1 hour</span>
+          </div>
+        </div>
+
+        <div class="appointment-actions">
+          <button class="btn-details">📋 View Details</button>
+        </div>
       </div>
 
+      <!-- Appointment Card 2 -->
       <div class="appointment-card">
-        <img src="student2.png" alt="Student">
+        <div class="time-badge">⏰ 2:00 PM</div>
+        <div class="student-avatar">CD</div>
         <h3>Carlos Dela Peña</h3>
-        <p>BSIT 3B</p>
-        <p>Topic: Cybersecurity</p>
-        <p>Date: Oct 6, 2025</p>
-        <p>Time: 2:00 PM</p>
-        <button class="btn-primary">View Details</button>
+        <p class="program">BSIT 3B</p>
+        
+        <div class="appointment-details">
+          <div class="detail-item">
+            <span class="label">Topic:</span>
+            <span class="value">Cybersecurity</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Date:</span>
+            <span class="value">Oct 6, 2025</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Duration:</span>
+            <span class="value">1.5 hours</span>
+          </div>
+        </div>
+
+        <div class="appointment-actions">
+          <button class="btn-details">📋 View Details</button>
+        </div>
       </div>
 
+      <!-- Appointment Card 3 -->
       <div class="appointment-card">
-        <img src="student3.png" alt="Student">
+        <div class="time-badge">⏰ 10:00 AM</div>
+        <div class="student-avatar">JD</div>
         <h3>Juan Dela Cruz</h3>
-        <p>BSIT 3C</p>
-        <p>Topic: Web Development</p>
-        <p>Date: Oct 7, 2025</p>
-        <p>Time: 10:00 AM</p>
-        <button class="btn-primary">View Details</button>
+        <p class="program">BSIT 3C</p>
+        
+        <div class="appointment-details">
+          <div class="detail-item">
+            <span class="label">Topic:</span>
+            <span class="value">Web Development</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Date:</span>
+            <span class="value">Oct 7, 2025</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Duration:</span>
+            <span class="value">2 hours</span>
+          </div>
+        </div>
+
+        <div class="appointment-actions">
+          <button class="btn-details">📋 View Details</button>
+        </div>
       </div>
 
+      <!-- Appointment Card 4 -->
       <div class="appointment-card">
-        <img src="student4.png" alt="Student">
+        <div class="time-badge">⏰ 1:00 PM</div>
+        <div class="student-avatar">AR</div>
         <h3>Angela Reyes</h3>
-        <p>BSIT 3D</p>
-        <p>Topic: Data Science</p>
-        <p>Date: Oct 8, 2025</p>
-        <p>Time: 1:00 PM</p>
-        <button class="btn-primary">View Details</button>
-      </div>
+        <p class="program">BSIT 3D</p>
+        
+        <div class="appointment-details">
+          <div class="detail-item">
+            <span class="label">Topic:</span>
+            <span class="value">Data Science</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Date:</span>
+            <span class="value">Oct 8, 2025</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Duration:</span>
+            <span class="value">1 hour</span>
+          </div>
+        </div>
 
-      <!-- Add more appointment cards as needed -->
+        <div class="appointment-actions">
+          <button class="btn-details">📋 View Details</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+  </main>
 </body>
 </html>

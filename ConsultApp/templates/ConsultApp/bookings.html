@@ -3,73 +3,529 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Bookings</title>
-  <link rel="stylesheet" href="{% static 'ConsultApp/dashboard.css' %}">
+  <style>
+    :root {
+      --navy: #003366;
+      --light-bg: #f5f3ed;
+      --card-bg: #ffffff;
+      --text-dark: #2c3e50;
+      --text-muted: #6c757d;
+      --border-color: #e0ddd5;
+      --shadow: 0 4px 12px rgba(0, 51, 102, 0.08);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
+      background: var(--light-bg);
+      color: var(--text-dark);
+    }
+
+    /* Top Navigation */
+    .top-nav {
+      background: var(--card-bg);
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .top-nav .logo {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-links a:hover {
+      background: var(--light-bg);
+      color: var(--navy);
+    }
+
+    .nav-links a.active {
+      background: var(--navy);
+      color: white;
+    }
+
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .user-section .student-label {
+      color: var(--navy);
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 18px;
+      background: transparent;
+      border: 2px solid var(--navy);
+      color: var(--navy);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: var(--navy);
+      color: white;
+    }
+
+    /* Main Content */
+    .main-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      font-size: 16px;
+      color: var(--text-muted);
+    }
+
+    /* Filter Section */
+    .filter-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .filter-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .filter-controls select {
+      padding: 10px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: white;
+      color: var(--text-dark);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-new-booking {
+      padding: 10px 20px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    .btn-new-booking:hover {
+      background: #004080;
+      transform: translateY(-2px);
+    }
+
+    /* Bookings Grid */
+    .bookings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 24px;
+    }
+
+    /* Booking Card */
+    .booking-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .booking-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--navy);
+      border-radius: 12px 0 0 12px;
+    }
+
+    .booking-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 51, 102, 0.15);
+      border-color: var(--navy);
+    }
+
+    .booking-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .consultant-info h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+
+    .consultant-info .specialty {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-badge.upcoming {
+      background: #fff8e1;
+      color: #f57c00;
+    }
+
+    .status-badge.confirmed {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .booking-details {
+      margin-bottom: 20px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      font-size: 14px;
+      border-bottom: 1px solid #f5f5f5;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-row .label {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .detail-row .value {
+      color: var(--text-dark);
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .booking-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-details {
+      flex: 1;
+      padding: 10px 20px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    .btn-details:hover {
+      background: #004080;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
+    }
+
+    .btn-cancel {
+      padding: 10px 20px;
+      background: transparent;
+      color: #c62828;
+      border: 2px solid #c62828;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+      background: #c62828;
+      color: white;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .top-nav {
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px 20px;
+      }
+
+      .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .main-content {
+        padding: 20px;
+      }
+
+      .page-header h1 {
+        font-size: 28px;
+      }
+
+      .bookings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-section {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+      }
+
+      .filter-controls {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .filter-controls select {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
-  <div class="dashboard-container">
-    <!-- SIDEBAR -->
-    <aside class="sidebar" aria-label="Main navigation sidebar">
-      <div class="logo">
-        <img src="ResearchMate-logo-title.png" alt="ResearchMate Logo">
-      </div>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="logo">ResearchMate</div>
+    
+    <div class="nav-links">
+      <a href="{% url 'student_dashboard' %}">🏠 Dashboard</a>
+      <a href="{% url 'student_profile' %}">👤 Profile</a>
+      <a href="{% url 'bookings' %}" class="active">📅 Bookings</a>
+      <a href="{% url 'student_history' %}">📜 History</a>
+      <a href="#">❓ Help</a>
+    </div>
 
-      <ul class="menu">
-        <li><a href="{% url 'student_dashboard'%}">🏠 Dashboard</a></li>
-        <li><a href="{% url 'student_profile'%}">👤 Student Profile</a></li>
-        <li class="active"><a href="{% url 'bookings'%}">📅 Bookings</a></li>
-        <li><a href="{% url 'student_history'%}">📜 History</a></li>
-      </ul>
-      <form method="POST" action="{% url 'logout' %}">
+    <div class="user-section">
+      <span class="student-label">Student</span>
+      <form method="POST" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
-        <button class="logout-btn">Logout</button>
+        <button type="submit" class="logout-btn">🚪 Logout</button>
       </form>
-    </aside>
+    </div>
+  </nav>
 
-    <!-- Main content -->
-    <div class="content-wrap">
-      <div class="hero">
-        <div class="left">
-          <span class="date">📅 October 9, 2025</span>
-          <h1>Bookings</h1>
-          <p>View and manage your upcoming bookings.</p>
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>My Bookings</h1>
+      <p>View and manage your upcoming consultation bookings</p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <div class="filter-controls">
+        <select>
+          <option>All Bookings</option>
+          <option>Upcoming</option>
+          <option>Confirmed</option>
+          <option>Pending</option>
+        </select>
+        <select>
+          <option>All Consultants</option>
+          <option>Maria Santos</option>
+          <option>Juan Dela Cruz</option>
+          <option>Ana Reyes</option>
+        </select>
+      </div>
+      <button class="btn-new-booking">+ New Booking</button>
+    </div>
+
+    <!-- Bookings Grid -->
+    <div class="bookings-grid">
+      <!-- Booking Card 1 -->
+      <div class="booking-card">
+        <div class="booking-header">
+          <div class="consultant-info">
+            <h3>Maria Santos</h3>
+            <p class="specialty">Data Analyst</p>
+          </div>
+          <span class="status-badge upcoming">⏰ Upcoming</span>
         </div>
-        <div class="brand">ResearchMate</div>
+
+        <div class="booking-details">
+          <div class="detail-row">
+            <span class="label">Purpose:</span>
+            <span class="value">Thesis Review</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Date:</span>
+            <span class="value">Oct 10, 2025</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Time:</span>
+            <span class="value">2:00 PM</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Duration:</span>
+            <span class="value">1 hour</span>
+          </div>
+        </div>
+
+        <div class="booking-actions">
+          <button class="btn-details">📋 View Details</button>
+          <button class="btn-cancel">✕</button>
+        </div>
       </div>
 
-      <!-- Bookings Grid -->
-      <div class="main-grid">
-        <div class="right-column">
-          <!-- Booking Card 1 -->
-          <div class="booking-card">
-            <h3 class="booking-student">Maria Santos</h3>
-            <p class="booking-course">Data Analyst</p>
-            <p><strong>Purpose:</strong>Thesis Review</p>
-            <p><strong>Date:</strong> Oct 10, 2025</p>
-            <button class="btn-primary">Details</button>
+      <!-- Booking Card 2 -->
+      <div class="booking-card">
+        <div class="booking-header">
+          <div class="consultant-info">
+            <h3>Juan Dela Cruz</h3>
+            <p class="specialty">Psychologist</p>
           </div>
+          <span class="status-badge confirmed">✓ Confirmed</span>
+        </div>
 
-          <!-- Booking Card 2 -->
-          <div class="booking-card">
-            <h3 class="booking-student">Juan Dela Cruz</h3>
-            <p class="booking-course">Psychologist</p>
-            <p><strong>Purpose:</strong>Personal Guidance</p>
-            <p><strong>Date:</strong> Oct 12, 2025</p>
-            <button class="btn-primary">Details</button>
+        <div class="booking-details">
+          <div class="detail-row">
+            <span class="label">Purpose:</span>
+            <span class="value">Personal Guidance</span>
           </div>
+          <div class="detail-row">
+            <span class="label">Date:</span>
+            <span class="value">Oct 12, 2025</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Time:</span>
+            <span class="value">10:00 AM</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Duration:</span>
+            <span class="value">45 minutes</span>
+          </div>
+        </div>
 
-          <!-- Booking Card 3 -->
-          <div class="booking-card">
-            <h3 class="booking-student">Ana Reyes</h3>
-            <p class="booking-course">Data Analyst</p>
-            <p><strong>Purpose:</strong>Thesis Review</p>
-            <p><strong>Date:</strong> Oct 15, 2025</p>
-            <button class="btn-primary">Details</button>
+        <div class="booking-actions">
+          <button class="btn-details">📋 View Details</button>
+          <button class="btn-cancel">✕</button>
+        </div>
+      </div>
+
+      <!-- Booking Card 3 -->
+      <div class="booking-card">
+        <div class="booking-header">
+          <div class="consultant-info">
+            <h3>Ana Reyes</h3>
+            <p class="specialty">Data Analyst</p>
           </div>
+          <span class="status-badge upcoming">⏰ Upcoming</span>
+        </div>
+
+        <div class="booking-details">
+          <div class="detail-row">
+            <span class="label">Purpose:</span>
+            <span class="value">Thesis Review</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Date:</span>
+            <span class="value">Oct 15, 2025</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Time:</span>
+            <span class="value">3:30 PM</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Duration:</span>
+            <span class="value">2 hours</span>
+          </div>
+        </div>
+
+        <div class="booking-actions">
+          <button class="btn-details">📋 View Details</button>
+          <button class="btn-cancel">✕</button>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </body>
 </html>
