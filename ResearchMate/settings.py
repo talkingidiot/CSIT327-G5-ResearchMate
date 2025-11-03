@@ -32,7 +32,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -80,7 +79,7 @@ WSGI_APPLICATION = 'ResearchMate.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default="postgresql://postgres:IMResearchmate@db.hqqgsbwkqfguzpapcjnl.supabase.co:5432/postgres?sslmode=require",
+        default="postgresql://postgres.hqqgsbwkqfguzpapcjnl:IMResearchmate@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require",
         conn_max_age=600,
         ssl_require=True,
     )
@@ -130,3 +129,16 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'ConsultApp.User'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# === EMAIL CONFIGURATION (GMAIL) ===
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'jianmarc.ceniza@gmail.com'  
+EMAIL_HOST_PASSWORD = 'earq dcoc hurp llje'  
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

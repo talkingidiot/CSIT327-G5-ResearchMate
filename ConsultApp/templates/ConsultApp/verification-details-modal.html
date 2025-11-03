@@ -1,0 +1,86 @@
+<div class="verification-details">
+  <h2>Verification Details - {{ verification.consultant.get_full_name }}</h2>
+  
+  <div class="detail-section">
+    <h3>👤 Personal Information</h3>
+    <div class="detail-item">
+      <label>Full Name:</label>
+      <span>{{ verification.consultant.get_full_name }}</span>
+    </div>
+    <div class="detail-item">
+      <label>Email:</label>
+      <span>{{ verification.consultant.email }}</span>
+    </div>
+    <div class="detail-item">
+      <label>Contact Number:</label>
+      <span>{{ verification.contact_number }}</span>
+    </div>
+  </div>
+
+  <div class="detail-section">
+    <h3>💼 Professional Information</h3>
+    <div class="detail-item">
+      <label>Expertise/Specialization:</label>
+      <span>{{ verification.expertise }}</span>
+    </div>
+    <div class="detail-item">
+      <label>Workplace/Institution:</label>
+      <span>{{ verification.workplace }}</span>
+    </div>
+    <div class="detail-item">
+      <label>Qualifications:</label>
+      <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin-top: 5px;">
+        {{ verification.qualification|linebreaks }}
+      </div>
+    </div>
+  </div>
+
+  {% if verification.proof_document %}
+  <div class="detail-section">
+    <h3>📄 Submitted Documents</h3>
+    <div class="detail-item">
+      <label>Proof Document:</label>
+      {% if verification.proof_document.url|lower|endswith:".jpg" or verification.proof_document.url|lower|endswith:".png" or verification.proof_document.url|lower|endswith:".jpeg" %}
+        <img src="{{ verification.proof_document.url }}" 
+             alt="Proof Document" 
+             style="width: 300px; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px;">
+      {% else %}
+        <a href="{{ verification.proof_document.url }}" target="_blank" class="document-link">
+          📎 View Document
+        </a>
+      {% endif %}
+    </div>
+  </div>
+{% else %}
+  <div class="detail-section">
+    <h3>📄 Submitted Documents</h3>
+    <p>No proof document uploaded.</p>
+  </div>
+{% endif %}
+
+
+  <div class="detail-section">
+    <h3>⏰ Submission Details</h3>
+    <div class="detail-item">
+      <label>Submitted On:</label>
+      <span>{{ verification.created_at|date:"F d, Y H:i" }}</span>
+    </div>
+    <div class="detail-item">
+      <label>Status:</label>
+      <span style="padding: 5px 10px; background: #fff3cd; border-radius: 4px; font-weight: bold;">
+        {{ verification.status|title }}
+      </span>
+    </div>
+  </div>
+
+  <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+    <form method="POST" action="{% url 'approve_consultant' verification.id %}" style="display: inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn-approve">✓ Approve Application</button>
+    </form>
+    <form method="POST" action="{% url 'reject_consultant' verification.id %}" style="display: inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn-reject">✗ Reject Application</button>
+    </form>
+  </div>
+</div>
