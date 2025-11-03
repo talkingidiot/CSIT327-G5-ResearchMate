@@ -145,6 +145,29 @@
           </div>
         </div>  {% endcomment %}
       </div>
+      <!-- Pending Appointments Section -->
+<div class="section-card" style="margin-top: 20px;">
+  <h2>🕒 Pending Appointments</h2>
+  <div class="items-grid">
+    {% if pending_appointments %}
+      {% for appointment in pending_appointments %}
+        <div class="item-card" style="text-align:center;">
+          <h4>{{ appointment.student.user.get_full_name }}</h4>
+          <p>Topic: {{ appointment.topic }}</p>
+          <p>{{ appointment.date|date:"M d, Y" }} — {{ appointment.time|time:"g:i A" }}</p>
+          <form method="POST" action="{% url 'update_appointment_status' appointment.id %}">
+            {% csrf_token %}
+            <button type="submit" name="action" value="approve" class="btn-view-all" style="background:#4caf50; color:white;">Approve</button>
+            <button type="submit" name="action" value="reject" class="btn-view-all" style="background:#e53e3e; color:white;">Reject</button>
+          </form>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No pending appointments at the moment.</p>
+    {% endif %}
+  </div>
+</div>
+
 
       <!-- Right Sidebar -->
       <div class="sidebar-column">
