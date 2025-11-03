@@ -37,12 +37,9 @@
       <p>Find a research consultant and manage your bookings</p>
     </header>
 
-    <!-- ===== DASHBOARD GRID ===== -->
     <div class="dashboard-grid">
-
       <!-- ===== LEFT COLUMN ===== -->
       <section>
-        <!-- Search Card -->
         <div class="search-card">
           <h2>🔍 Find Your Research Consultant</h2>
           <div class="search-box">
@@ -52,30 +49,16 @@
           <p>Connect with available consultants and schedule a session.</p>
         </div>
 
-        <!-- Booking Stats -->
         <div class="stats-grid">
-          <div class="stat-box">
-            <h4>Current</h4>
-            <div class="number">{{ stats.current }}</div>
-          </div>
-          <div class="stat-box">
-            <h4>Previous</h4>
-            <div class="number">{{ stats.previous }}</div>
-          </div>
-          <div class="stat-box">
-            <h4>Pending</h4>
-            <div class="number">{{ stats.pending }}</div>
-          </div>
-          <div class="stat-box">
-            <h4>Cancelled</h4>
-            <div class="number">{{ stats.cancelled }}</div>
-          </div>
+          <div class="stat-box"><h4>Current</h4><div class="number">{{ stats.current }}</div></div>
+          <div class="stat-box"><h4>Previous</h4><div class="number">{{ stats.previous }}</div></div>
+          <div class="stat-box"><h4>Pending</h4><div class="number">{{ stats.pending }}</div></div>
+          <div class="stat-box"><h4>Cancelled</h4><div class="number">{{ stats.cancelled }}</div></div>
         </div>
 
-        <!-- Recommended Consultants -->
+        <!-- ===== Recommended Consultants ===== -->
         <section class="consultants-section">
           <h2>Recommended Consultants</h2>
-
           {% if recommended_consultants %}
             <div class="consultants-grid">
               {% for market in recommended_consultants %}
@@ -88,6 +71,22 @@
                   <p>{{ market.expertise|default:"No expertise listed" }}</p>
                   <p class="rate">💰 ₱{{ market.rate_per_hour }} / hour</p>
                   <p class="meeting">📍 {{ market.meeting_place }}</p>
+
+                  <!-- View Details Button -->
+                  <button
+                    class="btn-view-details"
+                    data-consultant-user-id="{{ market.consultant.user.id }}"
+                    data-market-id="{{ market.id }}"
+                    data-name="{{ market.consultant.user.get_full_name|escapejs }}"
+                    data-expertise="{{ market.expertise|default:''|escapejs }}"
+                    data-workplace="{{ market.workplace|default:''|escapejs }}"
+                    data-rate="{{ market.rate_per_hour|default:'0' }}"
+                    data-available-from="{{ market.available_from|time:'H:i' }}"
+                    data-available-to="{{ market.available_to|time:'H:i' }}"
+                    data-description="{{ market.description|default:''|escapejs }}"
+                  >
+                    View Details
+                  </button>
                 </div>
               {% endfor %}
             </div>
@@ -99,7 +98,6 @@
 
       <!-- ===== RIGHT SIDEBAR ===== -->
       <aside class="sidebar-column">
-        <!-- Profile Card -->
         <div class="profile-card">
           <div class="profile-header">
             <div class="profile-avatar">{{ student_name|slice:":2"|upper }}</div>
@@ -110,26 +108,13 @@
           </div>
 
           <div class="profile-info">
-            <div class="info-row">
-              <span class="label">Email:</span>
-              <span class="value">{{ request.user.email }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Department:</span>
-              <span class="value">{{ student.student_department|default:"N/A" }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Program:</span>
-              <span class="value">{{ student.student_program|default:"N/A" }}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Year Level:</span>
-              <span class="value">{{ student.student_year_level|default:"N/A" }}</span>
-            </div>
+            <div class="info-row"><span class="label">Email:</span><span class="value">{{ request.user.email }}</span></div>
+            <div class="info-row"><span class="label">Department:</span><span class="value">{{ student.student_department|default:"N/A" }}</span></div>
+            <div class="info-row"><span class="label">Program:</span><span class="value">{{ student.student_program|default:"N/A" }}</span></div>
+            <div class="info-row"><span class="label">Year Level:</span><span class="value">{{ student.student_year_level|default:"N/A" }}</span></div>
           </div>
         </div>
 
-        <!-- Upcoming Sessions -->
         <div class="sessions-card">
           <h2>Upcoming Sessions</h2>
           {% if upcoming_sessions %}
@@ -148,5 +133,83 @@
       </aside>
     </div>
   </main>
+
+  <!-- ===== CONSULTANT MODAL ===== -->
+  <div id="consultantModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span id="modalClose" class="modal-close">&times;</span>
+      <h2 id="modalName"></h2>
+      <p id="modalExpertise"></p>
+      <p id="modalWorkplace"></p>
+      <p id="modalDescription"></p>
+      <p><strong>Available:</strong> <span id="modalAvailable"></span></p>
+      <p><strong>Rate:</strong> ₱<span id="modalRate"></span> / hr</p>
+
+      <div style="margin-top:1rem;">
+        <a id="modalBookBtn" href="#" class="btn-primary" target="_blank">Book Consultant Now</a>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .modal { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.5); z-index:9999; }
+    .modal-content { background:#fff; padding:1.25rem; border-radius:8px; width:90%; max-width:520px; box-shadow: 0 6px 24px rgba(0,0,0,0.2); }
+    .modal-close { float:right; cursor:pointer; font-size:1.25rem; }
+    .btn-primary { background:#246; color:#fff; padding:0.5rem 1rem; border-radius:6px; text-decoration:none; display:inline-block; }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('consultantModal');
+      const modalClose = document.getElementById('modalClose');
+      const modalName = document.getElementById('modalName');
+      const modalExpertise = document.getElementById('modalExpertise');
+      const modalWorkplace = document.getElementById('modalWorkplace');
+      const modalDescription = document.getElementById('modalDescription');
+      const modalAvailable = document.getElementById('modalAvailable');
+      const modalRate = document.getElementById('modalRate');
+      const modalBookBtn = document.getElementById('modalBookBtn');
+
+      document.querySelectorAll('.btn-view-details').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const userId = btn.dataset.consultantUserId;
+          const name = btn.dataset.name || '';
+          const expertise = btn.dataset.expertise || '';
+          const workplace = btn.dataset.workplace || '';
+          const description = btn.dataset.description || '';
+          const availFrom = btn.dataset.availableFrom || '';
+          const availTo = btn.dataset.availableTo || '';
+          const rate = btn.dataset.rate || '0';
+
+          modalName.textContent = name;
+          modalExpertise.textContent = expertise ? expertise : 'Consultant';
+          modalWorkplace.textContent = workplace;
+          modalDescription.textContent = description;
+          modalAvailable.textContent = formatTime(availFrom) + ' - ' + formatTime(availTo);
+          modalRate.textContent = rate;
+
+          const urlTemplate = "{% url 'book_appointment_with_consultant' 0 %}";
+          modalBookBtn.href = urlTemplate.replace('0', userId);
+
+          modal.style.display = 'flex';
+        });
+      });
+
+      modalClose.addEventListener('click', () => modal.style.display = 'none');
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+      function formatTime(hhmm) {
+        if (!hhmm) return '';
+        const parts = hhmm.split(':');
+        if (parts.length < 2) return hhmm;
+        let h = parseInt(parts[0], 10);
+        const m = parts[1];
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12;
+        if (h === 0) h = 12;
+        return h + ':' + m + ' ' + ampm;
+      }
+    });
+  </script>
 </body>
 </html>

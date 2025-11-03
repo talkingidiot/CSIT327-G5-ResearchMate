@@ -1,0 +1,248 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ResearchMate — Book Appointment</title>
+  <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'ConsultApp/profile.css' %}">
+  <style>
+    .form-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 2rem;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    .form-actions {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 1rem;
+    }
+    .btn-primary {
+      background-color: #1f3327;
+      color: #fff;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn-primary:hover {
+      background-color: #c76953;
+    }
+    .btn-secondary {
+      background-color: #f8e4eb;
+      color: #1f3327;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .consultant-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .consultant-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
+    .consultant-card img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 0.5rem;
+    }
+    .consultant-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="logo">ResearchMate</div>
+    
+    <div class="nav-links">
+      <a href="{% url 'student_dashboard' %}">🏠 Dashboard</a>
+      <a href="{% url 'student_profile' %}">👤 Profile</a>
+      <a href="{% url 'appointments' %}" class="active">📅 Appointments</a>
+      <a href="{% url 'student_history' %}">📜 History</a>
+      <a href="#">❓ Help</a>
+    </div>
+
+    <div class="user-section">
+      <span class="student-label">Student</span>
+      <form method="POST" action="{% url 'logout' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">🚪 Logout</button>
+      </form>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Book a Research Consultant</h1>
+      <p>Choose a verified consultant and schedule your appointment</p>
+    </div>
+
+    <!-- Booking Layout -->
+    <div class="profile-grid">
+      <!-- Consultant Selection -->
+      <div class="profile-card">
+        <h3>Verified Consultants</h3>
+        {% if consultant %}
+          <div class="consultant-card">
+            <img src="{% static 'ConsultApp/default-profile.png' %}" alt="Consultant">
+            <h4>{{ consultant.user.get_full_name }}</h4>
+            <p>{{ consultant.expertise }}</p>
+            <p>📍 {{ consultant.workplace }}</p>
+          </div>
+        {% elif consultants %}
+          <div class="consultant-grid">
+            {% for c in consultants %}
+              <div class="consultant-card">
+                <img src="{% static 'ConsultApp/default-profile.png' %}" alt="{{ c.user.get_full_name }}">
+                <h4>{{ c.user.get_full_name }}</h4>
+                <p>{{ c.expertise }}</p>
+                <p>📍 {{ c.workplace }}</p>
+                <div class="form-group">
+                  <label>Total Cost:</label>
+                  <div id="total-cost" style="font-weight: bold; color: #1f3327;">₱0.00</div>
+                </div>
+                <a href="{% url 'book_appointment_with_consultant' c.pk %}" class="btn-primary" style="margin-top:0.5rem;">Book Now</a>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p>No verified consultants available at the moment.</p>
+        {% endif %}
+      </div>
+
+      <!-- Booking Form -->
+      <div class="form-card">
+        <h2>Appointment Details</h2>
+        <form method="POST">
+          {% csrf_token %}
+          
+          {% if consultant %}
+            <div class="form-group">
+              <label>Consultant</label>
+              <input type="text" value="{{ consultant.user.get_full_name }}" disabled>
+              <input type="hidden" name="consultant" value="{{ consultant.pk }}">
+            </div>
+          {% else %}
+            <div class="form-group">
+              <label for="consultant">Select Consultant</label>
+              <select name="consultant" id="consultant" required>
+                <option value="">-- Choose Consultant --</option>
+                {% for c in consultants %}
+                  <option value="{{ c.pk }}">{{ c.user.get_full_name }} — {{ c.expertise }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
+
+          <div class="form-group">
+            <label for="topic">Consultation Topic</label>
+            <input type="text" name="topic" id="topic" placeholder="e.g. Research Proposal Review" required>
+          </div>
+
+          <div class="form-group">
+            <label for="date">Date</label>
+            <input type="date" name="date" id="date" required>
+          </div>
+
+          <!-- ✅ NEW: Time Selection within Consultant Availability -->
+          <div class="form-group">
+            <label for="start_time">Select Start Time</label>
+            <input type="time" id="start_time" name="time" required>
+            <small>Available: {{ market.available_from|time:"h:i A" }} - {{ market.available_to|time:"h:i A" }}</small>
+          </div>
+
+          <!-- ✅ NEW: Duration Dropdown -->
+          <div class="form-group">
+            <label for="duration_hours">Meeting Duration</label>
+            <select id="duration_hours" name="duration_hours" required>
+              <option value="1">1 hour</option>
+              <option value="2">2 hours</option>
+              <option value="3">3 hours</option>
+            </select>
+          </div>
+
+          <!-- ✅ NEW: Auto-updating Total Cost -->
+          <div class="form-group">
+            <label>Total Cost:</label>
+            <div id="total-cost-display" style="font-weight: bold; color: #1f3327;">₱0.00</div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">📅 Confirm Booking</button>
+            <button type="button" class="btn-secondary" onclick="window.location.href='{% url 'student_dashboard' %}'">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- ✅ Script Section -->
+  <script>
+    const ratePerHour = {{ market.rate_per_hour|default:0 }};
+    const durationSelect = document.getElementById("duration_hours");
+    const totalCostDisplay = document.getElementById("total-cost-display");
+    const timeInput = document.getElementById("start_time");
+
+    const availableFrom = "{{ market.available_from|time:'H:i' }}";
+    const availableTo = "{{ market.available_to|time:'H:i' }}";
+
+    function updateTotalCost() {
+      const duration = parseFloat(durationSelect.value || 1);
+      const total = ratePerHour * duration;
+      totalCostDisplay.textContent = "₱" + total.toFixed(2);
+    }
+
+    if (durationSelect) {
+      durationSelect.addEventListener("change", updateTotalCost);
+      updateTotalCost();
+    }
+
+    if (timeInput) {
+      timeInput.addEventListener("change", function() {
+        const selected = timeInput.value;
+        if (selected < availableFrom || selected > availableTo) {
+          alert("⚠️ Please choose a time within consultant availability (" + availableFrom + " - " + availableTo + ")");
+          timeInput.value = "";
+        }
+      });
+    }
+  </script>
+</body>
+</html>

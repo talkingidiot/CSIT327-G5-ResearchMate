@@ -14,7 +14,12 @@ from django.template.loader import render_to_string
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.conf import settings
-
+from datetime import timedelta, time as dt_time, datetime as dt_datetime
+from django.utils import timezone
+from django.urls import reverse
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Appointment
 
 User = get_user_model()
 
@@ -171,7 +176,6 @@ def consultant_dashboard(request):
     ).order_by('-reviewed_at').first()
 
     rejected_verification = None
-    # Only show rejected if there’s no pending or approved one
     if not pending_verification and not approved_verification:
         rejected_verification = Verification.objects.filter(
             consultant=consultant_user,
@@ -181,6 +185,11 @@ def consultant_dashboard(request):
     total_students = Student.objects.count()
     total_appointments = Appointment.objects.filter(consultant=consultant).count() if consultant else 0
 
+    # 🔹 Added: Appointment lists by status
+    pending_appointments = Appointment.objects.filter(consultant=consultant, status='pending')
+    confirmed_appointments = Appointment.objects.filter(consultant=consultant, status='confirmed')
+    cancelled_appointments = Appointment.objects.filter(consultant=consultant, status='cancelled')
+
     context = {
         "consultant": consultant,
         "consultant_name": consultant_user.get_full_name(),
@@ -189,12 +198,26 @@ def consultant_dashboard(request):
         "rejected_verification": rejected_verification,
         "total_students": total_students,
         "total_appointments": total_appointments,
-        "appointments": [],
+        "appointments": confirmed_appointments,  # confirmed ones shown as "Upcoming"
         "students": [],
+        "pending_appointments": pending_appointments,
+        "cancelled_appointments": cancelled_appointments,
     }
 
     return render(request, "ConsultApp/consultant-dashboard.html", context)
+@login_required
+def update_appointment_status(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'approve':
+            appointment.status = 'confirmed'
+        elif action == 'reject':
+            appointment.status = 'cancelled'
+        appointment.save()
 
+    return redirect('consultant_dashboard')
 
 @login_required
 def consultant_appointments_view(request):
@@ -357,8 +380,6 @@ def student_dashboard(request):
         .filter(
             consultant__is_verified=True,
             is_active=True,
-            available_from__lte=now,
-            available_to__gte=now
         )
         .order_by("?")[:3]  
     )
@@ -601,3 +622,160 @@ def reset_password_view(request, uidb64, token):
     else:
         messages.error(request, "The password reset link is invalid or has expired.")
         return redirect("forgot_password")
+@login_required
+def all_consultants_view(request):
+    consultants = (
+        Market.objects
+        .select_related("consultant__user")
+        .filter(consultant__is_verified=True, is_active=True)
+    )
+    return render(request, "ConsultApp/all-consultants.html", {"consultants": consultants})
+
+@login_required
+def update_appointment_status(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'approve':
+            appointment.status = 'confirmed'
+        elif action == 'reject':
+            appointment.status = 'cancelled'
+        appointment.save()
+
+    return redirect('consultant_dashboard')
+
+
+@login_required
+def book_appointment(request, consultant_id=None):
+    """
+    If consultant_id is provided (via modal/book button) -> preselect that consultant and its Market.
+    If not -> show dropdown of consultants (active market listings).
+    Handles POST to create Appointment.
+    """
+    student = Student.objects.filter(user=request.user).first()
+    if not student:
+        messages.error(request, "Student profile not found.")
+        return redirect('login_view')
+
+    def get_market_for_consultant(consultant_obj):
+        return Market.objects.filter(consultant=consultant_obj, is_active=True).order_by('-updated_at').first()
+
+    consultant = None
+    market = None
+
+    if consultant_id:
+        try:
+            consultant = Consultant.objects.get(user__id=consultant_id)
+            market = get_market_for_consultant(consultant)
+            if not market:
+                messages.error(request, "This consultant has no active market listing.")
+                return redirect('student_dashboard')
+        except Consultant.DoesNotExist:
+            messages.error(request, "Consultant not found.")
+            return redirect('student_dashboard')
+
+    consultants_with_market = Consultant.objects.filter(
+    is_verified=True,
+    market_listings__is_active=True
+).select_related("user").distinct()
+
+
+    def generate_hourly_slots(available_from, available_to):
+        """
+        returns list of strings "HH:MM" for each hour start slot where a 1-hour session can start.
+        e.g. available_from=15:00, available_to=18:00 -> ["15:00","16:00","17:00"]
+        """
+        slots = []
+        if not available_from or not available_to:
+            return slots
+        start_min = available_from.hour * 60 + available_from.minute
+        end_min = available_to.hour * 60 + available_to.minute
+        cur = start_min
+        while cur + 60 <= end_min:
+            hh = cur // 60
+            mm = cur % 60
+            slots.append(f"{hh:02d}:{mm:02d}")
+            cur += 60
+        return slots
+
+    if request.method == "POST":
+        form_consultant_id = request.POST.get("consultant_id")
+        if not consultant:
+            if not form_consultant_id:
+                messages.error(request, "Please select a consultant.")
+                return redirect('book_appointment')
+            try:
+                consultant = Consultant.objects.get(user__id=int(form_consultant_id))
+                market = get_market_for_consultant(consultant)
+                if not market:
+                    messages.error(request, "Selected consultant has no active listing.")
+                    return redirect('book_appointment')
+            except Consultant.DoesNotExist:
+                messages.error(request, "Selected consultant not found.")
+                return redirect('book_appointment')
+
+        date_str = request.POST.get("date")
+        start_time_str = request.POST.get("start_time")
+        duration_hours = int(request.POST.get("duration_hours") or 1)
+        topic = request.POST.get("topic", "").strip()
+        research_title = request.POST.get("research_title", "").strip()
+
+        if not date_str or not start_time_str or not topic:
+            messages.error(request, "Please fill in required fields.")
+        else:
+            try:
+                date_obj = dt_datetime.strptime(date_str, "%Y-%m-%d").date()
+                start_time_obj = dt_datetime.strptime(start_time_str, "%H:%M").time()
+            except ValueError:
+                messages.error(request, "Invalid date or time format.")
+                date_obj = None
+                start_time_obj = None
+
+            if date_obj and start_time_obj:
+                available_from = market.available_from
+                available_to = market.available_to
+                start_dt = dt_datetime.combine(date_obj, start_time_obj)
+                end_dt = start_dt + timedelta(hours=duration_hours)
+                end_time_obj = end_dt.time()
+
+                if not (available_from <= start_time_obj and end_time_obj <= available_to):
+                    messages.error(request, f"Selected time/duration is outside consultant availability ({available_from.strftime('%I:%M %p')} - {available_to.strftime('%I:%M %p')}).")
+                else:
+                    conflicts = []
+                    existing_appts = Appointment.objects.filter(consultant=consultant, date=date_obj)
+                    for ap in existing_appts:
+                        ap_start = dt_datetime.combine(date_obj, ap.time)
+                        ap_end = ap_start + timedelta(minutes=ap.duration_minutes or 60)
+                        if (start_dt < ap_end) and (end_dt > ap_start):
+                            conflicts.append(ap)
+                    if conflicts:
+                        messages.error(request, "Selected slot conflicts with existing appointment for this consultant. Please choose another time.")
+                    else:
+                        total_payment = (market.rate_per_hour or 0) * duration_hours
+
+                        appointment = Appointment.objects.create(
+                            consultant=consultant,
+                            student=student,
+                            topic=topic,
+                            date=date_obj,
+                            time=start_time_obj,
+                            duration_minutes=duration_hours * 60,
+                            status="pending",
+                        )
+                        messages.success(request, f"Booking created. Total payment: ₱{total_payment:.2f}. Appointment pending confirmation.")
+                        return redirect('appointments')
+
+    slots = []
+    if market:
+        slots = generate_hourly_slots(market.available_from, market.available_to)
+
+    today_iso = timezone.localdate().isoformat()
+
+    return render(request, "ConsultApp/book_appointment.html", {
+        "consultant": consultant,
+        "market": market,
+        "consultants": consultants_with_market,
+        "slots": slots,
+        "today": today_iso,
+    })

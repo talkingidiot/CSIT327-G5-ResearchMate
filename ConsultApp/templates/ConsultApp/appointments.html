@@ -66,7 +66,7 @@
         </select> {% endcomment %}
 
       </div>
-      <button class="btn-new-booking">+ New Appointment</button>
+      <a href="{% url 'book_appointment' %}" class="btn-new-booking">+ New Appointment</a>
     </div>
 
     <!-- Bookings Grid -->
@@ -86,7 +86,16 @@
                 </p>
               </div>
 
-              <span class="status-badge upcoming">⏰ Upcoming</span>
+              {% if booking.status == "pending" %}
+              <span class="status-badge pending">⏳ Pending</span>
+            {% elif booking.status == "confirmed" %}
+              <span class="status-badge confirmed">✅ Confirmed</span>
+            {% elif booking.status == "cancelled" %}
+              <span class="status-badge cancelled">❌ Cancelled</span>
+            {% elif booking.status == "completed" %}
+              <span class="status-badge completed">🏁 Completed</span>
+            {% endif %}
+
             </div>
 
             <div class="booking-details">

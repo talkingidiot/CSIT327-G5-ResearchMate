@@ -24,11 +24,14 @@ urlpatterns = [
     path('consultant-profile/', views.consultant_profile_view, name='consultant_profile'),
     path('consultant-students/', views.consultant_students_view, name='consultant_students'),
     path('consultant-market/', views.consultant_market, name='consultant_market'),
+    path('appointment/update/<int:appointment_id>/', views.update_appointment_status, name='update_appointment_status'),
 
     # Student
     path('appointments/', views.appointments_view, name='appointments'),
     path('student-history/', views.student_history_view, name='student_history'),
     path('student-profile/', views.student_profile_view, name='student_profile'),
+    path('book-appointment/', views.book_appointment, name='book_appointment'),
+    path('book-appointment/<int:consultant_id>/', views.book_appointment, name='book_appointment_with_consultant'),
 
     # Admin
     path('admin-consultants/', views.admin_consultants_view, name='admin_consultants'),
