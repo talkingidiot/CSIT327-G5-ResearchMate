@@ -267,3 +267,29 @@ button.danger {
   color: #0c5460;
   border-left: 6px solid #17a2b8;
 }
+/* Forgot Password button (transparent, minimal spacing) */
+.forgot-password {
+  margin: 4px 0 0 0; /* small top margin only */
+  text-align: left;  /* aligns it with input fields */
+}
+
+.forgot-password-btn {
+  background: transparent;
+  border: none;
+  color: #F7EFE6;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0;
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+/* Hover/focus styles */
+.forgot-password-btn:hover,
+.forgot-password-btn:focus-visible {
+  color: #FF6B3A;
+  text-decoration: underline;
+}
+

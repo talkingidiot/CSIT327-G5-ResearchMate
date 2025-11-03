@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ResearchMate — Bookings</title>
+  <link rel="stylesheet" href="{% static 'ConsultApp/student.css'%}">
+  <link rel="stylesheet" href="{% static 'ConsultApp/student-dashboard.css'%}">
+</head>
+<body>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="logo">ResearchMate</div>
+    
+    <div class="nav-links">
+      <a href="{% url 'student_dashboard' %}">🏠 Dashboard</a>
+      <a href="{% url 'student_profile' %}">👤 Profile</a>
+      <a href="{% url 'appointments' %}" class="active">📅 Appointments</a>
+      <a href="{% url 'student_history' %}">📜 History</a>
+      <a href="#">❓ Help</a>
+    </div>
+
+    <div class="user-section">
+      <span class="student-label">Student</span>
+      <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">🚪 Logout</button>
+      </form>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>My Bookings</h1>
+      <p>View and manage your upcoming consultation bookings</p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <div class="filter-controls">
+        <select>
+          <option>All Bookings</option>
+          <option>Upcoming</option>
+          <option>Confirmed</option>
+          <option>Pending</option>
+        </select>
+        <select name="consultant_filter" id="consultantFilter">
+          <option value="">All Consultants</option>
+          {% for consultant in consultants %}
+            <option value="{{ consultant.user.id }}">
+              {{ consultant.user.get_full_name }}
+            </option>
+          {% endfor %}
+        </select>
+
+        {% comment %} <select name="consultant_filter" id="consultantFilter" onchange="this.form.submit()">
+          <option value="">All Consultants</option>
+          {% for consultant in consultants %}
+            <option value="{{ consultant.user.id }}" {% if request.GET.consultant_filter == consultant.user.id|stringformat:'s' %}selected{% endif %}>
+              {{ consultant.user.get_full_name }}
+            </option>
+          {% endfor %}
+        </select> {% endcomment %}
+
+      </div>
+      <button class="btn-new-booking">+ New Appointment</button>
+    </div>
+
+    <!-- Bookings Grid -->
+    <div class="history-grid">
+      {% if appointments %}
+        {% for booking in appointments %}
+          <div class="booking-card">
+            <div class="booking-header">
+              <div class="consultant-info">
+                <h3>{{ booking.consultant.get_full_name }}</h3>
+                <p class="specialty">
+                  {% if booking.consultant.consultant.expertise %}
+                    {{ booking.consultant.consultant.expertise }}
+                  {% else %}
+                    Consultant
+                  {% endif %}
+                </p>
+              </div>
+
+              <span class="status-badge upcoming">⏰ Upcoming</span>
+            </div>
+
+            <div class="booking-details">
+              <div class="detail-row">
+                <span class="label">Purpose:</span>
+                <span class="value">{{ booking.topic }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Date:</span>
+                <span class="value">{{ booking.date|date:"M d, Y" }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Time:</span>
+                <span class="value">{{ booking.time|time:"g:i A" }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Duration:</span>
+                <span class="value">{{ booking.duration_minutes }} minutes</span>
+              </div>
+            </div>
+
+            <div class="booking-actions">
+              <button class="btn-details">📋 View Details</button>
+              <button class="btn-cancel">✕</button>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p style="text-align:center; opacity:0.7;">You have no appointments yet.</p>
+      {% endif %}
+    </div>
+
+  </main>
+</body>
+</html>

@@ -1,0 +1,125 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResearchMate - Research Consultant Finder</title>
+    <link rel="stylesheet" href="{% static 'ConsultApp/homepage.css'%}">
+</head>
+<body>
+    <nav>
+        <div class="logo">ResearchMate</div>
+        <div class="nav-links">
+            <a href="#" class="signin-btn">Home</a>
+            <a href="{% url 'register' %}" class="signin-btn">Sign In</a>
+        </div>
+    </nav>
+
+    <div id="aboutPage">
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Welcome to ResearchMate</h1>
+                <p class="hero-subtitle">Connect with Qualified Research Consultants at CIT-U</p>
+                <p class="hero-description">Your ultimate platform for finding expert research guidance. Browse verified consultant profiles, filter by expertise and availability, and get the academic support you need to excel in your research projects.</p>
+            </div>
+           
+        </section>
+
+        <section class="features-section">
+            <h2 class="section-title">Why Choose ResearchMate?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Find the Right Expert</h3>
+                    <p>Filter consultants by expertise, department, and availability to find the perfect match for your research needs.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3>Verified Profiles</h3>
+                    <p>All consultant profiles are verified by administrators to ensure credibility and maintain trust within the community.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Quick & Easy Booking</h3>
+                    <p>Schedule consultations in just a few clicks. View availability and book sessions that fit your schedule.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤝</div>
+                    <h3>Build Connections</h3>
+                    <p>Connect with experienced peers and faculty members who can guide you through your academic journey.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="purpose-section">
+            <div class="purpose-content">
+                <div class="purpose-text">
+                    <h2>Our Purpose</h2>
+                    <p>ResearchMate was created to solve the challenges students face when searching for reliable research consultants. We understand the frustration of unstructured searches, mismatched expertise, and lack of oversight in the current informal system.</p>
+                    <p>Our platform centralizes the entire process, making it easy to discover verified consultants, view their credentials, and schedule consultations based on your specific needs. From thesis guidance to research methodology support, ResearchMate connects you with the right experts.</p>
+                </div>
+                <div class="purpose-visual">
+                    <div class="purpose-box">
+                        <span class="purpose-number">100+</span>
+                        <span class="purpose-label">Verified Consultants</span>
+                    </div>
+                    <div class="purpose-box">
+                        <span class="purpose-number">500+</span>
+                        <span class="purpose-label">Students Helped</span>
+                    </div>
+                    <div class="purpose-box">
+                        <span class="purpose-number">6</span>
+                        <span class="purpose-label">Academic Colleges</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-it-works-section">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Get started in just a few simple steps</p>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Create Your Account</h3>
+                        <p>Sign up using your CIT.edu email address. Select your department and program to personalize your experience.</p>
+                    </div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Browse Consultants</h3>
+                        <p>Search and filter consultants by expertise, department, and availability. View detailed profiles with credentials and ratings.</p>
+                    </div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Schedule a Consultation</h3>
+                        <p>Select your preferred consultant and book a session based on their available schedule. Receive instant confirmation.</p>
+                    </div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Get Expert Guidance</h3>
+                        <p>Attend your consultation and receive personalized research support. Rate your experience to help other students.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            {% csrf_token %}
+            <h2>Ready to Find Your Research Consultant?</h2>
+            <p>Join hundreds of CIT-U students who are getting expert research guidance</p>
+            <button class="cta-button" onclick="window.location.href='{% url 'register' %}'">Get Started Today</button>
+        </section>
+    </div>
+</body>
+</html>

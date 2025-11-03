@@ -5,496 +5,49 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Student Dashboard</title>
-  <style>
-    :root {
-      --navy: #003366;
-      --light-bg: #f5f3ed;
-      --card-bg: #ffffff;
-      --text-dark: #2c3e50;
-      --text-muted: #6c757d;
-      --border-color: #e0ddd5;
-      --shadow: 0 4px 12px rgba(0, 51, 102, 0.08);
-    }
-
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-    }
-
-    body {
-      font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
-      background: var(--light-bg);
-      color: var(--text-dark);
-    }
-
-    /* Top Navigation */
-    .top-nav {
-      background: var(--card-bg);
-      padding: 16px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border-color);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .top-nav .logo {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--navy);
-      letter-spacing: -0.5px;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .nav-links a {
-      padding: 10px 20px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .nav-links a:hover {
-      background: var(--light-bg);
-      color: var(--navy);
-    }
-
-    .nav-links a.active {
-      background: var(--navy);
-      color: white;
-    }
-
-    .user-section {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .user-section .student-label {
-      color: var(--navy);
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .logout-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 10px 18px;
-      background: transparent;
-      border: 2px solid var(--navy);
-      color: var(--navy);
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-    }
-
-    .logout-btn:hover {
-      background: var(--navy);
-      color: white;
-    }
-
-    /* Main Content */
-    .main-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 40px;
-    }
-
-    .page-header {
-      margin-bottom: 32px;
-    }
-
-    .page-header h1 {
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--navy);
-      margin-bottom: 8px;
-    }
-
-    .page-header p {
-      font-size: 16px;
-      color: var(--text-muted);
-    }
-
-    /* Dashboard Grid */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 1fr 350px;
-      gap: 24px;
-    }
-
-    /* Search Card */
-    .search-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 28px;
-      margin-bottom: 24px;
-    }
-
-    .search-card h2 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 16px;
-    }
-
-    .search-box {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .search-box input {
-      flex: 1;
-      padding: 14px 18px;
-      border: 2px solid var(--border-color);
-      border-radius: 8px;
-      font-size: 14px;
-      transition: all 0.3s ease;
-    }
-
-    .search-box input:focus {
-      outline: none;
-      border-color: var(--navy);
-      box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
-    }
-
-    .search-box button {
-      padding: 14px 28px;
-      background: var(--navy);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 700;
-      transition: all 0.3s ease;
-    }
-
-    .search-box button:hover {
-      background: #004080;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
-    }
-
-    .search-card p {
-      color: var(--text-muted);
-      font-size: 14px;
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .stat-box {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 20px;
-      text-align: center;
-      transition: all 0.3s ease;
-    }
-
-    .stat-box:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 51, 102, 0.1);
-    }
-
-    .stat-box h4 {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .stat-box .number {
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--navy);
-    }
-
-    /* Consultants Section */
-    .consultants-section {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 28px;
-      margin-bottom: 24px;
-    }
-
-    .consultants-section h2 {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 20px;
-    }
-
-    .consultants-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    .consultant-card {
-      background: var(--light-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 20px;
-      text-align: center;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-
-    .consultant-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 20px rgba(0, 51, 102, 0.12);
-      border-color: var(--navy);
-    }
-
-    .consultant-card img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: var(--navy);
-      margin-bottom: 12px;
-    }
-
-    .consultant-card h4 {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 6px;
-    }
-
-    .consultant-card p {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    /* Sidebar */
-    .sidebar-column {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    /* Profile Card */
-    .profile-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 24px;
-    }
-
-    .profile-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .profile-avatar {
-      width: 70px;
-      height: 70px;
-      background: var(--navy);
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      font-weight: 800;
-    }
-
-    .profile-name {
-      flex: 1;
-    }
-
-    .profile-name h3 {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 4px;
-    }
-
-    .profile-name p {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .profile-info {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-    }
-
-    .info-row .label {
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .info-row .value {
-      color: var(--text-dark);
-      font-weight: 600;
-      text-align: right;
-    }
-
-    /* Sessions Card */
-    .sessions-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 24px;
-    }
-
-    .sessions-card h2 {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 16px;
-    }
-
-    .session-item {
-      padding: 16px;
-      background: var(--light-bg);
-      border-left: 4px solid var(--navy);
-      border-radius: 6px;
-      margin-bottom: 12px;
-    }
-
-    .session-item:last-child {
-      margin-bottom: 0;
-    }
-
-    .session-date {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 6px;
-    }
-
-    .session-details {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    /* Responsive */
-    @media (max-width: 1024px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .consultants-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 768px) {
-      .top-nav {
-        flex-direction: column;
-        gap: 16px;
-        padding: 16px 20px;
-      }
-
-      .nav-links {
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-
-      .main-content {
-        padding: 20px;
-      }
-
-      .page-header h1 {
-        font-size: 28px;
-      }
-
-      .consultants-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="{% static 'ConsultApp/student-dashboard.css' %}">
 </head>
 <body>
-  <!-- Top Navigation -->
+  <!-- ===== TOP NAVIGATION ===== -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
       <a href="{% url 'student_dashboard' %}" class="active">🏠 Dashboard</a>
       <a href="{% url 'student_profile' %}">👤 Profile</a>
-      <a href="{% url 'bookings' %}">📅 Bookings</a>
+      <a href="{% url 'appointments' %}">📅 Appointments</a>
       <a href="{% url 'student_history' %}">📜 History</a>
       <a href="#">❓ Help</a>
     </div>
 
     <div class="user-section">
       <span class="student-label" id="studentName">{{ student_name }}</span>
-      <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+      <form method="POST" action="{% url 'logout' %}" style="display:inline;">
         {% csrf_token %}
         <button type="submit" class="logout-btn">🚪 Logout</button>
       </form>
     </div>
   </nav>
 
-  <!-- Main Content -->
+  <!-- ===== MAIN CONTENT ===== -->
   <main class="main-content">
     <!-- Page Header -->
-    <div class="page-header">
+    <header class="page-header">
       <h1>Welcome back, <span id="welcomeName">{{ student_name }}</span>!</h1>
       <p>Find a research consultant and manage your bookings</p>
-    </div>
+    </header>
 
-    <!-- Dashboard Grid -->
+    <!-- ===== DASHBOARD GRID ===== -->
     <div class="dashboard-grid">
-      <!-- Left Column -->
-      <div>
+
+      <!-- ===== LEFT COLUMN ===== -->
+      <section>
         <!-- Search Card -->
         <div class="search-card">
           <h2>🔍 Find Your Research Consultant</h2>
           <div class="search-box">
-            <input type="text" placeholder="Search by name, subject, or expertise...">
-            <button>Search</button>
+            <input type="text" placeholder="Search by name, subject, or expertise..." />
+            <button type="button">Search</button>
           </div>
           <p>Connect with available consultants and schedule a session.</p>
         </div>
@@ -503,72 +56,75 @@
         <div class="stats-grid">
           <div class="stat-box">
             <h4>Current</h4>
-            <div class="number">2</div>
+            <div class="number">{{ stats.current }}</div>
           </div>
           <div class="stat-box">
             <h4>Previous</h4>
-            <div class="number">5</div>
+            <div class="number">{{ stats.previous }}</div>
           </div>
           <div class="stat-box">
             <h4>Pending</h4>
-            <div class="number">1</div>
+            <div class="number">{{ stats.pending }}</div>
           </div>
           <div class="stat-box">
             <h4>Cancelled</h4>
-            <div class="number">0</div>
+            <div class="number">{{ stats.cancelled }}</div>
           </div>
         </div>
 
         <!-- Recommended Consultants -->
-        <div class="consultants-section">
+        <section class="consultants-section">
           <h2>Recommended Consultants</h2>
-          <div class="consultants-grid">
-            <div class="consultant-card">
-              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect fill='%23003366' width='80' height='80'/%3E%3C/svg%3E" alt="Consultant">
-              <h4>Prof. Ana Reyes</h4>
-              <p>Qualitative Research</p>
-            </div>
-            <div class="consultant-card">
-              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect fill='%23003366' width='80' height='80'/%3E%3C/svg%3E" alt="Consultant">
-              <h4>Dr. Mark Villanueva</h4>
-              <p>Data Analysis</p>
-            </div>
-            <div class="consultant-card">
-              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect fill='%23003366' width='80' height='80'/%3E%3C/svg%3E" alt="Consultant">
-              <h4>Prof. Liza Santos</h4>
-              <p>Technical Writing</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Right Sidebar -->
-      <div class="sidebar-column">
+          {% if recommended_consultants %}
+            <div class="consultants-grid">
+              {% for market in recommended_consultants %}
+                <div class="consultant-card">
+                  <img 
+                    src="{% if market.consultant.profile_image %}{{ market.consultant.profile_image.url }}{% else %}{% static 'ConsultApp/default-profile.png' %}{% endif %}" 
+                    alt="{{ market.consultant.user.get_full_name }}"
+                  >
+                  <h4>{{ market.consultant.user.get_full_name }}</h4>
+                  <p>{{ market.expertise|default:"No expertise listed" }}</p>
+                  <p class="rate">💰 ₱{{ market.rate_per_hour }} / hour</p>
+                  <p class="meeting">📍 {{ market.meeting_place }}</p>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p>No consultants available yet.</p>
+          {% endif %}
+        </section>
+      </section>
+
+      <!-- ===== RIGHT SIDEBAR ===== -->
+      <aside class="sidebar-column">
         <!-- Profile Card -->
         <div class="profile-card">
           <div class="profile-header">
-            <div class="profile-avatar">ST</div>
+            <div class="profile-avatar">{{ student_name|slice:":2"|upper }}</div>
             <div class="profile-name">
               <h3 id="profileName">{{ student_name }}</h3>
               <p>Student</p>
             </div>
           </div>
+
           <div class="profile-info">
             <div class="info-row">
               <span class="label">Email:</span>
-              <span class="value" id="profileEmail">email@example.com</span>
+              <span class="value">{{ request.user.email }}</span>
             </div>
             <div class="info-row">
               <span class="label">Department:</span>
-              <span class="value" id="profileDept">N/A</span>
+              <span class="value">{{ student.student_department|default:"N/A" }}</span>
             </div>
             <div class="info-row">
               <span class="label">Program:</span>
-              <span class="value" id="profileProgram">N/A</span>
+              <span class="value">{{ student.student_program|default:"N/A" }}</span>
             </div>
             <div class="info-row">
               <span class="label">Year Level:</span>
-              <span class="value" id="profileYear">N/A</span>
+              <span class="value">{{ student.student_year_level|default:"N/A" }}</span>
             </div>
           </div>
         </div>
@@ -576,35 +132,21 @@
         <!-- Upcoming Sessions -->
         <div class="sessions-card">
           <h2>Upcoming Sessions</h2>
-          <div class="session-item">
-            <div class="session-date">📅 Oct 5, 2025</div>
-            <div class="session-details">Consultation with Prof. Juan Dela Cruz at 2:00 PM</div>
-          </div>
-          <div class="session-item">
-            <div class="session-date">📅 Oct 8, 2025</div>
-            <div class="session-details">Group session with Prof. Maria Santos at 10:00 AM</div>
-          </div>
+          {% if upcoming_sessions %}
+            {% for session in upcoming_sessions %}
+              <div class="session-item">
+                <div class="session-date">📅 {{ session.booking_date|date:"M d, Y" }}</div>
+                <div class="session-details">
+                  Consultation with {{ session.consultant.user.get_full_name }} at {{ session.booking_time|time:"g:i A" }}
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p>No upcoming sessions.</p>
+          {% endif %}
         </div>
-      </div>
+      </aside>
     </div>
   </main>
-
-  <script>
-    // Populate student info from localStorage; show empty if not set
-    const fullName = localStorage.getItem('fullName') || '';
-    const email = localStorage.getItem('email') || '';
-    const program = localStorage.getItem('program') || '';
-    const yearLevel = localStorage.getItem('yearLevel') || '';
-
-    if (fullName) {
-      document.getElementById('studentName').textContent = fullName;
-      document.getElementById('welcomeName').textContent = fullName;
-      document.getElementById('profileName').textContent = fullName;
-    }
-    if (email) document.getElementById('profileEmail').textContent = email;
-    if (localStorage.getItem('department')) document.getElementById('profileDept').textContent = localStorage.getItem('department');
-    if (program) document.getElementById('profileProgram').textContent = program;
-    if (yearLevel) document.getElementById('profileYear').textContent = yearLevel;
-  </script>
 </body>
 </html>

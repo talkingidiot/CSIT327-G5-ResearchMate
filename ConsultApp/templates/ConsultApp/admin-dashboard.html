@@ -5,455 +5,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Admin Dashboard</title>
-  <style>
-    :root {
-      --navy: #003366;
-      --light-bg: #f5f3ed;
-      --card-bg: #ffffff;
-      --text-dark: #2c3e50;
-      --text-muted: #6c757d;
-      --border-color: #e0ddd5;
-      --shadow: 0 4px 12px rgba(0, 51, 102, 0.08);
-    }
-
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-    }
-
-    body {
-      font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
-      background: var(--light-bg);
-      color: var(--text-dark);
-    }
-
-    /* Top Navigation */
-    .top-nav {
-      background: var(--card-bg);
-      padding: 16px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border-color);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .top-nav .logo {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--navy);
-      letter-spacing: -0.5px;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .nav-links a {
-      padding: 10px 20px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .nav-links a:hover {
-      background: var(--light-bg);
-      color: var(--navy);
-    }
-
-    .nav-links a.active {
-      background: var(--navy);
-      color: white;
-    }
-
-    .user-section {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .user-section .admin-label {
-      color: var(--navy);
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .logout-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 10px 18px;
-      background: transparent;
-      border: 2px solid var(--navy);
-      color: var(--navy);
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-    }
-
-    .logout-btn:hover {
-      background: var(--navy);
-      color: white;
-    }
-
-    /* Main Content */
-    .main-content {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 40px;
-    }
-
-    .page-header {
-      margin-bottom: 32px;
-    }
-
-    .page-header h1 {
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--navy);
-      margin-bottom: 8px;
-    }
-
-    .page-header p {
-      font-size: 16px;
-      color: var(--text-muted);
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-      margin-bottom: 40px;
-    }
-
-    .stat-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 24px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0, 51, 102, 0.12);
-      border-color: var(--navy);
-    }
-
-    .stat-card .icon {
-      font-size: 32px;
-      margin-bottom: 12px;
-      display: block;
-    }
-
-    .stat-card .number {
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--navy);
-      margin-bottom: 6px;
-    }
-
-    .stat-card .label {
-      font-size: 14px;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    /* Section Card */
-    .section-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 28px;
-      margin-bottom: 28px;
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .section-header h2 {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--navy);
-    }
-
-    .section-header .count {
-      color: var(--text-muted);
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .section-header button {
-      padding: 10px 20px;
-      background: var(--navy);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 700;
-      transition: all 0.3s ease;
-    }
-
-    .section-header button:hover {
-      background: #004080;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 51, 102, 0.2);
-    }
-
-    /* Approval Items */
-    .approval-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      background: #fafaf8;
-      border-radius: 10px;
-      margin-bottom: 14px;
-      border: 1px solid var(--border-color);
-      transition: all 0.3s ease;
-    }
-
-    .approval-item:hover {
-      background: #f5f5f3;
-      border-color: var(--navy);
-      transform: translateX(4px);
-    }
-
-    .approval-item .icon-circle {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: #fff8f0;
-      border: 2px solid var(--navy);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      margin-right: 16px;
-      flex-shrink: 0;
-    }
-
-    .approval-info {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .approval-details h4 {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--navy);
-      margin-bottom: 4px;
-    }
-
-    .approval-details p {
-      font-size: 14px;
-      color: var(--text-muted);
-    }
-
-    .approval-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .approval-date {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-right: 12px;
-      font-weight: 500;
-    }
-
-    .btn-approve,
-    .btn-reject {
-      padding: 8px 18px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 700;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .btn-approve {
-      background: #e8f5e9;
-      color: #2e7d32;
-      border: 1px solid #2e7d32;
-    }
-
-    .btn-approve:hover {
-      background: #2e7d32;
-      color: white;
-      transform: translateY(-2px);
-    }
-
-    .btn-reject {
-      background: #ffebee;
-      color: #c62828;
-      border: 1px solid #c62828;
-    }
-
-    .btn-reject:hover {
-      background: #c62828;
-      color: white;
-      transform: translateY(-2px);
-    }
-
-    /* Data Table */
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .data-table thead {
-      background: #fafaf8;
-    }
-
-    .data-table th {
-      padding: 14px 16px;
-      text-align: left;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--navy);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .data-table td {
-      padding: 16px;
-      border-bottom: 1px solid #f0f0f0;
-      font-size: 14px;
-      color: var(--text-dark);
-    }
-
-    .data-table tbody tr {
-      transition: all 0.2s ease;
-    }
-
-    .data-table tbody tr:hover {
-      background: #fafaf8;
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      border-radius: 16px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .status-badge.active {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-
-    .status-badge.inactive {
-      background: #f5f5f5;
-      color: #757575;
-    }
-
-    .status-badge .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    .action-link {
-      color: var(--navy);
-      text-decoration: none;
-      font-weight: 600;
-      transition: color 0.3s ease;
-    }
-
-    .action-link:hover {
-      color: #004080;
-      text-decoration: underline;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-muted);
-      font-size: 15px;
-    }
-
-    /* Responsive */
-    @media (max-width: 1200px) {
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 768px) {
-      .top-nav {
-        flex-direction: column;
-        gap: 16px;
-        padding: 16px 20px;
-      }
-
-      .nav-links {
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-
-      .main-content {
-        padding: 20px;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-      }
-
-      .approval-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-      }
-
-      .approval-actions {
-        width: 100%;
-        justify-content: flex-end;
-      }
-
-      .page-header h1 {
-        font-size: 28px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
+  <link rel="stylesheet" href="{% static 'ConsultApp/details.css'%}">
 </head>
 <body>
   <!-- Top Navigation -->
@@ -462,8 +15,10 @@
     
     <div class="nav-links">
       <a href="{% url 'admin_dashboard' %}" class="active">📊 Dashboard</a>
-      <a href="{% url 'admin_students' %}">👥 Bookings</a>
+      <a href="{% url 'admin_students' %}">👥 Students</a>
+      <a href="{% url 'admin_consultants' %}">👨‍💼 Consultants</a>
       <a href="{% url 'admin_profile' %}">👤 Profile</a>
+      <a href="{% url 'admin_reports' %}">📊 Reports</a>
       <a href="#">❓ Help</a>
     </div>
 
@@ -488,33 +43,31 @@
     <div class="stats-grid">
       <div class="stat-card">
         <span class="icon">👥</span>
-        <div class="number">{{ total_students|default:"120" }}</div>
+        <div class="number">{{ total_students|default:"0" }}</div>
         <div class="label">Total Users</div>
       </div>
       <div class="stat-card">
         <span class="icon">👨‍💼</span>
-        <div class="number">{{ total_consultants|default:"25" }}</div>
+        <div class="number">{{ total_consultants|default:"0" }}</div>
         <div class="label">Active Consultants</div>
       </div>
       <div class="stat-card">
         <span class="icon">⏳</span>
-        <div class="number">{{ pending_approvals|default:"8" }}</div>
+        <div class="number">{{ pending_approvals|default:"0" }}</div>
         <div class="label">Pending Approvals</div>
       </div>
       <div class="stat-card">
         <span class="icon">📅</span>
-        <div class="number">{{ active_bookings|default:"18" }}</div>
-        <div class="label">Total Bookings</div>
+        <div class="number">{{ active_bookings|default:"0" }}</div>
+        <div class="label">Total Appointments</div>
       </div>
     </div>
 
-    <!-- Pending Approvals Section -->
     <div class="section-card">
       <div class="section-header">
         <h2>Pending Approvals</h2>
         <span class="count">{% if verification_requests %}{{ verification_requests|length }} items{% else %}0 items{% endif %}</span>
       </div>
-
       {% if verification_requests %}
         {% for req in verification_requests %}
         <div class="approval-item">
@@ -522,18 +75,23 @@
             <div class="icon-circle">⭕</div>
             <div class="approval-details">
               <h4>New Consultant Application</h4>
-              <p>{{ req.full_name }} - {{ req.expertise }}</p>
+              <span class="clickable-name" onclick="openVerificationModal({{ req.id }})">
+                <strong>{{ req.consultant.get_full_name }}</strong>
+              </span>
+              <small>Submitted: {{ req.created_at|date:"M d, Y" }}</small>
             </div>
           </div>
           <div class="approval-actions">
-            <span class="approval-date">{{ req.created_date|date:"M d, Y" }}</span>
-            <form method="POST" action="{% url 'approve_consultant' req.id %}" style="display: inline;">
+            <form method="POST" action="{% url 'approve_consultant' req.id %}" style="display:inline;">
               {% csrf_token %}
               <button type="submit" class="btn-approve">✓ Approve</button>
             </form>
-            <form method="POST" action="{% url 'reject_consultant' req.id %}" style="display: inline;">
+            <form method="POST" action="{% url 'reject_consultant' req.id %}" style="display:inline;">
               {% csrf_token %}
               <button type="submit" class="btn-reject">✗ Reject</button>
+            </form>
+            <form action="{% url 'verification_details' req.id %}" method="get" style="display:inline;">
+              <button type="submit" class="btn-view-details">👁 View Details</button>
             </form>
           </div>
         </div>
@@ -565,27 +123,25 @@
           </tr>
         </thead>
         <tbody>
+          {% for user in recent_users %}
           <tr>
-            <td><strong>Alice Cooper</strong></td>
-            <td>Student</td>
-            <td><span class="status-badge active"><span class="dot"></span> active</span></td>
-            <td>May 12, 2025</td>
+            <td><strong>{{ user.get_full_name|default:user.email }}</strong></td>
+            <td>{{ user.role|title }}</td>
+            <td>
+              {% if user.is_active %}
+                <span class="status-badge active"><span class="dot"></span> active</span>
+              {% else %}
+                <span class="status-badge inactive"><span class="dot"></span> inactive</span>
+              {% endif %}
+            </td>
+            <td>{{ user.date_joined|date:"M d, Y" }}</td>
             <td><a href="#" class="action-link">Edit</a></td>
           </tr>
+          {% empty %}
           <tr>
-            <td><strong>Bob Martinez</strong></td>
-            <td>Consultant</td>
-            <td><span class="status-badge active"><span class="dot"></span> active</span></td>
-            <td>May 11, 2025</td>
-            <td><a href="#" class="action-link">Edit</a></td>
+            <td colspan="5" class="empty-state">No users found.</td>
           </tr>
-          <tr>
-            <td><strong>Carol White</strong></td>
-            <td>Student</td>
-            <td><span class="status-badge inactive"><span class="dot"></span> inactive</span></td>
-            <td>May 10, 2025</td>
-            <td><a href="#" class="action-link">Edit</a></td>
-          </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
