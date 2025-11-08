@@ -35,68 +35,184 @@
       <h1>Welcome back, <span id="welcomeName">{{ consultant_name }}</span>!</h1>
       <p>Manage your students and upcoming consultations</p>
     </div>
+    
+    <!-- SUCCESS/ERROR MESSAGES -->
     {% if messages %}
-      <div class="alert">
+      <div style="margin-bottom: 20px;">
         {% for message in messages %}
-          <p>{{ message }}</p>
+          <div style="padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; 
+                      {% if message.tags == 'success' %}background: #d4edda; color: #155724; border: 1px solid #c3e6cb;
+                      {% elif message.tags == 'error' %}background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+                      {% else %}background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
+            {{ message }}
+          </div>
         {% endfor %}
       </div>
-    {% endif %} 
-      {% if approved_verification %}
-        <div class="verify-banner" style="background: #e6ffed; border-left: 4px solid #38a169;">
-          <div class="text">
-            <h3>✅ Verified Consultant</h3>
-            <p>Your verification was approved on {{ approved_verification.reviewed_at|date:"M d, Y" }}.</p>
-          </div>
-        </div>
+    {% endif %}
 
-      {% elif pending_verification %}
-        <div class="verify-banner" style="background: #fffbea; border-left: 4px solid #d69e2e;">
-          <div class="text">
-            <h3>⏳ Verification Pending</h3>
-            <p>Your verification request has been submitted. Please wait for admin approval.</p>
-          </div>
+    <!-- VERIFICATION BANNERS -->
+    {% if approved_verification %}
+      <div class="verify-banner" style="background: #e6ffed; border-left: 4px solid #38a169;">
+        <div class="text">
+          <h3>✅ Verified Consultant</h3>
+          <p>Your verification was approved on {{ approved_verification.reviewed_at|date:"M d, Y" }}.</p>
         </div>
+      </div>
 
-      {% elif rejected_verification %}
-        <div class="verify-banner" style="background: #fee; border-left: 4px solid #e53e3e;">
-          <div class="text">
-            <h3>❌ Verification Rejected</h3>
-            <p>Your verification request was rejected on {{ rejected_verification.reviewed_at|date:"M d, Y" }}. You can submit a new application.</p>
-          </div>
-          <a href="{% url 'consultant_verification' %}" class="btn-view-all">Resubmit Application</a>
+    {% elif pending_verification %}
+      <div class="verify-banner" style="background: #fffbea; border-left: 4px solid #d69e2e;">
+        <div class="text">
+          <h3>⏳ Verification Pending</h3>
+          <p>Your verification request has been submitted. Please wait for admin approval.</p>
         </div>
+      </div>
 
-      {% else %}
-        <div class="verify-banner">
-          <div class="text">
-            <h3>🎓 Get Verified as a Consultant</h3>
-            <p>Complete your verification to start accepting consultation requests.</p>
-          </div>
-          <a href="{% url 'consultant_verification' %}" class="btn-view-all">Verify Now</a>
+    {% elif rejected_verification %}
+      <div class="verify-banner" style="background: #fee; border-left: 4px solid #e53e3e;">
+        <div class="text">
+          <h3>❌ Verification Rejected</h3>
+          <p>Your verification request was rejected on {{ rejected_verification.reviewed_at|date:"M d, Y" }}. You can submit a new application.</p>
         </div>
-      {% endif %}
+        <a href="{% url 'consultant_verification' %}" class="btn-view-all">Resubmit Application</a>
+      </div>
+
+    {% else %}
+      <div class="verify-banner">
+        <div class="text">
+          <h3>🎓 Get Verified as a Consultant</h3>
+          <p>Complete your verification to start accepting consultation requests.</p>
+        </div>
+        <a href="{% url 'consultant_verification' %}" class="btn-view-all">Verify Now</a>
+      </div>
+    {% endif %}
 
         
     <!-- Dashboard Grid -->
     <div class="dashboard-grid">
       <!-- Left Column -->
       <div>
+        <!-- ===== PENDING APPOINTMENTS (TOP PRIORITY) ===== -->
+        {% if pending_appointments %}
+        <div class="section-card" style="background: #fffbea; border-left: 4px solid #d69e2e;">
+          <h2>🕒 Pending Appointment Requests</h2>
+          <p style="margin-bottom: 16px; color: #744210;">You have {{ pending_appointments|length }} appointment request(s) waiting for your approval.</p>
+          
+          <div class="items-grid">
+            {% for appointment in pending_appointments %}
+              <div class="item-card" style="background: white; border: 2px solid #d69e2e;">
+                <div class="avatar" style="background: #ffa500; color: white;">
+                  {{ appointment.student.user.get_full_name|slice:":2"|upper }}
+                </div>
+                <h4>{{ appointment.student.user.get_full_name }}</h4>
+                <p><strong>Topic:</strong> {{ appointment.topic }}</p>
+                <p><strong>Date:</strong> {{ appointment.date|date:"M d, Y" }}</p>
+                <p><strong>Time:</strong> {{ appointment.time|time:"g:i A" }}</p>
+                <p><strong>Duration:</strong> {{ appointment.duration_minutes }} minutes</p>
+                
+                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                  <form method="POST" action="{% url 'update_appointment_status' appointment.id %}" style="flex: 1;">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="approve" 
+                            style="width: 100%; background:#4caf50; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer;">
+                      ✅ Approve
+                    </button>
+                  </form>
+                  <form method="POST" action="{% url 'update_appointment_status' appointment.id %}" style="flex: 1;">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="reject" 
+                            style="width: 100%; background:#e53e3e; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer;">
+                      ❌ Reject
+                    </button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Market Listing Card -->
+        {% if market_listing %}
         <div class="section-card">
-          <h2>📅 Upcoming Appointments</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>📌 Your Market Listing</h2>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="status-badge {% if market_listing.is_active %}status-active{% else %}status-inactive{% endif %}">
+                {% if market_listing.is_active %}✓ Available{% else %}⏸ Unavailable{% endif %}
+              </span>
+              <form method="POST" action="{% url 'toggle_market_status' market_listing.id %}">
+                {% csrf_token %}
+                <label class="toggle-switch">
+                  <input type="checkbox" name="toggle" {% if market_listing.is_active %}checked{% endif %} onchange="this.form.submit()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </form>
+            </div>
+          </div>
+
+          <div class="items-grid">
+            <div class="item-card">
+              <div style="font-size: 32px; margin-bottom: 12px;">💼</div>
+              <h4>Profession</h4>
+              <p>{{ market_listing.profession }}</p>
+            </div>
+
+            <div class="item-card">
+              <div style="font-size: 32px; margin-bottom: 12px;">🎯</div>
+              <h4>Expertise</h4>
+              <p>{{ market_listing.expertise }}</p>
+            </div>
+
+            <div class="item-card">
+              <div style="font-size: 32px; margin-bottom: 12px;">⏰</div>
+              <h4>Available Hours</h4>
+              <p>{{ market_listing.available_from|time:"g:i A" }} - {{ market_listing.available_to|time:"g:i A" }}</p>
+            </div>
+
+            <div class="item-card">
+              <div style="font-size: 32px; margin-bottom: 12px;">💰</div>
+              <h4>Rate</h4>
+              <p>₱{{ market_listing.rate_per_hour }}/hour</p>
+            </div>
+
+            <div class="item-card">
+              <div style="font-size: 32px; margin-bottom: 12px;">📍</div>
+              <h4>Meeting Place</h4>
+              <p>{{ market_listing.meeting_place }}</p>
+            </div>
+
+            {% if market_listing.description %}
+            <div class="item-card">
+              <div style="font-size: 32px; margin-bottom: 12px;">📝</div>
+              <h4>Description</h4>
+              <p>{{ market_listing.description }}</p>
+            </div>
+            {% endif %}
+          </div>
+
+          <button class="btn-view-all" style="margin-top: 16px;" onclick="window.location.href='{% url 'consultant_market' %}'">
+            ✏️ Edit Listing
+          </button>
+        </div>
+        {% endif %}
+
+        <div class="section-card">
+          <h2>📅 Confirmed Appointments</h2>
           <div class="items-grid">
             {% if appointments %}
               {% for appointment in appointments %}
                 <div class="item-card">
                   <div class="avatar">
-                    {{ appointment.student.full_name|slice:":2"|upper }}
+                    {{ appointment.student.user.get_full_name|slice:":2"|upper }}
                   </div>
-                  <h4>{{ appointment.student.full_name }}</h4>
+                  <h4>{{ appointment.student.user.get_full_name }}</h4>
+                  <p><strong>Topic:</strong> {{ appointment.topic }}</p>
                   <p>{{ appointment.date|date:"M d, Y" }} — {{ appointment.time|time:"g:i A" }}</p>
+                  <p><strong>Duration:</strong> {{ appointment.duration_minutes }} minutes</p>
                 </div>
               {% endfor %}
             {% else %}
-              <p>No upcoming appointments.</p>
+              <p>No confirmed appointments.</p>
             {% endif %}
           </div>
           <button class="btn-view-all" onclick="window.location.href='{% url 'consultant_appointments' %}'">View All Appointments</button>
@@ -110,9 +226,9 @@
             {% if students %}
               {% for student in students %}
                 <div class="item-card">
-                  <div class="avatar">{{ student.full_name|slice:":2"|upper }}</div>
-                  <h4>{{ student.full_name }}</h4>
-                  <p>Topic: {{ student.topic }}</p>
+                  <div class="avatar">{{ student.user.get_full_name|slice:":2"|upper }}</div>
+                  <h4>{{ student.user.get_full_name }}</h4>
+                  <p>Department: {{ student.student_department }}</p>
                 </div>
               {% endfor %}
             {% else %}
@@ -121,53 +237,7 @@
           </div>
           <button class="btn-view-all" onclick="window.location.href='{% url 'consultant_students' %}'">View All Students</button>
         </div>
-
-
-        {% comment %} <!-- Helpful Resources -->
-        <div class="section-card">
-          <h2>📚 Helpful Resources for Consultants</h2>
-          <div class="resources-grid">
-            <div class="resource-card">
-              <div class="icon">📅</div>
-              <h4>Planner</h4>
-              <p>Manage appointments</p>
-            </div>
-            <div class="resource-card" href="{% url 'consultant-reports'%}">
-              <div class="icon">📝</div>
-              <h4>Templates</h4>
-              <p>Reports & forms</p>
-            </div>
-            <div class="resource-card">
-              <div class="icon">📖</div>
-              <h4>Knowledge Base</h4>
-              <p href="">Guidelines & tips</p>
-            </div>
-          </div>
-        </div>  {% endcomment %}
       </div>
-      <!-- Pending Appointments Section -->
-<div class="section-card" style="margin-top: 20px;">
-  <h2>🕒 Pending Appointments</h2>
-  <div class="items-grid">
-    {% if pending_appointments %}
-      {% for appointment in pending_appointments %}
-        <div class="item-card" style="text-align:center;">
-          <h4>{{ appointment.student.user.get_full_name }}</h4>
-          <p>Topic: {{ appointment.topic }}</p>
-          <p>{{ appointment.date|date:"M d, Y" }} — {{ appointment.time|time:"g:i A" }}</p>
-          <form method="POST" action="{% url 'update_appointment_status' appointment.id %}">
-            {% csrf_token %}
-            <button type="submit" name="action" value="approve" class="btn-view-all" style="background:#4caf50; color:white;">Approve</button>
-            <button type="submit" name="action" value="reject" class="btn-view-all" style="background:#e53e3e; color:white;">Reject</button>
-          </form>
-        </div>
-      {% endfor %}
-    {% else %}
-      <p>No pending appointments at the moment.</p>
-    {% endif %}
-  </div>
-</div>
-
 
       <!-- Right Sidebar -->
       <div class="sidebar-column">
@@ -201,10 +271,12 @@
           </div>
           <button class="btn-edit-profile" onclick="window.location.href='{% url 'consultant_profile' %}'">✏️ Edit Profile</button>
           {% if consultant.is_verified %}
+            {% if not market_listing %}
             <button class="btn-primary" style="margin-top:16px;"
               onclick="window.location.href='{% url 'consultant_market' %}'">
               📌 List Yourself in Market
             </button>
+            {% endif %}
           {% endif %}
         </div>
         

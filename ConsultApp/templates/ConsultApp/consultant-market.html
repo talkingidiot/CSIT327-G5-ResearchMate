@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ResearchMate — Add Yourself to Market</title>
+  <title>ResearchMate — {% if market_listing %}Edit{% else %}Add{% endif %} Market Listing</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/verification.css'%}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -41,8 +41,8 @@
 
     <div class="page-header">
       <div class="badge">🎯 Market Listing</div>
-      <h1>List Yourself in the Market</h1>
-      <p>Fill in your details so students can book consultations with you.</p>
+      <h1>{% if market_listing %}Edit Your{% else %}List Yourself in the{% endif %} Market</h1>
+      <p>{% if market_listing %}Update your details so students can book consultations with you.{% else %}Fill in your details so students can book consultations with you.{% endif %}</p>
     </div>
 
     <div class="info-box">
@@ -61,50 +61,67 @@
 
           <div class="form-group">
             <label for="expertise">Expertise / Specialization *</label>
-            <input type="text" id="expertise" name="expertise" placeholder="e.g. Data Analysis, Research Methodology" required>
+            <input type="text" id="expertise" name="expertise" 
+                   placeholder="e.g. Data Analysis, Research Methodology" 
+                   value="{% if market_listing %}{{ market_listing.expertise }}{% endif %}"
+                   required>
           </div>
 
           <div class="form-group">
             <label for="profession">Profession *</label>
-            <input type="text" id="profession" name="profession" placeholder="e.g. Research Consultant, Data Analyst" required>
+            <input type="text" id="profession" name="profession" 
+                   placeholder="e.g. Research Consultant, Data Analyst" 
+                   value="{% if market_listing %}{{ market_listing.profession }}{% endif %}"
+                   required>
           </div>
 
           <div class="form-group">
             <label for="available_from">Available From *</label>
-            <input type="time" id="available_from" name="available_from" required>
+            <input type="time" id="available_from" name="available_from" 
+                   value="{% if market_listing %}{{ market_listing.available_from|time:'H:i' }}{% endif %}"
+                   required>
           </div>
 
           <div class="form-group">
             <label for="available_to">Available To *</label>
-            <input type="time" id="available_until" name="available_to" required>
+            <input type="time" id="available_until" name="available_to" 
+                   value="{% if market_listing %}{{ market_listing.available_to|time:'H:i' }}{% endif %}"
+                   required>
           </div>
 
           <div class="form-group">
             <label for="rate_per_hour">Rate per Hour (₱) *</label>
-            <input type="number" id="rate_per_hour" name="rate_per_hour" placeholder="e.g. ₱500" min="100" step="50" required>
+            <input type="number" id="rate_per_hour" name="rate_per_hour" 
+                   placeholder="e.g. ₱500" min="100" step="50" 
+                   value="{% if market_listing %}{{ market_listing.rate_per_hour }}{% endif %}"
+                   required>
           </div>
-
 
           <div class="form-group">
             <label for="meeting_place">Meeting Place *</label>
-            <input type="text" id="meeting_place" name="meeting_place" placeholder="e.g. Online (Zoom), CIT Campus" required>
+            <input type="text" id="meeting_place" name="meeting_place" 
+                   placeholder="e.g. Online (Zoom), CIT Campus" 
+                   value="{% if market_listing %}{{ market_listing.meeting_place }}{% endif %}"
+                   required>
           </div>
 
           <div class="form-group">
             <label for="description">Service Description (Optional)</label>
-            <textarea id="description" name="description" placeholder="Briefly describe what you offer..." rows="3"></textarea>
+            <textarea id="description" name="description" 
+                      placeholder="Briefly describe what you offer..." 
+                      rows="3">{% if market_listing %}{{ market_listing.description }}{% endif %}</textarea>
           </div>
 
           <div class="form-group checkbox-group">
             <label>
               Active Listing
-              <input type="checkbox" name="is_active" checked>
+              <input type="checkbox" name="is_active" {% if not market_listing or market_listing.is_active %}checked{% endif %}>
             </label>
           </div>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn-submit">✓ Submit Listing</button>
+          <button type="submit" class="btn-submit">✓ {% if market_listing %}Update{% else %}Submit{% endif %} Listing</button>
           <button type="button" class="btn-cancel" onclick="window.location.href='{% url 'consultant_dashboard' %}'">Cancel</button>
         </div>
       </form>

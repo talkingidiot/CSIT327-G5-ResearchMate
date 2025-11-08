@@ -37,6 +37,20 @@
       <p>Find a research consultant and manage your bookings</p>
     </header>
 
+    <!-- SUCCESS/ERROR MESSAGES -->
+    {% if messages %}
+      <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+          <div style="padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; 
+                      {% if message.tags == 'success' %}background: #d4edda; color: #155724; border: 1px solid #c3e6cb;
+                      {% elif message.tags == 'error' %}background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+                      {% else %}background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <div class="dashboard-grid">
       <!-- ===== LEFT COLUMN ===== -->
       <section>
@@ -79,10 +93,11 @@
                     data-market-id="{{ market.id }}"
                     data-name="{{ market.consultant.user.get_full_name|escapejs }}"
                     data-expertise="{{ market.expertise|default:''|escapejs }}"
-                    data-workplace="{{ market.workplace|default:''|escapejs }}"
+                    data-profession="{{ market.profession|default:''|escapejs }}"
                     data-rate="{{ market.rate_per_hour|default:'0' }}"
                     data-available-from="{{ market.available_from|time:'H:i' }}"
                     data-available-to="{{ market.available_to|time:'H:i' }}"
+                    data-meeting-place="{{ market.meeting_place|default:''|escapejs }}"
                     data-description="{{ market.description|default:''|escapejs }}"
                   >
                     View Details
@@ -120,9 +135,15 @@
           {% if upcoming_sessions %}
             {% for session in upcoming_sessions %}
               <div class="session-item">
-                <div class="session-date">📅 {{ session.booking_date|date:"M d, Y" }}</div>
+                <div class="session-date">📅 {{ session.date|date:"M d, Y" }}</div>
                 <div class="session-details">
-                  Consultation with {{ session.consultant.user.get_full_name }} at {{ session.booking_time|time:"g:i A" }}
+                  <strong>{{ session.topic }}</strong><br>
+                  Consultation with {{ session.consultant.user.get_full_name }} at {{ session.time|time:"g:i A" }}
+                  <span style="display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 4px; font-size: 0.85em;
+                        {% if session.status == 'pending' %}background: #fffbea; color: #d69e2e;
+                        {% elif session.status == 'confirmed' %}background: #e6ffed; color: #38a169;{% endif %}">
+                    {{ session.get_status_display }}
+                  </span>
                 </div>
               </div>
             {% endfor %}
@@ -139,14 +160,15 @@
     <div class="modal-content">
       <span id="modalClose" class="modal-close">&times;</span>
       <h2 id="modalName"></h2>
-      <p id="modalExpertise"></p>
-      <p id="modalWorkplace"></p>
+      <p><strong>Profession:</strong> <span id="modalProfession"></span></p>
+      <p><strong>Expertise:</strong> <span id="modalExpertise"></span></p>
+      <p><strong>Meeting Place:</strong> <span id="modalMeetingPlace"></span></p>
       <p id="modalDescription"></p>
       <p><strong>Available:</strong> <span id="modalAvailable"></span></p>
       <p><strong>Rate:</strong> ₱<span id="modalRate"></span> / hr</p>
 
       <div style="margin-top:1rem;">
-        <a id="modalBookBtn" href="#" class="btn-primary" target="_blank">Book Consultant Now</a>
+        <a id="modalBookBtn" href="#" class="btn-primary" style="cursor: pointer;">Book Consultant Now</a>
       </div>
     </div>
   </div>
@@ -156,6 +178,7 @@
     .modal-content { background:#fff; padding:1.25rem; border-radius:8px; width:90%; max-width:520px; box-shadow: 0 6px 24px rgba(0,0,0,0.2); }
     .modal-close { float:right; cursor:pointer; font-size:1.25rem; }
     .btn-primary { background:#246; color:#fff; padding:0.5rem 1rem; border-radius:6px; text-decoration:none; display:inline-block; }
+    .btn-primary:hover { background:#135; }
   </style>
 
   <script>
@@ -163,8 +186,9 @@
       const modal = document.getElementById('consultantModal');
       const modalClose = document.getElementById('modalClose');
       const modalName = document.getElementById('modalName');
+      const modalProfession = document.getElementById('modalProfession');
       const modalExpertise = document.getElementById('modalExpertise');
-      const modalWorkplace = document.getElementById('modalWorkplace');
+      const modalMeetingPlace = document.getElementById('modalMeetingPlace');
       const modalDescription = document.getElementById('modalDescription');
       const modalAvailable = document.getElementById('modalAvailable');
       const modalRate = document.getElementById('modalRate');
@@ -174,17 +198,19 @@
         btn.addEventListener('click', function() {
           const userId = btn.dataset.consultantUserId;
           const name = btn.dataset.name || '';
+          const profession = btn.dataset.profession || '';
           const expertise = btn.dataset.expertise || '';
-          const workplace = btn.dataset.workplace || '';
+          const meetingPlace = btn.dataset.meetingPlace || '';
           const description = btn.dataset.description || '';
           const availFrom = btn.dataset.availableFrom || '';
           const availTo = btn.dataset.availableTo || '';
           const rate = btn.dataset.rate || '0';
 
           modalName.textContent = name;
-          modalExpertise.textContent = expertise ? expertise : 'Consultant';
-          modalWorkplace.textContent = workplace;
-          modalDescription.textContent = description;
+          modalProfession.textContent = profession;
+          modalExpertise.textContent = expertise;
+          modalMeetingPlace.textContent = meetingPlace;
+          modalDescription.textContent = description || 'No description provided.';
           modalAvailable.textContent = formatTime(availFrom) + ' - ' + formatTime(availTo);
           modalRate.textContent = rate;
 

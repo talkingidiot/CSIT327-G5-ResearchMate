@@ -4,9 +4,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ResearchMate — Bookings</title>
+  <title>ResearchMate — My Appointments</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/student.css'%}">
   <link rel="stylesheet" href="{% static 'ConsultApp/student-dashboard.css'%}">
+  <style>
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .status-badge.pending { background: #fffbea; color: #d69e2e; border: 1px solid #d69e2e; }
+    .status-badge.confirmed { background: #e6ffed; color: #38a169; border: 1px solid #38a169; }
+    .status-badge.cancelled { background: #fee; color: #e53e3e; border: 1px solid #e53e3e; }
+    .status-badge.completed { background: #e0e7ff; color: #5a67d8; border: 1px solid #5a67d8; }
+  </style>
 </head>
 <body>
   <!-- Top Navigation -->
@@ -34,18 +47,33 @@
   <main class="main-content">
     <!-- Page Header -->
     <div class="page-header">
-      <h1>My Bookings</h1>
-      <p>View and manage your upcoming consultation bookings</p>
+      <h1>My Appointments</h1>
+      <p>View and manage your consultation bookings</p>
     </div>
+
+    <!-- SUCCESS/ERROR MESSAGES -->
+    {% if messages %}
+      <div style="margin-bottom: 20px;">
+        {% for message in messages %}
+          <div style="padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; 
+                      {% if message.tags == 'success' %}background: #d4edda; color: #155724; border: 1px solid #c3e6cb;
+                      {% elif message.tags == 'error' %}background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+                      {% else %}background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <!-- Filter Section -->
     <div class="filter-section">
       <div class="filter-controls">
-        <select>
-          <option>All Bookings</option>
-          <option>Upcoming</option>
-          <option>Confirmed</option>
-          <option>Pending</option>
+        <select id="statusFilter">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="completed">Completed</option>
         </select>
         <select name="consultant_filter" id="consultantFilter">
           <option value="">All Consultants</option>
@@ -55,16 +83,6 @@
             </option>
           {% endfor %}
         </select>
-
-        {% comment %} <select name="consultant_filter" id="consultantFilter" onchange="this.form.submit()">
-          <option value="">All Consultants</option>
-          {% for consultant in consultants %}
-            <option value="{{ consultant.user.id }}" {% if request.GET.consultant_filter == consultant.user.id|stringformat:'s' %}selected{% endif %}>
-              {{ consultant.user.get_full_name }}
-            </option>
-          {% endfor %}
-        </select> {% endcomment %}
-
       </div>
       <a href="{% url 'book_appointment' %}" class="btn-new-booking">+ New Appointment</a>
     </div>
@@ -73,13 +91,13 @@
     <div class="history-grid">
       {% if appointments %}
         {% for booking in appointments %}
-          <div class="booking-card">
+          <div class="booking-card" data-status="{{ booking.status }}" data-consultant="{{ booking.consultant.user.id }}">
             <div class="booking-header">
               <div class="consultant-info">
-                <h3>{{ booking.consultant.get_full_name }}</h3>
+                <h3>{{ booking.consultant.user.get_full_name }}</h3>
                 <p class="specialty">
-                  {% if booking.consultant.consultant.expertise %}
-                    {{ booking.consultant.consultant.expertise }}
+                  {% if booking.consultant.expertise %}
+                    {{ booking.consultant.expertise }}
                   {% else %}
                     Consultant
                   {% endif %}
@@ -87,15 +105,14 @@
               </div>
 
               {% if booking.status == "pending" %}
-              <span class="status-badge pending">⏳ Pending</span>
-            {% elif booking.status == "confirmed" %}
-              <span class="status-badge confirmed">✅ Confirmed</span>
-            {% elif booking.status == "cancelled" %}
-              <span class="status-badge cancelled">❌ Cancelled</span>
-            {% elif booking.status == "completed" %}
-              <span class="status-badge completed">🏁 Completed</span>
-            {% endif %}
-
+                <span class="status-badge pending">⏳ Pending Approval</span>
+              {% elif booking.status == "confirmed" %}
+                <span class="status-badge confirmed">✅ Confirmed</span>
+              {% elif booking.status == "cancelled" %}
+                <span class="status-badge cancelled">❌ Cancelled</span>
+              {% elif booking.status == "completed" %}
+                <span class="status-badge completed">🏁 Completed</span>
+              {% endif %}
             </div>
 
             <div class="booking-details">
@@ -118,16 +135,49 @@
             </div>
 
             <div class="booking-actions">
-              <button class="btn-details">📋 View Details</button>
-              <button class="btn-cancel">✕</button>
+              <button class="btn-details" onclick="alert('Appointment ID: {{ booking.id }}\nStatus: {{ booking.get_status_display }}')">📋 View Details</button>
+              {% if booking.status == "pending" or booking.status == "confirmed" %}
+                <button class="btn-cancel" onclick="if(confirm('Cancel this appointment?')) window.location.href='#'">✕ Cancel</button>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
       {% else %}
-        <p style="text-align:center; opacity:0.7;">You have no appointments yet.</p>
+        <p style="text-align:center; opacity:0.7; grid-column: 1/-1;">You have no appointments yet. <a href="{% url 'book_appointment' %}">Book your first consultation!</a></p>
       {% endif %}
     </div>
 
   </main>
+
+  <script>
+    // Filter functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const statusFilter = document.getElementById('statusFilter');
+      const consultantFilter = document.getElementById('consultantFilter');
+      const bookingCards = document.querySelectorAll('.booking-card');
+
+      function applyFilters() {
+        const selectedStatus = statusFilter.value;
+        const selectedConsultant = consultantFilter.value;
+
+        bookingCards.forEach(card => {
+          const cardStatus = card.dataset.status;
+          const cardConsultant = card.dataset.consultant;
+
+          const statusMatch = !selectedStatus || cardStatus === selectedStatus;
+          const consultantMatch = !selectedConsultant || cardConsultant === selectedConsultant;
+
+          if (statusMatch && consultantMatch) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      }
+
+      statusFilter.addEventListener('change', applyFilters);
+      consultantFilter.addEventListener('change', applyFilters);
+    });
+  </script>
 </body>
 </html>
