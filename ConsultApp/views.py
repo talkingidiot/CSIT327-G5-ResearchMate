@@ -10,11 +10,15 @@ from django.utils import timezone
 User = get_user_model()
 
 # 🔹 Auth Pages
+
+
 def login_register_view(request):
     """Render combined login/register page."""
     return render(request, "ConsultApp/login-register.html")
 
 # ========== REGISTER VIEW ==========
+
+
 @csrf_exempt
 def register_view(request):
     if request.method == "POST":
@@ -49,19 +53,21 @@ def register_view(request):
                 "show_signup": True,
                 "form_source": "register",
             })
-        
+
         if not email.endswith("@cit.edu"):
-            messages.error(request, "Please use your institutional email address.")
+            messages.error(
+                request, "Please use your institutional email address.")
             return render(request, "ConsultApp/login-register.html", {
                 "show_signup": True,
                 "form_source": "register",
             })
         if len(password) < 8:
-            messages.error(request, "Password must be at least 8 characters long.")
+            messages.error(
+                request, "Password must be at least 8 characters long.")
             return render(request, "ConsultApp/login-register.html", {
                 "show_signup": True,
                 "form_source": "register",
-            })   
+            })
 
         # Create user
         user = User.objects.create_user(
@@ -71,12 +77,13 @@ def register_view(request):
             last_name=last_name,
             role=role
         )
-        
+
         if role == "student":
             Student.objects.create(
                 user=user,
-                student_year_level=request.POST.get("student_year_level") or "",
-                student_department=request.POST.get("student_department") or "",
+                student_year_level=request.POST.get("student_year_level") or 1,
+                student_department=request.POST.get(
+                    "student_department") or "",
                 student_course=request.POST.get("student_course") or "",
                 student_program=request.POST.get("student_program") or ""
             )
@@ -97,15 +104,18 @@ def register_view(request):
                 contact_number=request.POST.get("contact_number_admin") or ""
             )
 
-        messages.success(request, f"Account created successfully as {role.title()}!")
+        messages.success(
+            request, f"Account created successfully as {role.title()}!")
         # Clear session storage on success
         response = redirect("login")
         response["Clear-SessionStorage"] = "true"
         return response
-            
+
     return render(request, "ConsultApp/login-register.html")
 
 # ========== LOGIN VIEW ==========
+
+
 @csrf_exempt
 def login_view(request):
     if request.method == "POST":
@@ -117,7 +127,7 @@ def login_view(request):
             return render(request, "ConsultApp/login-register.html", {
                 "form_source": "login"
             })
-        
+
         user = authenticate(request, email=email, password=password)
 
         if user is None:
@@ -152,59 +162,74 @@ def logout_view(request):
     return redirect("login")
 
 # 🔹 Consultant Views
+
+
 @login_required
 def consultant_dashboard(request):
-    consultant_name = f"{request.user.first_name} {request.user.last_name}".strip() or "Consultant"
+    consultant_name = f"{request.user.first_name} {request.user.last_name}".strip(
+    ) or "Consultant"
     context = {
-        "consultant_name": consultant_name 
+        "consultant_name": consultant_name
     }
 
     return render(request, "ConsultApp/consultant-dashboard.html", context)
-    
+
 
 @login_required
 def consultant_appointments_view(request):
     return render(request, "ConsultApp/consultant-appointments.html")
 
+
 @login_required
 def consultant_profile_view(request):
     return render(request, "ConsultApp/consultant-profile.html")
 
+
 @login_required
 def consultant_students_view(request):
     return render(request, "ConsultApp/consultant-students.html")
+
 
 @login_required
 def consultant_verification_view(request):
     return render(request, "ConsultApp/consultant-verification.html")
 
 # 🔹 Student Views
+
+
 @login_required
 def student_dashboard(request):
 
-    student_name = f"{request.user.first_name} {request.user.last_name}".strip() or "Student"
-    
+    student_name = f"{request.user.first_name} {request.user.last_name}".strip(
+    ) or "Student"
+
     context = {
         "student_name": student_name
     }
 
     return render(request, "ConsultApp/student-dashboard.html", context)
 
+
 @login_required
 def student_profile_view(request):
     return render(request, "ConsultApp/student-profile.html")
 
+
 @login_required
 def student_history_view(request):
     return render(request, "ConsultApp/student-history.html")
+
 
 @login_required
 def bookings_view(request):
     return render(request, "ConsultApp/bookings.html")
 
 # 🔹 Admin Views
+
+
 def is_admin(user):
     return user.is_superuser or getattr(user, "user_type", "") == "Admin"
+
 
 @login_required
 @user_passes_test(is_admin)
@@ -222,20 +247,24 @@ def admin_dashboard(request):
     }
     return render(request, 'ConsultApp/admin-dashboard.html', context)
 
+
 @login_required
 @user_passes_test(is_admin)
 def admin_students_view(request):
     return render(request, "ConsultApp/admin-students.html")
+
 
 @login_required
 @user_passes_test(is_admin)
 def admin_consultants_view(request):
     return render(request, "ConsultApp/admin-consultants.html")
 
+
 @login_required
 @user_passes_test(is_admin)
 def admin_reports_view(request):
     return render(request, "ConsultApp/admin-reports.html")
+
 
 @login_required
 @user_passes_test(is_admin)
