@@ -29,11 +29,12 @@ urlpatterns = [
     path('market/toggle/<int:market_id>/', views.toggle_market_status, name='toggle_market_status'),
 
     # Student
-    path('appointments/', views.appointments_view, name='appointments'),
+    path('student-appointments/', views.student_appointments_view, name='student_appointments'),
     path('student-history/', views.student_history_view, name='student_history'),
     path('student-profile/', views.student_profile_view, name='student_profile'),
     path('book-appointment/', views.book_appointment, name='book_appointment'),
     path('book-appointment/<int:consultant_id>/', views.book_appointment, name='book_appointment_with_consultant'),
+    path("appointments/cancel/<int:appointment_id>/", views.cancel_appointment, name="cancel_appointment"),
 
     # Admin
     path('admin-consultants/', views.admin_consultants_view, name='admin_consultants'),
