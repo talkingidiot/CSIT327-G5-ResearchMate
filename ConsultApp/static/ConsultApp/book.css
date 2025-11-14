@@ -1,0 +1,137 @@
+.form-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 2rem;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+.form-group {
+    margin-bottom: 1.25rem;
+}
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.7rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+.form-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
+}
+.btn-primary {
+    background-color: #1f3327;
+    color: #fff;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.btn-primary:hover {
+    background-color: #c76953;
+}
+.btn-secondary {
+    background-color: #f8e4eb;
+    color: #1f3327;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.consultant-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    text-align: center;
+}
+.consultant-card img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 0.5rem;
+}
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    border: 1px solid #f5c6cb;
+}
+.success-message {
+    background: #d4edda;
+    color: #155724;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    border: 1px solid #c3e6cb;
+}
+
+/* --- MODAL OVERLAY FIX --- */
+.modal {
+  display: none;                /* Hidden by default */
+  position: fixed;              /* Sit on top of everything */
+  inset: 0;                     /* top, right, bottom, left = 0 */
+  z-index: 2000;                /* Higher than all other elements */
+  background: rgba(0, 0, 0, 0.5); /* Dark transparent overlay */
+  backdrop-filter: blur(3px);   /* Soft blur effect */
+  justify-content: center;      /* Center horizontally */
+  align-items: center;          /* Center vertically */
+}
+
+/* --- MODAL CONTENT BOX --- */
+.modal-content {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 12px;
+  width: 420px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.25s ease;
+}
+
+/* --- CLOSE BUTTON --- */
+.close {
+  float: right;
+  font-size: 1.5rem;
+  color: #999;
+  cursor: pointer;
+}
+.close:hover {
+  color: #333;
+}
+
+/* --- BUTTONS INSIDE MODAL --- */
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.btn-accept, .btn-reject {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  font-weight: 500;
+}
+
+.btn-accept { background-color: #28a745; }
+.btn-reject { background-color: #dc3545; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

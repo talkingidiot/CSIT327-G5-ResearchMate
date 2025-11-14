@@ -116,18 +116,5 @@
       </div>
     </div>
   </main>
-
-  <script>
-    document.querySelectorAll('.menu li').forEach(item => {
-      item.addEventListener('click', () => {
-        const link = item.getAttribute('data-link');
-        if(link) window.location.href = link;
-      });
-    });
-
-    document.querySelectorAll('.logout-btn').forEach(btn => {
-      btn.addEventListener('click', () => window.location.href='login-register.html');
-    });
-  </script>
 </body>
 </html>

@@ -7,7 +7,7 @@
   <title>Consultant — Appointments</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/consultant.css'%}">
   <link rel="stylesheet" href="{% static 'ConsultApp/consultant-dashboard.css'%}">
-  
+  <link rel="stylesheet" href="{% static 'ConsultApp/book.css'%}">
 </head>
 <body>
   <!-- Top Navigation -->
@@ -88,7 +88,18 @@
           </div>
 
           <div class="appointment-actions">
-            <button class="btn-details">📋 View Details</button>
+            <button 
+              class="btn-details" 
+              data-id="{{ appointment.id }}" 
+              data-student="{{ appointment.student.user.get_full_name }}"
+              data-topic="{{ appointment.topic }}"
+              data-date="{{ appointment.date|date:'M d, Y' }}"
+              data-time="{{ appointment.time|time:'g:i A' }}"
+              data-duration="{{ appointment.duration_minutes }}"
+              data-status="{{ appointment.status|title }}"
+            >
+              📋 View Details
+            </button>
           </div>
         </div>
       {% empty %}
@@ -96,5 +107,42 @@
       {% endfor %}
     </div>
   </main>
+    <div id="detailsModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <span id="closeModal" class="close">&times;</span>
+        <h2>Appointment Details</h2>
+        <p><strong>Student:</strong> <span id="modalStudent"></span></p>
+        <p><strong>Topic:</strong> <span id="modalTopic"></span></p>
+        <p><strong>Date:</strong> <span id="modalDate"></span></p>
+        <p><strong>Time:</strong> <span id="modalTime"></span></p>
+        <p><strong>Duration:</strong> <span id="modalDuration"></span> minutes</p>
+        <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+      </div>
+    </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const modal = document.getElementById("detailsModal");
+      const closeBtn = document.getElementById("closeModal");
+      const form = document.getElementById("statusForm");
+      const actionInput = document.getElementById("actionInput");
+
+      document.querySelectorAll(".btn-details").forEach(btn => {
+        btn.addEventListener("click", () => {
+          modal.style.display = "flex";
+          document.getElementById("modalStudent").textContent = btn.dataset.student;
+          document.getElementById("modalTopic").textContent = btn.dataset.topic;
+          document.getElementById("modalDate").textContent = btn.dataset.date;
+          document.getElementById("modalTime").textContent = btn.dataset.time;
+          document.getElementById("modalDuration").textContent = btn.dataset.duration;
+          document.getElementById("modalStatus").textContent = btn.dataset.status;
+
+          form.action = `/appointment/update/${btn.dataset.id}/`;
+        });
+      });
+      closeBtn.onclick = () => modal.style.display = "none";
+      window.onclick = e => { if (e.target === modal) modal.style.display = "none"; };
+    });
+    </script>
 </body>
 </html>
