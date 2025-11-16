@@ -110,14 +110,15 @@
                 <p><strong>Duration:</strong> {{ appointment.duration_minutes }} minutes</p>
                 
                 <div style="margin-top: 12px; display: flex; gap: 8px;">
-                  <form method="POST" action="{% url 'update_appointment_status' appointment.id %}" style="flex: 1;">
+                  <form method="POST" action="{% url 'update_appointment_status' appointment.id %}?next={{ request.path }}" style="flex: 1;">
                     {% csrf_token %}
                     <button type="submit" name="action" value="approve" 
                             style="width: 100%; background:#4caf50; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer;">
                       ✅ Approve
                     </button>
                   </form>
-                  <form method="POST" action="{% url 'update_appointment_status' appointment.id %}" style="flex: 1;">
+
+                  <form method="POST" action="{% url 'update_appointment_status' appointment.id %}?next={{ request.path }}" style="flex: 1;">
                     {% csrf_token %}
                     <button type="submit" name="action" value="reject" 
                             style="width: 100%; background:#e53e3e; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer;">

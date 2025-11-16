@@ -70,12 +70,20 @@
               {{ student.user.first_name|slice:":1" }}{{ student.user.last_name|slice:":1" }}
             </div>
             <h3>{{ student.user.get_full_name }}</h3>
-            <p class="program">{{ student.program|default:"Not specified" }}</p>
+            <p class="program">{{ student.student_program|default:"Not specified" }}</p>
 
             <div class="student-details">
               <div class="detail-row">
+                <span class="label">Research Title:</span>
+                <span class="value">
+                  {{ student.student_appointments.last.research_title|default:"No title specified" }}
+                </span>
+              </div>
+              <div class="detail-row">
                 <span class="label">Topic:</span>
-                <span class="value">{{ student.topic|default:"No topic assigned" }}</span>
+                <span class="value">
+                  {{ student.student_appointments.last.topic|default:"No topic specified" }}
+                </span>
               </div>
               <div class="detail-row">
                 <span class="label">Sessions:</span>

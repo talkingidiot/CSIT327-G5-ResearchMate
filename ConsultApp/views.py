@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-from datetime import datetime
+from datetime import datetime, timedelta, time as dt_time, datetime as dt_datetime
 from .models import User, Student, Consultant, Admin, Appointment, Verification, Market
 
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -14,12 +14,8 @@ from django.template.loader import render_to_string
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.conf import settings
-from datetime import timedelta, time as dt_time, datetime as dt_datetime
-from django.utils import timezone
 from django.urls import reverse
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from .models import Appointment
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -209,19 +205,46 @@ def consultant_dashboard(request):
     }
 
     return render(request, "ConsultApp/consultant-dashboard.html", context)
+
 @login_required
 def update_appointment_status(request, appointment_id):
     appointment = get_object_or_404(Appointment, id=appointment_id)
-    
+
     if request.method == 'POST':
         action = request.POST.get('action')
-        if action == 'approve':
-            appointment.status = 'confirmed'
-        elif action == 'reject':
-            appointment.status = 'cancelled'
-        appointment.save()
 
-    return redirect('consultant_dashboard')
+        if action in ['approve', 'accept']:
+            appointment.status = 'confirmed'
+            appointment.save()
+
+            student = appointment.student
+            consultant = appointment.consultant
+
+            if not student.assigned_consultant:
+                student.assigned_consultant = consultant
+
+            if appointment.topic and (not student.student_program or student.student_program.lower() == "undecided"):
+                student.student_program = appointment.topic
+
+            student.save()
+
+            messages.success(
+                request,
+                f"Appointment with {student.user.get_full_name()} approved successfully. "
+                f"Student’s program and topic have been updated."
+            )
+
+        elif action in ['reject', 'decline']:
+            appointment.status = 'cancelled'
+            appointment.save()
+            messages.warning(
+                request,
+                f"Appointment with {appointment.student.user.get_full_name()} rejected."
+            )
+
+    # ✅ Keep your original redirection
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or 'consultant_dashboard'
+    return redirect(next_url)
 
 @login_required
 def consultant_appointments_view(request):
@@ -362,6 +385,26 @@ def consultant_market(request):
 
     return render(request, "ConsultApp/consultant-market.html")
 
+@login_required
+@require_POST
+def toggle_market_status(request, market_id):
+    try:
+        consultant = Consultant.objects.get(user=request.user)
+        market_listing = get_object_or_404(Market, id=market_id, consultant=consultant)
+        
+        # Toggle the status - this flips True to False or False to True
+        market_listing.is_active = not market_listing.is_active
+        market_listing.save()
+        
+        if market_listing.is_active:
+            messages.success(request, "✅ You are now available for bookings!")
+        else:
+            messages.info(request, "⏸ You are now unavailable. Students cannot book you at this time.")
+        
+    except Consultant.DoesNotExist:
+        messages.error(request, "Consultant profile not found.")
+    
+    return redirect('consultant_dashboard')
 
 # 🔹 Student Views
 @login_required
@@ -378,16 +421,26 @@ def student_dashboard(request):
         student=student, status__in=["confirmed", "pending"]
     ).order_by("date")[:5]
 
-    recommended_consultants = (
-        Market.objects
-        .select_related("consultant__user")
-        .filter(
-            consultant__is_verified=True,
-            is_active=True,
-        )
-        .order_by("?")[:3]  
+    query = request.GET.get("q", "").strip()
+
+    recommended_consultants = Market.objects.select_related("consultant__user").filter(
+        consultant__is_verified=True,
+        is_active=True,
     )
 
+    if query:
+        # Filter results by first name, last name, expertise, profession
+        recommended_consultants = recommended_consultants.filter(
+            Q(consultant__user__first_name__icontains=query) |
+            Q(consultant__user__last_name__icontains=query) |
+            Q(expertise__icontains=query) |
+            Q(profession__icontains=query)
+        )
+    else:
+        # Default: show 3 random consultants
+        recommended_consultants = recommended_consultants.order_by("?")[:3]
+
+    # Statistics
     stats = {
         "current": Appointment.objects.filter(student=student, status="confirmed").count(),
         "previous": Appointment.objects.filter(student=student, status="completed").count(),
@@ -401,10 +454,11 @@ def student_dashboard(request):
         "recommended_consultants": recommended_consultants,
         "upcoming_sessions": upcoming_sessions,
         "stats": stats,
+        "query": query,
     }
 
     return render(request, "ConsultApp/student-dashboard.html", context)
-
+    
 @login_required
 def student_profile_view(request):
     student = Student.objects.get(user=request.user)
@@ -433,9 +487,11 @@ def student_history_view(request):
     if not student:
         return render(request, "ConsultApp/error.html", {"message": "Student record not found."})
 
+    # Show both completed and cancelled appointments
     appointments = Appointment.objects.filter(
-        student=student, status='completed'
-    ).select_related('consultant__user')
+        student=student,
+        status__in=['completed', 'cancelled']
+    ).select_related('consultant__user').order_by('-date', '-time')
 
     consultants = Consultant.objects.select_related('user').all()
 
@@ -443,241 +499,34 @@ def student_history_view(request):
     return render(request, "ConsultApp/student-history.html", context)
 
 @login_required
-def appointments_view(request):
-    student = Student.objects.filter(user=request.user).first()
-    if not student:
-        return render(request, "ConsultApp/error.html", {"message": "Student record not found."})
+def student_appointments_view(request):
+    student = get_object_or_404(Student, user=request.user)
 
-    appointments = Appointment.objects.filter(student=student).select_related('consultant__user')
-    consultants = Consultant.objects.select_related('user').all()
+    now = timezone.now().date()
+    current_time = timezone.now().time()
+    appointments = Appointment.objects.filter(student=student)
 
-    context = {"appointments": appointments, "consultants": consultants}
-    return render(request, "ConsultApp/appointments.html", context)
+    for appt in appointments:
+    # Only pending or confirmed appointments can auto-complete
+        if appt.status in ["pending", "confirmed"]:
+            if appt.date < now or (appt.date == now and appt.time < current_time):
+                appt.status = "completed"
+                appt.save()
 
-# 🔹 Admin Views
-def is_admin(user):
-    return user.is_superuser or getattr(user, "user_type", "") == "Admin"
+    active_appointments = Appointment.objects.filter(
+        student=student,
+        status__in=["pending", "confirmed"]
+    ).order_by('date', 'time')
 
-@login_required
-@user_passes_test(is_admin)
-def admin_dashboard(request):
-    total_students = Student.objects.count()
-    total_consultants = Consultant.objects.count()
-    pending_approvals = Verification.objects.filter(status='pending').count()
-    active_bookings = Appointment.objects.count()
-    recent_users = User.objects.order_by('-date_joined')[:5]
-    verification_requests = Verification.objects.filter(status='pending').select_related('consultant')
+    consultants = Consultant.objects.all()
 
-    return render(request, "ConsultApp/admin-dashboard.html", {
-        "total_students": total_students,
-        "total_consultants": total_consultants,
-        "pending_approvals": pending_approvals,
-        "active_bookings": active_bookings,
-        "recent_users": recent_users,
-        "verification_requests": verification_requests,
+    return render(request, "ConsultApp/student-appointments.html", {
+        "appointments": active_appointments,
+        "consultants": consultants
     })
 
 @login_required
-@user_passes_test(is_admin)
-def admin_students_view(request):
-    students = Student.objects.select_related('user').all()
-    return render(request, "ConsultApp/admin-students.html", {"students": students})
-
-@login_required
-@user_passes_test(is_admin)
-def admin_consultants_view(request):
-    consultants = Consultant.objects.select_related('user').all()
-    return render(request, "ConsultApp/admin-consultants.html", {"consultants": consultants})
-
-@login_required
-@user_passes_test(is_admin)
-def admin_reports_view(request):
-    return render(request, "ConsultApp/admin-reports.html")
-
-@login_required
-@user_passes_test(is_admin)
-def admin_profile_view(request):
-    admin_user = request.user
-    admin_profile, _ = Admin.objects.get_or_create(user=admin_user)
-
-    if request.method == "POST":
-        full_name = request.POST.get("full_name", "").strip()
-        email = request.POST.get("email", "").strip()
-        contact = request.POST.get("contact", "").strip()
-
-        name_parts = full_name.split()
-        if len(name_parts) == 1:
-            admin_user.first_name = full_name
-            admin_user.last_name = ""
-        else:
-            admin_user.first_name = " ".join(name_parts[:-1])
-            admin_user.last_name = name_parts[-1]
-
-        admin_user.email = email
-        admin_user.save()
-
-        admin_profile.contact_number = contact
-        admin_profile.save()
-
-        messages.success(request, "Profile updated successfully!")
-        return redirect("admin_profile")
-
-    context = {
-        "admin_name": f"{admin_user.first_name} {admin_user.last_name}".strip(),
-        "admin_email": admin_user.email,
-        "admin_contact": admin_profile.contact_number or "Not set",
-        "admin_role": "System Administrator",
-    }
-    return render(request, "ConsultApp/admin-profile.html", context)
-
-
-# 🔹 Verification Modal
-@login_required
-@user_passes_test(is_admin)
-def verification_details(request, verification_id):
-    verification = get_object_or_404(Verification, id=verification_id)
-    return render(request, "ConsultApp/verification-details.html", {"verification": verification})
-
-# 🔹 Approve / Reject Consultant
-@require_POST
-@login_required
-@user_passes_test(is_admin)
-def approve_consultant(request, verification_id):
-    verification = get_object_or_404(Verification, id=verification_id)
-    verification.status = 'approved'
-    verification.reviewed_at = timezone.now()
-    verification.save()
-
-    try:
-        consultant = Consultant.objects.get(user=verification.consultant)
-        consultant.is_verified = True
-        consultant.save()
-        messages.success(request, f"{verification.consultant.get_full_name()} has been approved as a consultant.")
-    except Consultant.DoesNotExist:
-        messages.error(request, "Consultant profile not found.")
-
-    return redirect('admin_dashboard')
-
-@require_POST
-@login_required
-@user_passes_test(is_admin)
-def reject_consultant(request, verification_id):
-    verification = get_object_or_404(Verification, id=verification_id)
-    verification.status = 'rejected'
-    verification.reviewed_at = timezone.now()
-    verification.save()
-
-    messages.info(request, f"{verification.consultant.get_full_name()}'s verification was rejected.")
-    return redirect('admin_dashboard')
-
-@csrf_exempt
-def forgot_password_view(request):
-    if request.method == "POST":
-        email = request.POST.get("email")
-        user = User.objects.filter(email=email).first()
-
-        if not user:
-            messages.error(request, "No account found with that email.")
-            return render(request, "ConsultApp/forgot-password.html")
-
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        reset_link = request.build_absolute_uri(f"/reset-password/{uid}/{token}/")
-
-        subject = "Password Reset Request"
-        message = render_to_string("ConsultApp/password-reset-email.html", {
-            "user": user,
-            "reset_link": reset_link
-        })
-        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
-
-        messages.success(request, "Password reset link has been sent to your email.")
-        return redirect("login")
-
-    return render(request, "ConsultApp/forgot-password.html")
-
-@csrf_exempt
-def reset_password_view(request, uidb64, token):
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-
-    if user is not None and default_token_generator.check_token(user, token):
-        if request.method == "POST":
-            new_password = request.POST.get("password")
-            confirm_password = request.POST.get("confirm_password")
-
-            if new_password != confirm_password:
-                messages.error(request, "Passwords do not match.")
-                return render(request, "ConsultApp/reset-password.html")
-
-            if len(new_password) < 8:
-                messages.error(request, "Password must be at least 8 characters long.")
-                return render(request, "ConsultApp/reset-password.html")
-
-            user.set_password(new_password)
-            user.save()
-            messages.success(request, "Password reset successful. You can now log in.")
-            return redirect("login")
-
-        return render(request, "ConsultApp/reset-password.html")
-    else:
-        messages.error(request, "The password reset link is invalid or has expired.")
-        return redirect("forgot_password")
-@login_required
-def all_consultants_view(request):
-    consultants = (
-        Market.objects
-        .select_related("consultant__user")
-        .filter(consultant__is_verified=True, is_active=True)
-    )
-    return render(request, "ConsultApp/all-consultants.html", {"consultants": consultants})
-
-@login_required
-def update_appointment_status(request, appointment_id):
-    appointment = get_object_or_404(Appointment, id=appointment_id)
-
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'approve':
-            appointment.status = 'confirmed'
-        elif action == 'reject':
-            appointment.status = 'cancelled'
-        appointment.save()
-
-    return redirect('consultant_dashboard')
-
-@login_required
-@require_POST
-def toggle_market_status(request, market_id):
-    """Toggle the is_active status of a market listing"""
-    try:
-        consultant = Consultant.objects.get(user=request.user)
-        market_listing = get_object_or_404(Market, id=market_id, consultant=consultant)
-        
-        # Toggle the status - this flips True to False or False to True
-        market_listing.is_active = not market_listing.is_active
-        market_listing.save()
-        
-        if market_listing.is_active:
-            messages.success(request, "✅ You are now available for bookings!")
-        else:
-            messages.info(request, "⏸ You are now unavailable. Students cannot book you at this time.")
-        
-    except Consultant.DoesNotExist:
-        messages.error(request, "Consultant profile not found.")
-    
-    return redirect('consultant_dashboard')
-
-@login_required
 def book_appointment(request, consultant_id=None):
-    """
-    Book an appointment with a consultant.
-    If consultant_id provided, preselect that consultant.
-    Otherwise show dropdown of all active consultants.
-    """
     # Get the current student
     student = Student.objects.filter(user=request.user).first()
     if not student:
@@ -692,7 +541,6 @@ def book_appointment(request, consultant_id=None):
         ).order_by('-updated_at').first()
 
     def generate_hourly_slots(available_from, available_to):
-        """Generate hourly time slots between available hours"""
         slots = []
         if not available_from or not available_to:
             return slots
@@ -877,6 +725,7 @@ def book_appointment(request, consultant_id=None):
                 consultant=consultant,
                 student=student,
                 topic=topic,
+                research_title=research_title,
                 date=date_obj,
                 time=start_time_obj,
                 duration_minutes=duration_hours * 60,
@@ -919,3 +768,202 @@ def book_appointment(request, consultant_id=None):
         "slots": slots,
         "today": today_iso,
     })
+
+@login_required
+def cancel_appointment(request, appointment_id):
+    student = get_object_or_404(Student, user=request.user)
+    booking = get_object_or_404(Appointment, id=appointment_id, student=student)
+
+    if booking.status != "pending":
+        messages.error(request, "You can no longer cancel this appointment.")
+        return redirect('student_appointments')
+
+    booking.status = "cancelled"
+    booking.save()
+
+    messages.success(request, "Your appointment has been cancelled.")
+    return redirect('student_appointments')
+
+# 🔹 Admin Views
+def is_admin(user):
+    return user.is_superuser or getattr(user, "user_type", "") == "Admin"
+
+@login_required
+@user_passes_test(is_admin)
+def admin_dashboard(request):
+    total_students = Student.objects.count()
+    total_consultants = Consultant.objects.count()
+    pending_approvals = Verification.objects.filter(status='pending').count()
+    active_bookings = Appointment.objects.count()
+    recent_users = User.objects.order_by('-date_joined')[:5]
+    verification_requests = Verification.objects.filter(status='pending').select_related('consultant')
+
+    return render(request, "ConsultApp/admin-dashboard.html", {
+        "total_students": total_students,
+        "total_consultants": total_consultants,
+        "pending_approvals": pending_approvals,
+        "active_bookings": active_bookings,
+        "recent_users": recent_users,
+        "verification_requests": verification_requests,
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def admin_students_view(request):
+    students = Student.objects.select_related('user').all()
+    return render(request, "ConsultApp/admin-students.html", {"students": students})
+
+@login_required
+@user_passes_test(is_admin)
+def admin_consultants_view(request):
+    consultants = Consultant.objects.select_related('user').all()
+    return render(request, "ConsultApp/admin-consultants.html", {"consultants": consultants})
+
+@login_required
+@user_passes_test(is_admin)
+def admin_reports_view(request):
+    return render(request, "ConsultApp/admin-reports.html")
+
+@login_required
+@user_passes_test(is_admin)
+def admin_profile_view(request):
+    admin_user = request.user
+    admin_profile, _ = Admin.objects.get_or_create(user=admin_user)
+
+    if request.method == "POST":
+        full_name = request.POST.get("full_name", "").strip()
+        email = request.POST.get("email", "").strip()
+        contact = request.POST.get("contact", "").strip()
+
+        name_parts = full_name.split()
+        if len(name_parts) == 1:
+            admin_user.first_name = full_name
+            admin_user.last_name = ""
+        else:
+            admin_user.first_name = " ".join(name_parts[:-1])
+            admin_user.last_name = name_parts[-1]
+
+        admin_user.email = email
+        admin_user.save()
+
+        admin_profile.contact_number = contact
+        admin_profile.save()
+
+        messages.success(request, "Profile updated successfully!")
+        return redirect("admin_profile")
+
+    context = {
+        "admin_name": f"{admin_user.first_name} {admin_user.last_name}".strip(),
+        "admin_email": admin_user.email,
+        "admin_contact": admin_profile.contact_number or "Not set",
+        "admin_role": "System Administrator",
+    }
+    return render(request, "ConsultApp/admin-profile.html", context)
+
+
+# 🔹 Verification Modal
+@login_required
+@user_passes_test(is_admin)
+def verification_details(request, verification_id):
+    verification = get_object_or_404(Verification, id=verification_id)
+    return render(request, "ConsultApp/verification-details.html", {"verification": verification})
+
+# 🔹 Approve / Reject Consultant
+@require_POST
+@login_required
+@user_passes_test(is_admin)
+def approve_consultant(request, verification_id):
+    verification = get_object_or_404(Verification, id=verification_id)
+    verification.status = 'approved'
+    verification.reviewed_at = timezone.now()
+    verification.save()
+
+    try:
+        consultant = Consultant.objects.get(user=verification.consultant)
+        consultant.is_verified = True
+        consultant.save()
+        messages.success(request, f"{verification.consultant.get_full_name()} has been approved as a consultant.")
+    except Consultant.DoesNotExist:
+        messages.error(request, "Consultant profile not found.")
+
+    return redirect('admin_dashboard')
+
+@require_POST
+@login_required
+@user_passes_test(is_admin)
+def reject_consultant(request, verification_id):
+    verification = get_object_or_404(Verification, id=verification_id)
+    verification.status = 'rejected'
+    verification.reviewed_at = timezone.now()
+    verification.save()
+
+    messages.info(request, f"{verification.consultant.get_full_name()}'s verification was rejected.")
+    return redirect('admin_dashboard')
+
+# 🔹 Password Views
+@csrf_exempt
+def forgot_password_view(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        user = User.objects.filter(email=email).first()
+
+        if not user:
+            messages.error(request, "No account found with that email.")
+            return render(request, "ConsultApp/forgot-password.html")
+
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        reset_link = request.build_absolute_uri(f"/reset-password/{uid}/{token}/")
+
+        subject = "Password Reset Request"
+        message = render_to_string("ConsultApp/password-reset-email.html", {
+            "user": user,
+            "reset_link": reset_link
+        })
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+
+        messages.success(request, "Password reset link has been sent to your email.")
+        return redirect("login")
+
+    return render(request, "ConsultApp/forgot-password.html")
+
+@csrf_exempt
+def reset_password_view(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == "POST":
+            new_password = request.POST.get("password")
+            confirm_password = request.POST.get("confirm_password")
+
+            if new_password != confirm_password:
+                messages.error(request, "Passwords do not match.")
+                return render(request, "ConsultApp/reset-password.html")
+
+            if len(new_password) < 8:
+                messages.error(request, "Password must be at least 8 characters long.")
+                return render(request, "ConsultApp/reset-password.html")
+
+            user.set_password(new_password)
+            user.save()
+            messages.success(request, "Password reset successful. You can now log in.")
+            return redirect("login")
+
+        return render(request, "ConsultApp/reset-password.html")
+    else:
+        messages.error(request, "The password reset link is invalid or has expired.")
+        return redirect("forgot_password")
+
+# 🔹 Appointment Views
+@login_required
+def all_consultants_view(request):
+    consultants = (
+        Market.objects
+        .select_related("consultant__user")
+        .filter(consultant__is_verified=True, is_active=True)
+    )
+    return render(request, "ConsultApp/all-consultants.html", {"consultants": consultants})

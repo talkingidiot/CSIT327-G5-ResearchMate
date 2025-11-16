@@ -15,7 +15,7 @@
     <div class="nav-links">
       <a href="{% url 'student_dashboard' %}" class="active">🏠 Dashboard</a>
       <a href="{% url 'student_profile' %}">👤 Profile</a>
-      <a href="{% url 'appointments' %}">📅 Appointments</a>
+      <a href="{% url 'student_appointments' %}">📅 Appointments</a>
       <a href="{% url 'student_history' %}">📜 History</a>
       <a href="#">❓ Help</a>
     </div>
@@ -56,10 +56,14 @@
       <section>
         <div class="search-card">
           <h2>🔍 Find Your Research Consultant</h2>
-          <div class="search-box">
-            <input type="text" placeholder="Search by name, subject, or expertise..." />
-            <button type="button">Search</button>
-          </div>
+          <form method="GET" class="search-box">
+            <input 
+                type="text" 
+                name="q" 
+                value="{{ query }}" 
+                placeholder="Search by name, subject, or expertise..."/>
+            <button type="submit">Search</button>
+          </form>
           <p>Connect with available consultants and schedule a session.</p>
         </div>
 
