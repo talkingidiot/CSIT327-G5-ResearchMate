@@ -86,7 +86,8 @@ class Appointment(models.Model):
     time = models.TimeField()
     duration_minutes = models.IntegerField(default=60)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
-
+    research_title = models.CharField(max_length=200, blank=True)
+    
     def __str__(self):
         return f"{self.student.get_full_name()} — {self.topic}"
 

@@ -29,7 +29,7 @@
     <div class="nav-links">
       <a href="{% url 'student_dashboard' %}">🏠 Dashboard</a>
       <a href="{% url 'student_profile' %}">👤 Profile</a>
-      <a href="{% url 'appointments' %}" class="active">📅 Appointments</a>
+      <a href="{% url 'student_appointments' %}" class="active">📅 Appointments</a>
       <a href="{% url 'student_history' %}">📜 History</a>
       <a href="#">❓ Help</a>
     </div>
@@ -136,8 +136,12 @@
 
             <div class="booking-actions">
               <button class="btn-details" onclick="alert('Appointment ID: {{ booking.id }}\nStatus: {{ booking.get_status_display }}')">📋 View Details</button>
-              {% if booking.status == "pending" or booking.status == "confirmed" %}
-                <button class="btn-cancel" onclick="if(confirm('Cancel this appointment?')) window.location.href='#'">✕ Cancel</button>
+              {% if booking.status == "pending" %}
+                <button class="btn-cancel"
+                        onclick="if(confirm('Cancel this appointment?')) 
+                                window.location.href='{% url 'cancel_appointment' booking.id %}'">
+                  ✕ Cancel
+                </button>
               {% endif %}
             </div>
           </div>

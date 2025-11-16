@@ -7,88 +7,7 @@
   <title>Book Appointment — ResearchMate</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'ConsultApp/profile.css' %}">
-  <style>
-    .form-card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 2rem;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    }
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: #333;
-    }
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-      width: 100%;
-      padding: 0.7rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
-    }
-    .form-actions {
-      margin-top: 1.5rem;
-      display: flex;
-      gap: 1rem;
-    }
-    .btn-primary {
-      background-color: #1f3327;
-      color: #fff;
-      border: none;
-      padding: 0.7rem 1.5rem;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .btn-primary:hover {
-      background-color: #c76953;
-    }
-    .btn-secondary {
-      background-color: #f8e4eb;
-      color: #1f3327;
-      border: none;
-      padding: 0.7rem 1.5rem;
-      border-radius: 6px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .consultant-card {
-      background: #fff;
-      border-radius: 8px;
-      padding: 1rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      text-align: center;
-    }
-    .consultant-card img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 0.5rem;
-    }
-    .error-message {
-      background: #f8d7da;
-      color: #721c24;
-      padding: 12px;
-      border-radius: 6px;
-      margin-bottom: 1rem;
-      border: 1px solid #f5c6cb;
-    }
-    .success-message {
-      background: #d4edda;
-      color: #155724;
-      padding: 12px;
-      border-radius: 6px;
-      margin-bottom: 1rem;
-      border: 1px solid #c3e6cb;
-    }
-  </style>
+  <link rel="stylesheet" href="{% static 'ConsultApp/book.css' %}">
 </head>
 <body>
   <!-- Top Navigation -->
@@ -98,7 +17,7 @@
     <div class="nav-links">
       <a href="{% url 'student_dashboard' %}">🏠 Dashboard</a>
       <a href="{% url 'student_profile' %}">👤 Profile</a>
-      <a href="{% url 'appointments' %}" class="active">📅 Appointments</a>
+      <a href="{% url 'student_appointments' %}" class="active">📅 Appointments</a>
       <a href="{% url 'student_history' %}">📜 History</a>
       <a href="#">❓ Help</a>
     </div>
@@ -249,7 +168,6 @@
     </div>
   </main>
 
-  <!-- Script for Cost Calculator -->
   <script>
     {% if market %}
     const ratePerHour = {{ market.rate_per_hour|default:0 }};
