@@ -16,7 +16,6 @@ from dotenv import load_dotenv
 from urllib.parse import urlparse
 import dj_database_url
 
-load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -33,11 +32,18 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "unsafe-dev-key")
 DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = [h.strip() for h in
-os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if
-h.strip()]
+    os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if
+    h.strip()
+]
+
+if DEBUG:
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in
-os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if
-o.strip()]
+    os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if
+    o.strip()
+]
+
 
 # Application definition
 
