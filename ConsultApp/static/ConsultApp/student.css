@@ -20,7 +20,6 @@ body {
   color: var(--text-dark);
 }
 
-/* Top Navigation */
 .top-nav {
   background: var(--card-bg);
   padding: 16px 40px;
@@ -105,7 +104,6 @@ body {
   color: white;
 }
 
-/* Main Content */
 .main-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -128,7 +126,6 @@ body {
   color: var(--text-muted);
 }
 
-/* Filter Section */
 .filter-section {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -169,14 +166,12 @@ body {
   font-weight: 600;
 }
 
-/* History Grid */
 .history-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 24px;
 }
 
-/* Booking Card */
 .booking-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -308,7 +303,6 @@ body {
   color: white;
 }
 
-/* Empty State */
 .empty-state {
   text-align: center;
   padding: 80px 20px;
@@ -332,7 +326,6 @@ body {
   font-size: 14px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .top-nav {
     flex-direction: column;
@@ -373,9 +366,6 @@ body {
   }
 }
 
-/* ===== Student Bookings — Additional Styles Only ===== */
-
-/* Bookings-specific button */
 .btn-new-booking {
   padding: 10px 20px;
   background: var(--navy);
@@ -393,7 +383,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* Booking status types */
 .status-badge.upcoming {
   background: #fff8e1;
   color: #f57c00;
@@ -420,4 +409,114 @@ body {
 .btn-cancel:hover {
   background: #c62828;
   color: white;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.status-badge.pending { 
+  background: #fffbea; 
+  color: #d69e2e; 
+  border: 1px solid #d69e2e; 
+}
+.status-badge.confirmed { 
+  background: #e6ffed; 
+  color: #38a169; 
+  border: 1px solid #38a169; 
+}
+.status-badge.cancelled { 
+  background: #fee; 
+  color: #e53e3e; 
+  border: 1px solid #e53e3e; 
+}
+.status-badge.completed { 
+  background: #e0e7ff; 
+  color: #5a67d8; 
+  border: 1px solid #5a67d8; 
+}
+
+.messages-container {
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+
+.message {
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+}
+
+.message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border-color: #c3e6cb;
+}
+
+.message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
+.message.info,
+.message.debug,
+.message.warning {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border-color: #bee5eb;
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(2px);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal {
+  background: #fff;
+  padding: 25px;
+  width: 420px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.modal h2 {
+  margin-bottom: 15px;
+  font-size: 22px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.btn-close {
+  padding: 8px 18px;
+  background: #a4a4a4;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-danger {
+  padding: 8px 18px;
+  background: #c82333;
+  color: white !important;
+  border-radius: 6px;
+  cursor: pointer;
 }

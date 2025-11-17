@@ -7,19 +7,6 @@
   <title>ResearchMate — My Appointments</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/student.css'%}">
   <link rel="stylesheet" href="{% static 'ConsultApp/student-dashboard.css'%}">
-  <style>
-    .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 0.875rem;
-      font-weight: 600;
-    }
-    .status-badge.pending { background: #fffbea; color: #d69e2e; border: 1px solid #d69e2e; }
-    .status-badge.confirmed { background: #e6ffed; color: #38a169; border: 1px solid #38a169; }
-    .status-badge.cancelled { background: #fee; color: #e53e3e; border: 1px solid #e53e3e; }
-    .status-badge.completed { background: #e0e7ff; color: #5a67d8; border: 1px solid #5a67d8; }
-  </style>
 </head>
 <body>
   <!-- Top Navigation -->
@@ -43,29 +30,43 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
-  <main class="main-content">
-    <!-- Page Header -->
-    <div class="page-header">
-      <h1>My Appointments</h1>
-      <p>View and manage your consultation bookings</p>
+    <div id="detailsModal" class="modal-overlay">
+      <div class="modal">
+        <h2>Appointment Details</h2>
+        <div id="detailsContent"></div>
+        <div class="modal-actions">
+          <button class="btn-close" onclick="closeModal()">Close</button>
+        </div>
+      </div>
     </div>
 
-    <!-- SUCCESS/ERROR MESSAGES -->
+    <div id="cancelModal" class="modal-overlay">
+      <div class="modal">
+        <h2>Cancel Appointment?</h2>
+        <p>Are you sure you want to cancel this appointment?</p>
+        <div class="modal-actions">
+          <button class="btn-close" onclick="closeCancelModal()">No</button>
+          <button id="cancelConfirmBtn" class="btn-danger">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  <main class="main-content">
     {% if messages %}
-      <div style="margin-bottom: 20px;">
+      <div class="messages-container">
         {% for message in messages %}
-          <div style="padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; 
-                      {% if message.tags == 'success' %}background: #d4edda; color: #155724; border: 1px solid #c3e6cb;
-                      {% elif message.tags == 'error' %}background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
-                      {% else %}background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
+          <div class="message {{ message.tags }}">
             {{ message }}
           </div>
         {% endfor %}
       </div>
     {% endif %}
 
-    <!-- Filter Section -->
+    <div class="page-header">
+      <h1>My Appointments</h1>
+      <p>View and manage your consultation bookings</p>
+    </div>
+
     <div class="filter-section">
       <div class="filter-controls">
         <select id="statusFilter">
@@ -87,7 +88,6 @@
       <a href="{% url 'book_appointment' %}" class="btn-new-booking">+ New Appointment</a>
     </div>
 
-    <!-- Bookings Grid -->
     <div class="history-grid">
       {% if appointments %}
         {% for booking in appointments %}
@@ -135,11 +135,22 @@
             </div>
 
             <div class="booking-actions">
-              <button class="btn-details" onclick="alert('Appointment ID: {{ booking.id }}\nStatus: {{ booking.get_status_display }}')">📋 View Details</button>
+                <button class="btn-details"
+                  onclick="openDetailsModal(
+                    '{{ booking.id }}',
+                    '{{ booking.topic }}',
+                    '{{ booking.date|date:"M d, Y" }}',
+                    '{{ booking.time|time:"g:i A" }}',
+                    '{{ booking.duration_minutes }}',
+                    '{{ booking.status|title }}',
+                    '{{ booking.consultant.user.get_full_name }}'
+                  )">
+                  📋 View Details
+                </button>
               {% if booking.status == "pending" %}
                 <button class="btn-cancel"
-                        onclick="if(confirm('Cancel this appointment?')) 
-                                window.location.href='{% url 'cancel_appointment' booking.id %}'">
+                        data-url="{% url 'cancel_appointment' booking.id %}"
+                        onclick="openCancelModal(this)">
                   ✕ Cancel
                 </button>
               {% endif %}
@@ -154,7 +165,6 @@
   </main>
 
   <script>
-    // Filter functionality
     document.addEventListener('DOMContentLoaded', function() {
       const statusFilter = document.getElementById('statusFilter');
       const consultantFilter = document.getElementById('consultantFilter');
@@ -182,6 +192,41 @@
       statusFilter.addEventListener('change', applyFilters);
       consultantFilter.addEventListener('change', applyFilters);
     });
+
+    function openDetailsModal(id, topic, date, time, duration, status, consultant) {
+        const html = `
+          <p><strong>Appointment ID:</strong> ${id}</p>
+          <p><strong>Consultant:</strong> ${consultant}</p>
+          <p><strong>Purpose:</strong> ${topic}</p>
+          <p><strong>Date:</strong> ${date}</p>
+          <p><strong>Time:</strong> ${time}</p>
+          <p><strong>Duration:</strong> ${duration} minutes</p>
+          <p><strong>Status:</strong> ${status}</p>
+        `;
+        document.getElementById("detailsContent").innerHTML = html;
+        document.getElementById("detailsModal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("detailsModal").style.display = "none";
+    }
+    let cancelUrl = "";
+
+    function openCancelModal(button) {
+      cancelUrl = button.getAttribute("data-url");
+      document.getElementById("cancelModal").style.display = "flex";
+    }
+
+    function closeCancelModal() {
+      document.getElementById("cancelModal").style.display = "none";
+    }
+
+    document.getElementById("cancelConfirmBtn").addEventListener("click", function () {
+      if (cancelUrl) {
+          window.location.href = cancelUrl;
+      }
+    });
+
   </script>
 </body>
 </html>
