@@ -102,14 +102,14 @@ def register_view(request):
                 workplace=request.POST.get("workplace") or "",
                 is_verified=False
             )
-        elif role == "admin":
-            user.is_staff = True
-            user.is_superuser = True
-            user.save()
-            Admin.objects.create(
-                user=user,
-                contact_number=request.POST.get("contact_number_admin") or ""
-            )
+        # elif role == "admin":
+        #     user.is_staff = True
+        #     user.is_superuser = True
+        #     user.save()
+        #     Admin.objects.create(
+        #         user=user,
+        #         contact_number=request.POST.get("contact_number_admin") or ""
+        #     )
 
         messages.success(request, f"Account created successfully as {role.title()}!", extra_tags="login")
         response = redirect("login")
@@ -117,7 +117,6 @@ def register_view(request):
         return response
 
     return render(request, "ConsultApp/login-register.html")
-
 
 # 🔹 Login View
 @csrf_exempt
@@ -181,12 +180,10 @@ def consultant_dashboard(request):
     total_students = Student.objects.count()
     total_appointments = Appointment.objects.filter(consultant=consultant).count() if consultant else 0
 
-    # Appointment lists by status
     pending_appointments = Appointment.objects.filter(consultant=consultant, status='pending')
     confirmed_appointments = Appointment.objects.filter(consultant=consultant, status='confirmed')
     cancelled_appointments = Appointment.objects.filter(consultant=consultant, status='cancelled')
 
-    # Get consultant's market listing - SHOW REGARDLESS OF is_active STATUS
     market_listing = Market.objects.filter(consultant=consultant).first() if consultant else None
 
     context = {
@@ -201,7 +198,7 @@ def consultant_dashboard(request):
         "students": [],
         "pending_appointments": pending_appointments,
         "cancelled_appointments": cancelled_appointments,
-        "market_listing": market_listing,  # This will show the listing even if is_active=False
+        "market_listing": market_listing,  
     }
 
     return render(request, "ConsultApp/consultant-dashboard.html", context)
@@ -268,32 +265,81 @@ def consultant_students_view(request):
 
     return render(request, "ConsultApp/consultant-students.html", {"students": students})
 
-
 @login_required
 def consultant_profile_view(request):
     user = request.user
     profile, created = Consultant.objects.get_or_create(user=user)
+
+    total_fields = 6  
+    completed = 0
+    missing_fields = []
+
+    if user.first_name:
+        completed += 1
+    else:
+        missing_fields.append("First Name")
+
+    if user.last_name:
+        completed += 1
+    else:
+        missing_fields.append("Last Name")
+
+    if user.email:
+        completed += 1
+    else:
+        missing_fields.append("Email Address")
+
+    if profile.contact_number:
+        completed += 1
+    else:
+        missing_fields.append("Contact Number")
+
+    if profile.expertise:
+        completed += 1
+    else:
+        missing_fields.append("Expertise")
+
+    if profile.workplace:
+        completed += 1
+    else:
+        missing_fields.append("Workplace")
+
+    verification_complete = profile.is_verified
+    if verification_complete:
+        completed += 1
+        total_fields += 1
+    else:
+        missing_fields.append("Verification Status")
+
+    completion_percentage = int((completed / total_fields) * 100)
 
     if request.method == "POST":
         full_name = request.POST.get("full_name")
         email = request.POST.get("email")
         contact_number = request.POST.get("contact_number")
         expertise = request.POST.get("expertise")
+        workplace = request.POST.get("workplace")
 
         user.first_name = full_name.split()[0] if full_name else user.first_name
         user.last_name = " ".join(full_name.split()[1:]) if len(full_name.split()) > 1 else user.last_name
         user.email = email
         user.save()
-
+        
         profile.contact_number = contact_number
         profile.expertise = expertise
+        profile.workplace = workplace
         profile.save()
+
         messages.success(request, "Profile updated successfully!")
         return redirect("consultant_profile")
 
-    context = {"user": user, "profile": profile}
+    context = {
+        "user": user,
+        "profile": profile,
+        "completion_percentage": completion_percentage,
+        "missing_fields": missing_fields,
+    }
     return render(request, "ConsultApp/consultant-profile.html", context)
-
 
 @login_required
 def consultant_verification_view(request):
@@ -458,10 +504,42 @@ def student_dashboard(request):
     }
 
     return render(request, "ConsultApp/student-dashboard.html", context)
-    
+
 @login_required
 def student_profile_view(request):
     student = Student.objects.get(user=request.user)
+    user = request.user
+
+    total_fields = 5
+    completed = 0
+    missing_fields = []
+
+    if user.first_name:
+        completed += 1
+    else:
+        missing_fields.append("First Name")
+
+    if user.last_name:
+        completed += 1
+    else:
+        missing_fields.append("Last Name")
+
+    if student.student_department:
+        completed += 1
+    else:
+        missing_fields.append("Department")
+
+    if student.student_program:
+        completed += 1
+    else:
+        missing_fields.append("Program")
+
+    if student.student_year_level and student.student_year_level > 0:
+        completed += 1
+    else:
+        missing_fields.append("Year Level")
+
+    completion_percentage = int((completed / total_fields) * 100)
 
     if request.method == "POST":
         student.student_department = request.POST.get("department")
@@ -471,15 +549,20 @@ def student_profile_view(request):
 
         full_name = request.POST.get("fullName")
         if full_name:
-            request.user.first_name = full_name.split(" ")[0]
+            user.first_name = full_name.split(" ")[0]
             if len(full_name.split(" ")) > 1:
-                request.user.last_name = " ".join(full_name.split(" ")[1:])
-            request.user.save()
+                user.last_name = " ".join(full_name.split(" ")[1:])
+            user.save()
 
         return redirect("student_profile")
 
-    context = {"student": student}
+    context = {
+        "student": student,
+        "completion_percentage": completion_percentage,
+        "missing_fields": missing_fields,
+    }
     return render(request, "ConsultApp/student-profile.html", context)
+
 
 @login_required
 def student_history_view(request):
@@ -487,7 +570,6 @@ def student_history_view(request):
     if not student:
         return render(request, "ConsultApp/error.html", {"message": "Student record not found."})
 
-    # Show both completed and cancelled appointments
     appointments = Appointment.objects.filter(
         student=student,
         status__in=['completed', 'cancelled']
@@ -507,7 +589,6 @@ def student_appointments_view(request):
     appointments = Appointment.objects.filter(student=student)
 
     for appt in appointments:
-    # Only pending or confirmed appointments can auto-complete
         if appt.status in ["pending", "confirmed"]:
             if appt.date < now or (appt.date == now and appt.time < current_time):
                 appt.status = "completed"
@@ -527,7 +608,6 @@ def student_appointments_view(request):
 
 @login_required
 def book_appointment(request, consultant_id=None):
-    # Get the current student
     student = Student.objects.filter(user=request.user).first()
     if not student:
         messages.error(request, "Student profile not found.")
@@ -554,11 +634,9 @@ def book_appointment(request, consultant_id=None):
             cur += 60
         return slots
 
-    # Initialize variables
     consultant = None
     market = None
 
-    # If consultant_id provided, preselect that consultant
     if consultant_id:
         try:
             consultant = Consultant.objects.get(user__id=consultant_id, is_verified=True)
@@ -570,15 +648,12 @@ def book_appointment(request, consultant_id=None):
             messages.error(request, "Consultant not found.")
             return redirect('student_dashboard')
 
-    # Get all verified consultants with active market listings
     consultants_with_market = Consultant.objects.filter(
         is_verified=True,
         market_listings__is_active=True
     ).select_related("user").distinct()
 
-    # Handle form submission
     if request.method == "POST":
-        # Get consultant from form if not preselected
         if not consultant:
             form_consultant_id = request.POST.get("consultant_id")
             if not form_consultant_id:
@@ -613,14 +688,12 @@ def book_appointment(request, consultant_id=None):
                     "today": timezone.localdate().isoformat(),
                 })
 
-        # Get form data
         date_str = request.POST.get("date", "").strip()
         start_time_str = request.POST.get("start_time", "").strip()
         duration_hours_str = request.POST.get("duration_hours", "1")
         topic = request.POST.get("topic", "").strip()
         research_title = request.POST.get("research_title", "").strip()
 
-        # Validate required fields
         if not date_str or not start_time_str or not topic:
             messages.error(request, "Please fill in all required fields (Date, Time, Topic).")
             slots = generate_hourly_slots(market.available_from, market.available_to)
@@ -632,7 +705,6 @@ def book_appointment(request, consultant_id=None):
                 "today": timezone.localdate().isoformat(),
             })
 
-        # Parse duration
         try:
             duration_hours = int(duration_hours_str)
             if duration_hours < 1:
@@ -640,7 +712,6 @@ def book_appointment(request, consultant_id=None):
         except ValueError:
             duration_hours = 1
 
-        # Parse date and time
         try:
             date_obj = dt_datetime.strptime(date_str, "%Y-%m-%d").date()
             start_time_obj = dt_datetime.strptime(start_time_str, "%H:%M").time()
@@ -655,7 +726,6 @@ def book_appointment(request, consultant_id=None):
                 "today": timezone.localdate().isoformat(),
             })
 
-        # Check if date is in the past
         if date_obj < timezone.localdate():
             messages.error(request, "Cannot book appointments in the past.")
             slots = generate_hourly_slots(market.available_from, market.available_to)
@@ -667,7 +737,6 @@ def book_appointment(request, consultant_id=None):
                 "today": timezone.localdate().isoformat(),
             })
 
-        # Validate time is within consultant's availability
         available_from = market.available_from
         available_to = market.available_to
         start_dt = dt_datetime.combine(date_obj, start_time_obj)
@@ -689,18 +758,16 @@ def book_appointment(request, consultant_id=None):
                 "today": timezone.localdate().isoformat(),
             })
 
-        # Check for conflicts with existing appointments
         conflicts = []
         existing_appts = Appointment.objects.filter(
             consultant=consultant, 
             date=date_obj,
-            status__in=['pending', 'confirmed']  # Only check active appointments
+            status__in=['pending', 'confirmed']  
         )
         
         for ap in existing_appts:
             ap_start = dt_datetime.combine(date_obj, ap.time)
             ap_end = ap_start + timedelta(minutes=ap.duration_minutes or 60)
-            # Check if time slots overlap
             if (start_dt < ap_end) and (end_dt > ap_start):
                 conflicts.append(ap)
         
@@ -719,7 +786,6 @@ def book_appointment(request, consultant_id=None):
                 "today": timezone.localdate().isoformat(),
             })
 
-        # All validations passed - create the appointment
         try:
             appointment = Appointment.objects.create(
                 consultant=consultant,
@@ -732,7 +798,6 @@ def book_appointment(request, consultant_id=None):
                 status="pending",
             )
             
-            # Success message with consultant name
             consultant_name = consultant.user.get_full_name()
             messages.success(
                 request, 
@@ -740,7 +805,6 @@ def book_appointment(request, consultant_id=None):
                 f"Your appointment is pending confirmation."
             )
             
-            # Redirect to student dashboard
             return redirect('student_dashboard')
             
         except Exception as e:
@@ -754,7 +818,6 @@ def book_appointment(request, consultant_id=None):
                 "today": timezone.localdate().isoformat(),
             })
 
-    # GET request - show the form
     slots = []
     if market:
         slots = generate_hourly_slots(market.available_from, market.available_to)
@@ -823,25 +886,42 @@ def admin_consultants_view(request):
 @user_passes_test(is_admin)
 def admin_reports_view(request):
     return render(request, "ConsultApp/admin-reports.html")
-
 @login_required
 @user_passes_test(is_admin)
 def admin_profile_view(request):
     admin_user = request.user
     admin_profile, _ = Admin.objects.get_or_create(user=admin_user)
 
+    completed = 0
+    total_fields = 4
+
+    if admin_user.first_name:
+        completed += 1
+
+    if admin_user.last_name:
+        completed += 1
+
+    if admin_user.email:
+        completed += 1
+
+    if admin_profile.contact_number:
+        completed += 1
+
+    progress_percentage = int((completed / total_fields) * 100)
+
     if request.method == "POST":
         full_name = request.POST.get("full_name", "").strip()
         email = request.POST.get("email", "").strip()
         contact = request.POST.get("contact", "").strip()
 
-        name_parts = full_name.split()
-        if len(name_parts) == 1:
+        parts = full_name.split()
+
+        if len(parts) >= 2:
+            admin_user.first_name = parts[0]
+            admin_user.last_name = " ".join(parts[1:])
+        else:
             admin_user.first_name = full_name
             admin_user.last_name = ""
-        else:
-            admin_user.first_name = " ".join(name_parts[:-1])
-            admin_user.last_name = name_parts[-1]
 
         admin_user.email = email
         admin_user.save()
@@ -857,7 +937,9 @@ def admin_profile_view(request):
         "admin_email": admin_user.email,
         "admin_contact": admin_profile.contact_number or "Not set",
         "admin_role": "System Administrator",
+        "profile_progress": progress_percentage,
     }
+    
     return render(request, "ConsultApp/admin-profile.html", context)
 
 

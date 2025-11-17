@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="{% static 'ConsultApp/profile.css' %}">
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
@@ -31,7 +30,6 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
     <div class="page-header">
       <h1>Profile Management</h1>
@@ -46,8 +44,15 @@
       </div>
     {% endif %}
 
+    <div class="progress-container">
+      <label class="progress-label">Profile Completion</label>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: {{ profile_progress }}%;"></div>
+      </div>
+      <p class="progress-text">{{ profile_progress }}% complete</p>
+    </div>
+
     <div class="profile-grid">
-      <!-- Profile Info Card -->
       <div class="profile-card">
         <div class="profile-avatar">AD</div>
         <h3 id="displayName">{{ admin_name }}</h3>
