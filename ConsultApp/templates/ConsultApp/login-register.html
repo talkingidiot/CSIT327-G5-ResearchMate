@@ -10,7 +10,6 @@
 <body>
   <div class="container" id="container">
 
-    <!-- SIGN UP CONTAINER -->
     <div class="form-container sign-up-container">
 
       <div id="role-step" class="overlay-step">
@@ -18,7 +17,7 @@
         <div class="role-buttons">
           <button type="button" onclick="showForm('student')">Student</button>
           <button type="button" onclick="showForm('consultant')">Consultant</button>
-          <button type="button" onclick="showForm('admin')">Admin</button>
+          {% comment %} <button type="button" onclick="showForm('admin')">Admin</button> {% endcomment %}
         </div>
       </div>
 
@@ -35,8 +34,6 @@
         <input type="text" name="full_name" placeholder="Full Name" required>
         <input type="email" name="email" placeholder="Email" required>
 
-
-        <!-- Password -->
         <div class="password-wrapper">
           <input type="password" name="password" id="passwordField" placeholder="Password" required>
           <span class="toggle-password" id="toggleRegisterPassword">👁</span>
@@ -54,7 +51,6 @@
       </form>
     </div>
 
-    <!-- SIGN IN CONTAINER -->
     <div class="form-container sign-in-container">
       <form method="POST" action="{% url 'login' %}">
         {% csrf_token %}
@@ -92,7 +88,6 @@
       </form>
     </div>
 
-    <!-- OVERLAY -->
     <div class="overlay-container">
       <div class="overlay">
         <div class="overlay-panel overlay-left">

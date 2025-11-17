@@ -30,17 +30,31 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <!-- Page Header -->
     <div class="page-header">
       <h1>Student Profile</h1>
       <p>Update your information to be displayed in your dashboard</p>
     </div>
 
-    <!-- Profile Grid -->
+    <div class="profile-progress-container">
+      <h3>Profile Completion</h3>
+
+      <div class="progress-bar">
+          <div class="progress-fill" style="width: {{ completion_percentage }}%;"></div>
+      </div>
+
+      <p class="progress-text">{{ completion_percentage }}% complete</p>
+
+      {% if missing_fields %}
+        <ul class="missing-fields">
+          {% for f in missing_fields %}
+            <li>⚠ {{ f }} not completed</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
     <div class="profile-grid">
-      <!-- Profile Info Card -->
       <div class="profile-card">
         <div class="profile-avatar">ST</div>
         <h3 id="displayName">{{ student.user.get_full_name|default:"Student" }}</h3>
@@ -66,7 +80,6 @@
           </div>
       </div>
 
-      <!-- Edit Form -->
       <div class="form-card">
         <h2>Edit Profile Information</h2>
         <form method="POST" action="{% url 'student_profile' %}">
