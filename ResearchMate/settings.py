@@ -94,7 +94,7 @@ WSGI_APPLICATION = 'ResearchMate.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         default="postgresql://postgres.hqqgsbwkqfguzpapcjnl:IMResearchmate@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require",
-        conn_max_age=600,
+        conn_max_age=500,
         ssl_require=True,
     )
 }

@@ -16,9 +16,44 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.urls import reverse
 from django.db.models import Q
+import re
 
 User = get_user_model()
 
+# Validation helper functions
+def validate_name(name):
+    """Validate name: only letters, spaces, hyphens. Max 100 chars."""
+    if not name or not name.strip():
+        return False, "Name cannot be empty."
+    if not re.match(r'^[a-zA-Z\s\-]+$', name):
+        return False, "Name can only contain letters, spaces, and hyphens."
+    if len(name) > 100:
+        return False, "Name is too long (maximum 100 characters)."
+    return True, ""
+
+def validate_contact(contact):
+    """Validate contact: digits, spaces, hyphens, parentheses, plus. Max 20 chars."""
+    if not contact or not contact.strip():
+        return False, "Contact number cannot be empty."
+    if not re.match(r'^[\d\s\-\(\)\+]+$', contact):
+        return False, "Contact number can only contain numbers, spaces, hyphens, parentheses, and plus signs."
+    if len(contact) > 20:
+        return False, "Contact number is too long (maximum 20 characters)."
+    return True, ""
+
+def validate_text_field(text, field_name, max_length=100, allow_empty=False):
+    """Validate text field: alphanumeric, spaces, hyphens only."""
+    if not text or not text.strip():
+        if allow_empty:
+            return True, ""
+        return False, f"{field_name} cannot be empty."
+    if not re.match(r'^[a-zA-Z0-9\s\-]+$', text):
+        return False, f"{field_name} can only contain letters, numbers, spaces, and hyphens."
+    if len(text) > max_length:
+        return False, f"{field_name} is too long (maximum {max_length} characters)."
+    return True, ""
+
+# 🔹 Landing Page
 def home_view(request):
     return render(request, "ConsultApp/landing-page.html")
 
@@ -314,24 +349,35 @@ def consultant_profile_view(request):
     completion_percentage = int((completed / total_fields) * 100)
 
     if request.method == "POST":
-        full_name = request.POST.get("full_name")
-        email = request.POST.get("email")
-        contact_number = request.POST.get("contact_number")
-        expertise = request.POST.get("expertise")
-        workplace = request.POST.get("workplace")
+        full_name = request.POST.get("full_name", "").strip()
+        email = request.POST.get("email", "").strip()
+        contact_number = request.POST.get("contact_number", "").strip()
+        expertise = request.POST.get("expertise", "").strip()
+        workplace = request.POST.get("workplace", "").strip()
 
-        user.first_name = full_name.split()[0] if full_name else user.first_name
-        user.last_name = " ".join(full_name.split()[1:]) if len(full_name.split()) > 1 else user.last_name
-        user.email = email
-        user.save()
-        
-        profile.contact_number = contact_number
-        profile.expertise = expertise
-        profile.workplace = workplace
-        profile.save()
+        # Validate name
+        is_valid, error = validate_name(full_name)
+        if not is_valid:
+            messages.error(request, error)
+            return redirect("consultant_profile")
 
-        messages.success(request, "Profile updated successfully!")
-        return redirect("consultant_profile")
+        # Validate contact
+        is_valid, error = validate_contact(contact_number)
+        if not is_valid:
+            messages.error(request, error)
+            return redirect("consultant_profile")
+
+        # Validate expertise
+        is_valid, error = validate_text_field(expertise, "Expertise", max_length=100)
+        if not is_valid:
+            messages.error(request, error)
+            return redirect("consultant_profile")
+
+        # Validate workplace
+        is_valid, error = validate_text_field(workplace, "Workplace", max_length=150)
+        if not is_valid:
+            messages.error(request, error)
+            return redirect("consultant_profile")
 
     context = {
         "user": user,
@@ -542,18 +588,52 @@ def student_profile_view(request):
     completion_percentage = int((completed / total_fields) * 100)
 
     if request.method == "POST":
-        student.student_department = request.POST.get("department")
-        student.student_program = request.POST.get("program")
-        student.student_year_level = request.POST.get("yearLevel")
-        student.save()
+        full_name = request.POST.get("fullName", "").strip()
+        department = request.POST.get("department", "").strip()
+        program = request.POST.get("program", "").strip()
+        year_level = request.POST.get("yearLevel", "0")
 
-        full_name = request.POST.get("fullName")
+        # Validate name
         if full_name:
+            is_valid, error = validate_name(full_name)
+            if not is_valid:
+                messages.error(request, error)
+                return redirect("student_profile")
+            
             user.first_name = full_name.split(" ")[0]
             if len(full_name.split(" ")) > 1:
                 user.last_name = " ".join(full_name.split(" ")[1:])
             user.save()
 
+        # Validate department
+        if department:
+            is_valid, error = validate_text_field(department, "Department", max_length=100)
+            if not is_valid:
+                messages.error(request, error)
+                return redirect("student_profile")
+            student.student_department = department
+
+        # Validate program
+        if program:
+            is_valid, error = validate_text_field(program, "Program", max_length=150)
+            if not is_valid:
+                messages.error(request, error)
+                return redirect("student_profile")
+            student.student_program = program
+
+        # Validate year level
+        try:
+            year_level_int = int(year_level)
+            if year_level_int < 0 or year_level_int > 6:
+                messages.error(request, "Please select a valid year level.")
+                return redirect("student_profile")
+            student.student_year_level = year_level_int
+        except ValueError:
+            messages.error(request, "Invalid year level.")
+            return redirect("student_profile")
+
+        student.save()
+        messages.success(request, "Profile updated successfully!")
         return redirect("student_profile")
 
     context = {
@@ -914,6 +994,18 @@ def admin_profile_view(request):
         email = request.POST.get("email", "").strip()
         contact = request.POST.get("contact", "").strip()
 
+        # Validate name
+        is_valid, error = validate_name(full_name)
+        if not is_valid:
+            messages.error(request, error)
+            return redirect("admin_profile")
+
+        # Validate contact
+        is_valid, error = validate_contact(contact)
+        if not is_valid:
+            messages.error(request, error)
+            return redirect("admin_profile")
+        
         parts = full_name.split()
 
         if len(parts) >= 2:
