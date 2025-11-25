@@ -6,6 +6,330 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Student Dashboard</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/student-dashboard.css' %}">
+  <style>
+    /* ===== ENHANCED CONSULTANT CARDS ===== */
+    .consultants-section {
+      margin-top: 2rem;
+    }
+
+    .consultants-section h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1a202c;
+      margin-bottom: 1.5rem;
+    }
+
+    .consultants-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .consultant-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border: 1px solid #e2e8f0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .consultant-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #4299e1, #667eea);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .consultant-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+      border-color: #cbd5e0;
+    }
+
+    .consultant-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .consultant-card img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 1rem;
+      display: block;
+      border: 3px solid #e2e8f0;
+      transition: border-color 0.3s ease;
+    }
+
+    .consultant-card:hover img {
+      border-color: #4299e1;
+    }
+
+    .consultant-card h4 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #2d3748;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .consultant-card > p {
+      font-size: 0.9rem;
+      color: #4a5568;
+      text-align: center;
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+    }
+
+    .consultant-card .rate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #38a169;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      background: #f0fff4;
+      border-radius: 8px;
+    }
+
+    .consultant-card .meeting {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.875rem;
+      color: #4a5568;
+      margin-bottom: 1rem;
+      padding: 0.4rem;
+      background: #f7fafc;
+      border-radius: 6px;
+    }
+
+    .btn-view-details {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-view-details:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    .btn-view-details:active {
+      transform: translateY(0);
+    }
+
+    /* Empty state styling */
+    .consultants-section > p {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #718096;
+      font-size: 1rem;
+      background: #f7fafc;
+      border-radius: 12px;
+      border: 2px dashed #cbd5e0;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .consultants-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
+      .consultant-card {
+        padding: 1.25rem;
+      }
+    }
+
+    /* Enhanced Modal Styles */
+    .modal { 
+      position: fixed; 
+      inset: 0; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { 
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .modal-content { 
+      background: #ffffff;
+      padding: 0;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 550px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      animation: slideUp 0.3s ease;
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 2rem;
+      position: relative;
+      color: white;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: white;
+    }
+
+    .modal-body {
+      padding: 2rem;
+    }
+
+    .modal-info-grid {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .modal-info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .modal-info-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #718096;
+    }
+
+    .modal-info-value {
+      font-size: 1rem;
+      color: #2d3748;
+      font-weight: 500;
+    }
+
+    .modal-info-value.large {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #38a169;
+    }
+
+    .modal-description {
+      background: #f7fafc;
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+      color: #4a5568;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .modal-time-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: #edf2f7;
+      border-radius: 8px;
+      font-weight: 600;
+      color: #2d3748;
+    }
+    
+    .modal-close { 
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: white;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(90deg);
+    }
+    
+    .btn-primary { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      padding: 0.875rem 2rem;
+      border-radius: 10px;
+      text-decoration: none;
+      display: inline-block;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .btn-primary:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    .modal-footer {
+      padding: 1.5rem 2rem;
+      background: #f7fafc;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .info-icon {
+      display: inline-block;
+      margin-right: 0.5rem;
+      font-size: 1.1rem;
+    }
+  </style>
 </head>
 <body>
   <!-- ===== TOP NAVIGATION ===== -->
@@ -17,11 +341,11 @@
       <a href="{% url 'student_profile' %}">👤 Profile</a>
       <a href="{% url 'student_appointments' %}">📅 Appointments</a>
       <a href="{% url 'student_history' %}">📜 History</a>
-      {% comment %} <a href="#">❓ Help</a> {% endcomment %}
+      <a href="#">❓ Help</a>
     </div>
 
     <div class="user-section">
-      <span class="student-label" id="studentName">{{ student_name }}</span>
+      <span class="student-label">Student</span>
       <form method="POST" action="{% url 'logout' %}" style="display:inline;">
         {% csrf_token %}
         <button type="submit" class="logout-btn">🚪 Logout</button>
@@ -162,28 +486,68 @@
   <!-- ===== CONSULTANT MODAL ===== -->
   <div id="consultantModal" class="modal" style="display:none;">
     <div class="modal-content">
-      <span id="modalClose" class="modal-close">&times;</span>
-      <h2 id="modalName"></h2>
-      <p><strong>Profession:</strong> <span id="modalProfession"></span></p>
-      <p><strong>Expertise:</strong> <span id="modalExpertise"></span></p>
-      <p><strong>Meeting Place:</strong> <span id="modalMeetingPlace"></span></p>
-      <p id="modalDescription"></p>
-      <p><strong>Available:</strong> <span id="modalAvailable"></span></p>
-      <p><strong>Rate:</strong> ₱<span id="modalRate"></span> / hr</p>
+      <div class="modal-header">
+        <span id="modalClose" class="modal-close">&times;</span>
+        <h2 id="modalName"></h2>
+      </div>
 
-      <div style="margin-top:1rem;">
-        <a id="modalBookBtn" href="#" class="btn-primary" style="cursor: pointer;">Book Consultant Now</a>
+      <div class="modal-body">
+        <div class="modal-info-grid">
+          <div class="modal-info-item">
+            <div class="modal-info-label">
+              <span class="info-icon">💼</span>Profession
+            </div>
+            <div class="modal-info-value" id="modalProfession"></div>
+          </div>
+
+          <div class="modal-info-item">
+            <div class="modal-info-label">
+              <span class="info-icon">⭐</span>Expertise
+            </div>
+            <div class="modal-info-value" id="modalExpertise"></div>
+          </div>
+
+          <div class="modal-info-item">
+            <div class="modal-info-label">
+              <span class="info-icon">📍</span>Meeting Place
+            </div>
+            <div class="modal-info-value" id="modalMeetingPlace"></div>
+          </div>
+
+          <div class="modal-info-item">
+            <div class="modal-info-label">
+              <span class="info-icon">📝</span>About
+            </div>
+            <div class="modal-description" id="modalDescription"></div>
+          </div>
+
+          <div class="modal-info-item">
+            <div class="modal-info-label">
+              <span class="info-icon">🕐</span>Available Hours
+            </div>
+            <div class="modal-time-badge">
+              <span id="modalAvailable"></span>
+            </div>
+          </div>
+
+          <div class="modal-info-item">
+            <div class="modal-info-label">
+              <span class="info-icon">💰</span>Hourly Rate
+            </div>
+            <div class="modal-info-value large">
+              ₱<span id="modalRate"></span> / hour
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <a id="modalBookBtn" href="#" class="btn-primary">
+          📅 Book Consultation Now
+        </a>
       </div>
     </div>
   </div>
-
-  <style>
-    .modal { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.5); z-index:9999; }
-    .modal-content { background:#fff; padding:1.25rem; border-radius:8px; width:90%; max-width:520px; box-shadow: 0 6px 24px rgba(0,0,0,0.2); }
-    .modal-close { float:right; cursor:pointer; font-size:1.25rem; }
-    .btn-primary { background:#246; color:#fff; padding:0.5rem 1rem; border-radius:6px; text-decoration:none; display:inline-block; }
-    .btn-primary:hover { background:#135; }
-  </style>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {

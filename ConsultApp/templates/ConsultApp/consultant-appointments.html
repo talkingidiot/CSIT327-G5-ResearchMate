@@ -18,7 +18,6 @@
       <a href="{% url 'consultant_profile' %}">👤 My Profile</a>
       <a href="{% url 'consultant_students' %}">🧑‍🎓 Students</a>
       <a href="{% url 'consultant_appointments' %}" class="active">📅 Appointments</a>
-      {% comment %} <a href="#">❓ Help</a> {% endcomment %}
     </div>
 
     <div class="user-section">
@@ -90,6 +89,10 @@
             <div class="detail-item">
               <span class="label">Topic:</span>
               <span class="value">{{ appointment.topic }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Research Title:</span>
+              <span class="value">{{ appointment.research_title }}</span>
             </div>
             <div class="detail-item">
               <span class="label">Date:</span>

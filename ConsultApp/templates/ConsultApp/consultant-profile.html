@@ -18,7 +18,6 @@
       <a href="{% url 'consultant_profile' %}" class="active">👤 My Profile</a>
       <a href="{% url 'consultant_students' %}">🧑‍🎓 Students</a>
       <a href="{% url 'consultant_appointments' %}">📅 Appointments</a>
-      {% comment %} <a href="#">❓ Help</a> {% endcomment %}
     </div>
 
     <div class="user-section">
@@ -36,13 +35,6 @@
       <h1>Consultant Profile</h1>
       <p>Update your information to be displayed in your dashboard</p>
     </div>
-      {% if messages %}
-        <div class="alert-container">
-          {% for message in messages %}
-            <div class="alert alert-success">{{ message }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
 
     <div class="profile-progress-container">
       <h3>Profile Completion</h3>
@@ -92,7 +84,13 @@
             <input type="text" id="fullName" name="full_name"
                   value="{{ user.first_name }} {{ user.last_name }}" required>
           </div>
-          
+          {% if messages %}
+            <div class="alert-container">
+              {% for message in messages %}
+                <div class="alert alert-success">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
           <div class="form-group">
             <label for="email">Email Address</label>
             <input type="email" id="email" name="email"

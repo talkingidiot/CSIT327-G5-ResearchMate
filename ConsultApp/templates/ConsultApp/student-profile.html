@@ -7,6 +7,16 @@
   <title>ResearchMate — Student Profile</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
   <link rel="stylesheet" href="{% static 'ConsultApp/profile.css'%}">
+  <style>
+    /* Match dashboard cream/beige background */
+    body {
+      background-color: #f5f1e8 !important;
+    }
+    
+    .main-content {
+      background-color: #f5f1e8 !important;
+    }
+  </style>
 </head>
 <body>
   <!-- Top Navigation -->
@@ -18,7 +28,7 @@
       <a href="{% url 'student_profile' %}" class="active">👤 Profile</a>
       <a href="{% url 'student_appointments' %}">📅 Appointments</a>
       <a href="{% url 'student_history' %}">📜 History</a>
-      {% comment %} <a href="#">❓ Help</a> {% endcomment %}
+      <a href="#">❓ Help</a>
     </div>
 
     <div class="user-section">
