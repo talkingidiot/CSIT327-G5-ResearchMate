@@ -6,6 +6,432 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Consultant Dashboard</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/consultant-dashboard.css'%}">
+  <style>
+    /* Enhanced Consultant Dashboard Styles */
+    
+    /* Stats Grid Enhancement */
+    .stats-overview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border-left: 4px solid #4299e1;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-card.pending {
+      border-left-color: #d69e2e;
+      background: linear-gradient(135deg, #fff 0%, #fffbf0 100%);
+    }
+
+    .stat-card.confirmed {
+      border-left-color: #38a169;
+      background: linear-gradient(135deg, #fff 0%, #f0fff4 100%);
+    }
+
+    .stat-card.students {
+      border-left-color: #667eea;
+      background: linear-gradient(135deg, #fff 0%, #f0f4ff 100%);
+    }
+
+    .stat-card.market {
+      border-left-color: #9f7aea;
+      background: linear-gradient(135deg, #fff 0%, #faf5ff 100%);
+    }
+
+    .stat-card-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .stat-card-label {
+      font-size: 0.875rem;
+      color: #718096;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-card-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #2d3748;
+    }
+
+    /* Enhanced Section Cards */
+    .section-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      margin-bottom: 1.5rem;
+      border: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
+    }
+
+    .section-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-card h2 {
+      font-size: 1.375rem;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Enhanced Items Grid */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .item-card {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 2px solid #e2e8f0;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .item-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #4299e1, #667eea);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .item-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      border-color: #cbd5e0;
+    }
+
+    .item-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+      margin: 0 auto 1rem;
+      border: 3px solid #e2e8f0;
+    }
+
+    .item-card h4 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 0.75rem;
+      text-align: center;
+    }
+
+    .item-card p {
+      font-size: 0.9rem;
+      color: #4a5568;
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+    }
+
+    /* Enhanced Buttons */
+    .btn-view-all {
+      width: 100%;
+      padding: 0.875rem 1.5rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-view-all:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+
+    .btn-edit-profile {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-edit-profile:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(56, 161, 105, 0.4);
+    }
+
+    /* Verification Banner Enhancement */
+    .verify-banner {
+      background: linear-gradient(135deg, #fffbea 0%, #fff4d6 100%);
+      border-left: 5px solid #d69e2e;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+    }
+
+    .verify-banner:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    .verify-banner h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #744210;
+      margin-bottom: 0.5rem;
+    }
+
+    .verify-banner p {
+      color: #744210;
+      margin: 0;
+    }
+
+    /* Toggle Switch Enhancement */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 52px;
+      height: 28px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #cbd5e0;
+      transition: 0.3s;
+      border-radius: 28px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    input:checked + .toggle-slider {
+      background-color: #38a169;
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+
+    /* Status Badge */
+    .status-badge {
+      display: inline-block;
+      padding: 0.4rem 0.875rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background: #e6ffed;
+      color: #38a169;
+    }
+
+    .status-inactive {
+      background: #fed7d7;
+      color: #e53e3e;
+    }
+
+    /* Market Listing Grid */
+    .market-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .market-info-item {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      text-align: center;
+      border: 2px solid #e2e8f0;
+      transition: all 0.3s ease;
+    }
+
+    .market-info-item:hover {
+      border-color: #667eea;
+      transform: translateY(-2px);
+    }
+
+    .market-info-item .icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .market-info-item h4 {
+      font-size: 0.875rem;
+      color: #718096;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .market-info-item p {
+      font-size: 0.95rem;
+      color: #2d3748;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #718096;
+      background: #f7fafc;
+      border-radius: 12px;
+      border: 2px dashed #cbd5e0;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* Action Buttons for Appointments */
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .action-buttons button {
+      flex: 1;
+      padding: 0.625rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.875rem;
+    }
+
+    .btn-approve {
+      background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+      color: white;
+    }
+
+    .btn-approve:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+    }
+
+    .btn-reject {
+      background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+      color: white;
+    }
+
+    .btn-reject:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .stats-overview {
+        grid-template-columns: 1fr;
+      }
+
+      .items-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .market-info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- Top Navigation -->
@@ -21,7 +447,7 @@
     </div>
 
     <div class="user-section">
-      <span class="consultant-label" id="consultantName">{{ consultant_name }}</span>
+      <span class="consultant-label">Consultant</span>
       <form method="POST" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
         <button type="submit" class="logout-btn">🚪 Logout</button>
@@ -52,7 +478,7 @@
 
     <!-- VERIFICATION BANNERS -->
     {% if approved_verification %}
-      <div class="verify-banner" style="background: #e6ffed; border-left: 4px solid #38a169;">
+      <div class="verify-banner" style="background: linear-gradient(135deg, #e6ffed 0%, #d4f4dd 100%); border-left: 5px solid #38a169;">
         <div class="text">
           <h3>✅ Verified Consultant</h3>
           <p>Your verification was approved on {{ approved_verification.reviewed_at|date:"M d, Y" }}.</p>
@@ -60,7 +486,7 @@
       </div>
 
     {% elif pending_verification %}
-      <div class="verify-banner" style="background: #fffbea; border-left: 4px solid #d69e2e;">
+      <div class="verify-banner">
         <div class="text">
           <h3>⏳ Verification Pending</h3>
           <p>Your verification request has been submitted. Please wait for admin approval.</p>
@@ -68,12 +494,12 @@
       </div>
 
     {% elif rejected_verification %}
-      <div class="verify-banner" style="background: #fee; border-left: 4px solid #e53e3e;">
+      <div class="verify-banner" style="background: linear-gradient(135deg, #fee 0%, #fdd 100%); border-left: 5px solid #e53e3e;">
         <div class="text">
           <h3>❌ Verification Rejected</h3>
           <p>Your verification request was rejected on {{ rejected_verification.reviewed_at|date:"M d, Y" }}. You can submit a new application.</p>
         </div>
-        <a href="{% url 'consultant_verification' %}" class="btn-view-all">Resubmit Application</a>
+        <a href="{% url 'consultant_verification' %}" class="btn-view-all" style="width: auto; padding: 0.75rem 1.5rem;">Resubmit Application</a>
       </div>
 
     {% else %}
@@ -82,10 +508,36 @@
           <h3>🎓 Get Verified as a Consultant</h3>
           <p>Complete your verification to start accepting consultation requests.</p>
         </div>
-        <a href="{% url 'consultant_verification' %}" class="btn-view-all">Verify Now</a>
+        <a href="{% url 'consultant_verification' %}" class="btn-view-all" style="width: auto; padding: 0.75rem 1.5rem;">Verify Now</a>
       </div>
     {% endif %}
 
+    <!-- Stats Overview -->
+    <div class="stats-overview">
+      <div class="stat-card pending">
+        <div class="stat-card-icon">⏳</div>
+        <div class="stat-card-label">Pending Requests</div>
+        <div class="stat-card-value">{{ pending_appointments|length|default:0 }}</div>
+      </div>
+
+      <div class="stat-card confirmed">
+        <div class="stat-card-icon">✅</div>
+        <div class="stat-card-label">Confirmed</div>
+        <div class="stat-card-value">{{ appointments|length|default:0 }}</div>
+      </div>
+
+      <div class="stat-card students">
+        <div class="stat-card-icon">👥</div>
+        <div class="stat-card-label">Assigned Students</div>
+        <div class="stat-card-value">{{ students|length|default:0 }}</div>
+      </div>
+
+      <div class="stat-card market">
+        <div class="stat-card-icon">{% if market_listing.is_active %}🟢{% else %}⚪{% endif %}</div>
+        <div class="stat-card-label">Market Status</div>
+        <div class="stat-card-value" style="font-size: 1.25rem;">{% if market_listing.is_active %}Available{% else %}Unavailable{% endif %}</div>
+      </div>
+    </div>
         
     <!-- Dashboard Grid -->
     <div class="dashboard-grid">
@@ -93,14 +545,14 @@
       <div>
         <!-- ===== PENDING APPOINTMENTS (TOP PRIORITY) ===== -->
         {% if pending_appointments %}
-        <div class="section-card" style="background: #fffbea; border-left: 4px solid #d69e2e;">
+        <div class="section-card" style="background: linear-gradient(135deg, #fffbea 0%, #fff4d6 100%); border-left: 5px solid #d69e2e;">
           <h2>🕒 Pending Appointment Requests</h2>
-          <p style="margin-bottom: 16px; color: #744210;">You have {{ pending_appointments|length }} appointment request(s) waiting for your approval.</p>
+          <p style="margin-bottom: 16px; color: #744210; font-weight: 500;">You have {{ pending_appointments|length }} appointment request(s) waiting for your approval.</p>
           
           <div class="items-grid">
             {% for appointment in pending_appointments %}
-              <div class="item-card" style="background: white; border: 2px solid #d69e2e;">
-                <div class="avatar" style="background: #ffa500; color: white;">
+              <div class="item-card" style="background: white;">
+                <div class="avatar" style="background: linear-gradient(135deg, #ffa500, #ff8c00);">
                   {{ appointment.student.user.get_full_name|slice:":2"|upper }}
                 </div>
                 <h4>{{ appointment.student.user.get_full_name }}</h4>
@@ -109,19 +561,17 @@
                 <p><strong>Time:</strong> {{ appointment.time|time:"g:i A" }}</p>
                 <p><strong>Duration:</strong> {{ appointment.duration_minutes }} minutes</p>
                 
-                <div style="margin-top: 12px; display: flex; gap: 8px;">
+                <div class="action-buttons">
                   <form method="POST" action="{% url 'update_appointment_status' appointment.id %}?next={{ request.path }}" style="flex: 1;">
                     {% csrf_token %}
-                    <button type="submit" name="action" value="approve" 
-                            style="width: 100%; background:#4caf50; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer;">
+                    <button type="submit" name="action" value="approve" class="btn-approve">
                       ✅ Approve
                     </button>
                   </form>
 
                   <form method="POST" action="{% url 'update_appointment_status' appointment.id %}?next={{ request.path }}" style="flex: 1;">
                     {% csrf_token %}
-                    <button type="submit" name="action" value="reject" 
-                            style="width: 100%; background:#e53e3e; color:white; border:none; padding:8px; border-radius:6px; cursor:pointer;">
+                    <button type="submit" name="action" value="reject" class="btn-reject">
                       ❌ Reject
                     </button>
                   </form>
@@ -151,47 +601,47 @@
             </div>
           </div>
 
-          <div class="items-grid">
-            <div class="item-card">
-              <div style="font-size: 32px; margin-bottom: 12px;">💼</div>
+          <div class="market-info-grid">
+            <div class="market-info-item">
+              <div class="icon">💼</div>
               <h4>Profession</h4>
               <p>{{ market_listing.profession }}</p>
             </div>
 
-            <div class="item-card">
-              <div style="font-size: 32px; margin-bottom: 12px;">🎯</div>
+            <div class="market-info-item">
+              <div class="icon">🎯</div>
               <h4>Expertise</h4>
               <p>{{ market_listing.expertise }}</p>
             </div>
 
-            <div class="item-card">
-              <div style="font-size: 32px; margin-bottom: 12px;">⏰</div>
+            <div class="market-info-item">
+              <div class="icon">⏰</div>
               <h4>Available Hours</h4>
               <p>{{ market_listing.available_from|time:"g:i A" }} - {{ market_listing.available_to|time:"g:i A" }}</p>
             </div>
 
-            <div class="item-card">
-              <div style="font-size: 32px; margin-bottom: 12px;">💰</div>
+            <div class="market-info-item">
+              <div class="icon">💰</div>
               <h4>Rate</h4>
               <p>₱{{ market_listing.rate_per_hour }}/hour</p>
             </div>
 
-            <div class="item-card">
-              <div style="font-size: 32px; margin-bottom: 12px;">📍</div>
+            <div class="market-info-item">
+              <div class="icon">📍</div>
               <h4>Meeting Place</h4>
               <p>{{ market_listing.meeting_place }}</p>
             </div>
 
             {% if market_listing.description %}
-            <div class="item-card">
-              <div style="font-size: 32px; margin-bottom: 12px;">📝</div>
+            <div class="market-info-item" style="grid-column: 1 / -1;">
+              <div class="icon">📝</div>
               <h4>Description</h4>
               <p>{{ market_listing.description }}</p>
             </div>
             {% endif %}
           </div>
 
-          <button class="btn-view-all" style="margin-top: 16px;" onclick="window.location.href='{% url 'consultant_market' %}'">
+          <button class="btn-view-all" onclick="window.location.href='{% url 'consultant_market' %}'">
             ✏️ Edit Listing
           </button>
         </div>
@@ -208,12 +658,16 @@
                   </div>
                   <h4>{{ appointment.student.user.get_full_name }}</h4>
                   <p><strong>Topic:</strong> {{ appointment.topic }}</p>
-                  <p>{{ appointment.date|date:"M d, Y" }} — {{ appointment.time|time:"g:i A" }}</p>
+                  <p><strong>Date:</strong> {{ appointment.date|date:"M d, Y" }}</p>
+                  <p><strong>Time:</strong> {{ appointment.time|time:"g:i A" }}</p>
                   <p><strong>Duration:</strong> {{ appointment.duration_minutes }} minutes</p>
                 </div>
               {% endfor %}
             {% else %}
-              <p>No confirmed appointments.</p>
+              <div class="empty-state">
+                <div class="empty-state-icon">📅</div>
+                <p>No confirmed appointments yet.</p>
+              </div>
             {% endif %}
           </div>
           <button class="btn-view-all" onclick="window.location.href='{% url 'consultant_appointments' %}'">View All Appointments</button>
@@ -229,11 +683,15 @@
                 <div class="item-card">
                   <div class="avatar">{{ student.user.get_full_name|slice:":2"|upper }}</div>
                   <h4>{{ student.user.get_full_name }}</h4>
-                  <p>Department: {{ student.student_department }}</p>
+                  <p><strong>Department:</strong> {{ student.student_department }}</p>
+                  <p><strong>Program:</strong> {{ student.student_program|default:"N/A" }}</p>
                 </div>
               {% endfor %}
             {% else %}
-              <p>No students assigned yet.</p>
+              <div class="empty-state">
+                <div class="empty-state-icon">👥</div>
+                <p>No students assigned yet.</p>
+              </div>
             {% endif %}
           </div>
           <button class="btn-view-all" onclick="window.location.href='{% url 'consultant_students' %}'">View All Students</button>
@@ -251,7 +709,7 @@
             <div class="profile-name">
               <h3>{{ consultant_name }}</h3>
               {% if consultant.is_verified %}
-                <span class="verified">✅ Verified</span>
+                <span class="verified" style="background: #e6ffed; color: #38a169; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">✅ Verified</span>
               {% endif %}
               <p>Research Consultant</p>
             </div>
