@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ResearchMate — Consultant Details</title>
+  <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
+  <style>
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .detail-box {
+      background: var(--light-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 4px solid var(--navy);
+    }
+    .detail-box label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .detail-box p {
+      font-size: 16px;
+      color: var(--text-dark);
+      font-weight: 600;
+      margin: 0;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--navy);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: 0.3s;
+      margin-bottom: 24px;
+    }
+    .back-btn:hover {
+      background: #004080;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="logo">ResearchMate</div>
+    
+    <div class="nav-links">
+      <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+      <a href="{% url 'admin_students' %}">👥 Students</a>
+      <a href="{% url 'admin_consultants' %}" class="active">👩‍🏫 Consultants</a>
+      <a href="{% url 'admin_reports' %}">📊 Reports</a>
+      <a href="{% url 'admin_profile' %}">👤 Profile</a>
+    </div>
+
+    <div class="user-section">
+      <span class="admin-label">Admin</span>
+      <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">🚪 Logout</button>
+      </form>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <a href="{% url 'admin_consultants' %}" class="back-btn">← Back to Consultants</a>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Consultant Profile Details</h1>
+      <p>Viewing profile for {{ full_name }}</p>
+    </div>
+
+    <!-- Personal Information -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Personal Information</h2>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-box">
+          <label>Full Name</label>
+          <p>{{ full_name }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Email Address</label>
+          <p>{{ email }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Contact Number</label>
+          <p>{{ contact_number }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Expertise</label>
+          <p>{{ expertise }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Workplace</label>
+          <p>{{ workplace }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Verification Status</label>
+          <p>
+            {% if is_verified %}
+              <span class="status-badge verified"><span class="dot"></span> Verified</span>
+            {% else %}
+              <span class="status-badge pending"><span class="dot"></span> Not Verified</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Professional Information -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Professional Information</h2>
+      </div>
+
+      <div class="detail-grid">
+        {% if verification %}
+        <div class="detail-box">
+          <label>Qualification</label>
+          <p>{{ verification.qualification|default:"N/A" }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Verification Date</label>
+          <p>{{ verification.reviewed_at|date:"F d, Y" }}</p>
+        </div>
+        {% else %}
+        <div class="detail-box">
+          <label>Qualification</label>
+          <p>N/A</p>
+        </div>
+        {% endif %}
+        
+        <div class="detail-box">
+          <label>Assigned Students</label>
+          <p>{{ assigned_students_count }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Date Joined</label>
+          <p>{{ date_joined|date:"F d, Y" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Market Listing (if available) -->
+    {% if market_listing %}
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Market Listing</h2>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-box">
+          <label>Profession</label>
+          <p>{{ market_listing.profession }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Rate per Hour</label>
+          <p>₱{{ market_listing.rate_per_hour }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Available Time</label>
+          <p>{{ market_listing.available_from|time:"g:i A" }} - {{ market_listing.available_to|time:"g:i A" }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Meeting Place</label>
+          <p>{{ market_listing.meeting_place }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Listing Status</label>
+          <p>
+            {% if market_listing.is_active %}
+              <span class="status-badge active"><span class="dot"></span> Active</span>
+            {% else %}
+              <span class="status-badge inactive"><span class="dot"></span> Inactive</span>
+            {% endif %}
+          </p>
+        </div>
+        {% if market_listing.description %}
+        <div class="detail-box" style="grid-column: 1 / -1;">
+          <label>Description</label>
+          <p>{{ market_listing.description }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </main>
+</body>
+</html>

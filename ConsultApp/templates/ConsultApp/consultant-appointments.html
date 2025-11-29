@@ -5,9 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consultant — Appointments</title>
+  <link rel="stylesheet" href="{% static 'ConsultApp/student.css'%}">
   <link rel="stylesheet" href="{% static 'ConsultApp/consultant.css'%}">
   <link rel="stylesheet" href="{% static 'ConsultApp/consultant-dashboard.css'%}">
-  <link rel="stylesheet" href="{% static 'ConsultApp/book.css'%}">
 </head>
 <body>
   <nav class="top-nav">
@@ -18,6 +18,7 @@
       <a href="{% url 'consultant_profile' %}">👤 My Profile</a>
       <a href="{% url 'consultant_students' %}">🧑‍🎓 Students</a>
       <a href="{% url 'consultant_appointments' %}" class="active">📅 Appointments</a>
+      <a href="{% url 'consultant_history' %}">📜 History</a>
     </div>
 
     <div class="user-section">
@@ -29,10 +30,9 @@
     </div>
   </nav>
 
-  <div id="detailsModal" class="modal-overlay">
+  <div id="detailsModal" class="modal-overlay" style="display:none;">
     <div class="modal">
       <h2>Appointment Details</h2>
-
       <div class="modal-content">
         <p><strong>Student:</strong> <span id="modalStudent"></span></p>
         <p><strong>Topic:</strong> <span id="modalTopic"></span></p>
@@ -41,7 +41,6 @@
         <p><strong>Duration:</strong> <span id="modalDuration"></span> minutes</p>
         <p><strong>Status:</strong> <span id="modalStatus"></span></p>
       </div>
-
       <div class="modal-actions">
         <button class="btn-close" onclick="closeModal()">Close</button>
       </div>
@@ -49,6 +48,14 @@
   </div>
 
   <main class="main-content">
+    {% if messages %}
+      <div class="messages-container">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <div class="page-header">
       <h1>Appointments</h1>
       <p>Check upcoming consultations with your students</p>
@@ -56,34 +63,48 @@
 
     <div class="filter-section">
       <div class="filter-controls">
-        <select>
-          <option>All Appointments</option>
-          <option>Today</option>
-          <option>This Week</option>
-          <option>This Month</option>
+        <select id="statusFilter">
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
         </select>
-        <select>
-          <option>All Topics</option>
-          <option>AI in Education</option>
-          <option>Cybersecurity</option>
-          <option>Web Development</option>
-          <option>Data Science</option>
+        
+        <select id="dateFilter">
+            <option value="all">All Dates</option>
+            <option value="today">Today</option>
+            <option value="upcoming">Upcoming</option>
         </select>
       </div>
       <div class="results-count">
-        {{ appointments|length }} upcoming appointment{{ appointments|length|pluralize }}
+        <span id="visibleCount">{{ appointments|length }}</span> upcoming appointment(s)
       </div>
     </div>
 
-    <div class="appointments-grid">
+    <div class="appointments-grid" id="appointmentsGrid">
       {% for appointment in appointments %}
-        <div class="appointment-card">
+        {% if appointment.status == 'pending' or appointment.status == 'confirmed' %}
+        
+        <div class="appointment-card" 
+             data-status="{{ appointment.status }}" 
+             data-date="{{ appointment.date|date:'Y-m-d' }}"
+             data-js-date="{{ appointment.date|date:'Y-m-d' }}">
+          
+            <div class="status-wrapper">
+                {% if appointment.status == "pending" %}
+                    <span class="status-badge pending">⏳ Pending</span>
+                {% elif appointment.status == "confirmed" %}
+                    <span class="status-badge confirmed">✅ Confirmed</span>
+                {% endif %}
+            </div>
+
           <div class="time-badge">⏰ {{ appointment.time|time:"g:i A" }}</div>
+          
           <div class="student-avatar">
-            {{ appointment.student.first_name|slice:":1" }}{{ appointment.student.last_name|slice:":1" }}
+            {{ appointment.student.user.first_name|slice:":1" }}{{ appointment.student.user.last_name|slice:":1" }}
           </div>
-          <h3>{{ appointment.student.get_full_name }}</h3>
-          <p class="program">{{ appointment.student.profile.program|default:"BSIT" }}</p>
+          
+          <h3>{{ appointment.student.user.get_full_name }}</h3>
+          <p class="program">{{ appointment.student.student_program|default:"Program N/A" }}</p>
 
           <div class="appointment-details">
             <div class="detail-item">
@@ -91,23 +112,19 @@
               <span class="value">{{ appointment.topic }}</span>
             </div>
             <div class="detail-item">
-              <span class="label">Research Title:</span>
-              <span class="value">{{ appointment.research_title }}</span>
-            </div>
-            <div class="detail-item">
               <span class="label">Date:</span>
               <span class="value">{{ appointment.date|date:"M d, Y" }}</span>
             </div>
             <div class="detail-item">
               <span class="label">Duration:</span>
-              <span class="value">{{ appointment.duration_minutes }} minutes</span>
+              <span class="value">{{ appointment.duration_minutes }} mins</span>
             </div>
           </div>
 
           <div class="appointment-actions">
             <button 
               class="btn-details" 
-              data-id="{{ appointment.id }}" 
+              onclick="openDetails(this)"
               data-student="{{ appointment.student.user.get_full_name }}"
               data-topic="{{ appointment.topic }}"
               data-date="{{ appointment.date|date:'M d, Y' }}"
@@ -115,33 +132,93 @@
               data-duration="{{ appointment.duration_minutes }}"
               data-status="{{ appointment.status|title }}"
             >
-              📋 View Details
+              📋 Details
             </button>
+
+            {% if appointment.status == 'pending' %}
+            <div class="action-row">
+                <form action="{% url 'update_appointment_status' appointment.id %}?next={{ request.path }}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="accept">
+                    <button type="submit" class="btn-accept">✅ Accept</button>
+                </form>
+
+                <form action="{% url 'update_appointment_status' appointment.id %}?next={{ request.path }}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reject">
+                    <button type="submit" class="btn-reject">❌ Reject</button>
+                </form>
+            </div>
+            {% endif %}
           </div>
         </div>
-      {% empty %}
-        <p style="color: #ccc;">No appointments scheduled yet.</p>
+        
+        {% endif %} {% empty %}
+        <p style="color: #ccc; grid-column: 1/-1; text-align: center;">No appointments found.</p>
       {% endfor %}
     </div>
   </main>
     
   <script>
     document.addEventListener("DOMContentLoaded", function() {
+      const statusFilter = document.getElementById('statusFilter');
+      const dateFilter = document.getElementById('dateFilter');
+      const cards = document.querySelectorAll('.appointment-card');
+      const countSpan = document.getElementById('visibleCount');
+
+      function applyFilters() {
+          const selectedStatus = statusFilter.value;
+          const selectedDateType = dateFilter.value;
+          
+          const today = new Date().toISOString().split('T')[0];
+          let visibleCount = 0;
+
+          cards.forEach(card => {
+            const cardStatus = card.dataset.status;
+            const cardDate = card.dataset.jsDate;
+
+            let statusMatch = (selectedStatus === 'all') || (cardStatus === selectedStatus);
+
+            let dateMatch = true;
+            if (selectedDateType === 'today') {
+              dateMatch = (cardDate === today);
+            } else if (selectedDateType === 'upcoming') {
+              dateMatch = (cardDate >= today);
+            } else if (selectedDateType === 'past') {
+              dateMatch = (cardDate < today);
+            }
+
+            // Final Decision
+            if (statusMatch && dateMatch) {
+              card.style.display = 'block';
+              visibleCount++;
+            } else {
+              card.style.display = 'none';
+            }
+          });
+
+          countSpan.textContent = visibleCount;
+      }
+
+      // Attach event listeners
+      statusFilter.addEventListener('change', applyFilters);
+      dateFilter.addEventListener('change', applyFilters);
+
+      // 4. ADDED: Run filter once on load to fix the count
+      applyFilters();
+
+      // Modal Logic
       const modal = document.getElementById("detailsModal");
-
-      document.querySelectorAll(".btn-details").forEach(btn => {
-        btn.addEventListener("click", () => {
-
-          document.getElementById("modalStudent").textContent = btn.dataset.student;
-          document.getElementById("modalTopic").textContent = btn.dataset.topic;
-          document.getElementById("modalDate").textContent = btn.dataset.date;
-          document.getElementById("modalTime").textContent = btn.dataset.time;
-          document.getElementById("modalDuration").textContent = btn.dataset.duration;
-          document.getElementById("modalStatus").textContent = btn.dataset.status;
-
-          modal.style.display = "flex";
-        });
-      });
+      
+      window.openDetails = function(btn) {
+        document.getElementById("modalStudent").textContent = btn.dataset.student;
+        document.getElementById("modalTopic").textContent = btn.dataset.topic;
+        document.getElementById("modalDate").textContent = btn.dataset.date;
+        document.getElementById("modalTime").textContent = btn.dataset.time;
+        document.getElementById("modalDuration").textContent = btn.dataset.duration;
+        document.getElementById("modalStatus").textContent = btn.dataset.status;
+        modal.style.display = "flex";
+      };
 
       window.closeModal = function() {
         modal.style.display = "none";

@@ -18,6 +18,7 @@
       <a href="{% url 'consultant_profile' %}">👤 My Profile</a>
       <a href="{% url 'consultant_students' %}" class="active">🧑‍🎓 Students</a>
       <a href="{% url 'consultant_appointments' %}">📅 Appointments</a>
+      <a href="{% url 'consultant_history' %}">📜 History</a>
     </div>
 
     <div class="user-section">
@@ -37,24 +38,8 @@
       <p>View and manage students assigned to you</p>
     </div>
 
-    <!-- Filter Section -->
+    <!-- Results Count -->
     <div class="filter-section">
-      <div class="filter-controls">
-        <select>
-          <option>All Programs</option>
-          <option>BSIT 3A</option>
-          <option>BSIT 3B</option>
-          <option>BSIT 3C</option>
-          <option>BSIT 3D</option>
-        </select>
-        <select>
-          <option>All Topics</option>
-          <option>AI in Education</option>
-          <option>Cybersecurity</option>
-          <option>Web Development</option>
-          <option>Data Science</option>
-        </select>
-      </div>
       <div class="results-count">
         {{ students|length }} assigned student{{ students|length|pluralize }}
       </div>
@@ -66,43 +51,62 @@
         {% for student in students %}
           <div class="student-card">
             <div class="student-avatar">
-              {{ student.user.first_name|slice:":1" }}{{ student.user.last_name|slice:":1" }}
+              {{ student.user.first_name|slice:":1"|upper }}{{ student.user.last_name|slice:":1"|upper }}
             </div>
             <h3>{{ student.user.get_full_name }}</h3>
-            <p class="program">{{ student.student_program|default:"Not specified" }}</p>
+            <p class="program">{{ student.student_program|default:"Program not specified" }}</p>
 
             <div class="student-details">
               <div class="detail-row">
-                <span class="label">Research Title:</span>
+                <span class="label">Email:</span>
+                <span class="value">{{ student.user.email }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Department:</span>
+                <span class="value">{{ student.student_department|default:"Not specified" }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Year Level:</span>
                 <span class="value">
-                  {{ student.student_appointments.last.research_title|default:"No title specified" }}
+                  {% if student.student_year_level > 0 %}
+                    Year {{ student.student_year_level }}
+                  {% else %}
+                    Not specified
+                  {% endif %}
                 </span>
               </div>
               <div class="detail-row">
-                <span class="label">Topic:</span>
-                <span class="value">
-                  {{ student.student_appointments.last.topic|default:"No topic specified" }}
-                </span>
+                <span class="label">Sessions Completed:</span>
+                <span class="value"><strong>{{ student.sessions_completed }}</strong></span>
               </div>
-              <div class="detail-row">
-                <span class="label">Sessions:</span>
-                <span class="value">{{ student.sessions_completed }} completed</span>
-              </div>
+              
+              {% with last_appointment=student.student_appointments.last %}
+                {% if last_appointment %}
+                  <div class="detail-row">
+                    <span class="label">Research Title:</span>
+                    <span class="value">
+                      {{ last_appointment.research_title|default:"No title specified" }}
+                    </span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="label">Topic:</span>
+                    <span class="value">
+                      {{ last_appointment.topic|default:"No topic specified" }}
+                    </span>
+                  </div>
+                {% endif %}
+              {% endwith %}
             </div>
 
             <div class="student-actions">
-              <form action="#" method="get" style="display:inline;">
-                <button class="btn-view">👁️ View Profile</button>
-              </form>
-              <form action="#" method="get" style="display:inline;">
-                <button class="btn-message">💬</button>
-              </form>
+              <button class="btn-view" onclick="alert('Student profile view coming soon!')">👁️ View Details</button>
             </div>
           </div>
         {% endfor %}
       {% else %}
-        <div class="empty-state">
-          <p>No students assigned to you yet.</p>
+        <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+          <p style="font-size: 18px; color: #666;">📚 No students assigned to you yet.</p>
+          <p style="color: #999; margin-top: 10px;">Students will appear here once they book and confirm appointments with you.</p>
         </div>
       {% endif %}
     </div>

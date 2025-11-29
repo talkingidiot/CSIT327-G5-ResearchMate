@@ -8,6 +8,22 @@
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'ConsultApp/profile.css' %}">
   <link rel="stylesheet" href="{% static 'ConsultApp/book.css' %}">
+  <style>
+    .available-days {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .day-badge {
+      padding: 4px 12px;
+      background: #e6ffed;
+      color: #38a169;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+  </style>
 </head>
 <body>
   <!-- Top Navigation -->
@@ -60,8 +76,18 @@
             <p><strong>Expertise:</strong> {{ market.expertise }}</p>
             <p><strong>Profession:</strong> {{ market.profession }}</p>
             <p><strong>Rate:</strong> ₱{{ market.rate_per_hour }}/hour</p>
-            <p><strong>Available:</strong> {{ market.available_from|time:"g:i A" }} - {{ market.available_to|time:"g:i A" }}</p>
-            <p><strong>Location:</strong> {{ market.meeting_place }}</p>
+            <p><strong>Available Hours:</strong> {{ market.available_from|time:"g:i A" }} - {{ market.available_to|time:"g:i A" }}</p>
+            
+            {% if market.available_days %}
+            <p><strong>Available Days:</strong></p>
+            <div class="available-days">
+              {% for day in market.get_available_days_list %}
+                <span class="day-badge">{{ day|title }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+            
+            <p style="margin-top: 12px;"><strong>Location:</strong> {{ market.meeting_place }}</p>
             {% if market.description %}
               <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">{{ market.description }}</p>
             {% endif %}
@@ -115,6 +141,14 @@
           <div class="form-group">
             <label for="date">Date *</label>
             <input type="date" name="date" id="date" required min="{{ today }}">
+            {% if market and market.available_days %}
+            <small style="color: #666; display: block; margin-top: 4px;">
+              Available on: 
+              {% for day in market.get_available_days_list %}
+                {{ day|title }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </small>
+            {% endif %}
           </div>
 
           <!-- Time Selection -->
@@ -200,6 +234,22 @@
         }
       });
     }
+
+    // Disable unavailable dates
+    {% if unavailable_dates %}
+    const unavailableDates = {{ unavailable_dates|safe }};
+    const dateInput = document.getElementById('date');
+    
+    if (dateInput) {
+      dateInput.addEventListener('input', function() {
+        const selectedDate = this.value;
+        if (unavailableDates.includes(selectedDate)) {
+          alert('This consultant is not available on the selected date. Please choose another date.');
+          this.value = '';
+        }
+      });
+    }
+    {% endif %}
     {% endif %}
   </script>
 </body>

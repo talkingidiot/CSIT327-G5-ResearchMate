@@ -1,0 +1,238 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{% static 'ConsultApp/login.css' %}">
+  <title>ResearchMate - Login / Sign Up</title>
+</head>
+<body>
+  <div class="main-container">
+    <div class="header">
+      <h1>🎓 ResearchMate</h1>
+      <p>Guiding Teknoys to research success, one connection at a time</p>
+    </div>
+    
+    <div class="container {% if request.GET.show_signup == 'true' %}right-panel-active no-transition{% endif %}" id="container">
+      <!-- Sign In Form -->
+      <div class="form-container sign-in-container">
+        <form method="POST" action="{% url 'login' %}">
+          {% csrf_token %}
+          <h2>Sign In</h2>
+          <p class="subtitle">Access your ResearchMate account</p>
+          <div class="error-message" id="generalLoginError" style="display:none; color: red; margin-bottom: 10px; text-align: center;"></div>
+          <div class="input-group">
+            <label for="loginEmail">Email Address</label>
+            <input type="email" id="loginEmail" name="email" placeholder="e.g. your.email@example.com" value="{{ request.POST.email|default:'' }}">
+              <div class="error-message" id="loginEmailError"></div>
+          </div>
+
+          <div class="input-group">
+            <label for="loginPassword">Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="loginPassword" name="password" placeholder="Enter your password">
+              <span class="toggle-password" onclick="togglePassword('loginPassword', this)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path class="eye-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path class="eye-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path class="eye-closed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" style="display:none;" />
+                </svg>
+              </span>
+            </div>
+            <div class="error-message" id="loginPasswordError"></div>
+          </div>
+
+          <div class="forgot-password">
+            <a href="{% url 'forgot_password' %}" class="forgot-link">Forgot Password?</a>
+          </div>
+
+          <button type="submit" class="submit-btn">Sign In</button>
+
+          <div class="link-text">
+            Don't have an account? <a onclick="showSignup()">Sign Up</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Sign Up Form -->
+      <div class="form-container sign-up-container">
+        <form method="POST" action="{% url 'register' %}">
+          {% csrf_token %}
+          <h2>Create Account</h2>
+          <p class="subtitle">Join ResearchMate today</p>
+          <div class="error-message" id="generalSignupError" style="display:none; color: red; margin-bottom: 10px; text-align: center;"></div>
+          <div class="input-group">
+            <label for="role">I am a...</label>
+            <div class="role-selection">
+              <button type="button" class="role-btn" id="consultant-btn" onclick="selectRole('consultant')">Consultant</button>
+              <button type="button" class="role-btn" id="student-btn" onclick="selectRole('student')">Student</button>
+              <input type="hidden" id="roleInput" name="role">
+            </div>
+            <div class="error-message" id="roleError"></div>
+          </div>
+
+          <div class="input-group">
+            <label for="fullName">Full Name</label>
+            <input type="text" id="fullName" name="full_name" placeholder="e.g. Juan Dela Cruz" value="{{ request.POST.full_name|default:'' }}">
+            <div class="error-message" id="fullNameError"></div>
+          </div>
+
+          <div class="input-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="e.g. your.email@example.com" value="{{ request.POST.email|default:'' }}">
+            <div class="error-message" id="emailError"></div>
+          </div>
+
+          <div class="input-group">
+            <label for="password">Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="password" name="password" placeholder="Create a strong password">
+              <span class="toggle-password" onclick="togglePassword('password', this)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path class="eye-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path class="eye-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path class="eye-closed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" style="display:none;" />
+                </svg>
+              </span>
+            </div>
+            <div class="error-message" id="passwordError"></div>
+          </div>
+
+          <div class="input-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password">
+              <span class="toggle-password" onclick="togglePassword('confirmPassword', this)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path class="eye-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path class="eye-open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path class="eye-closed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" style="display:none;" />
+                </svg>
+              </span>
+            </div>
+            <div class="error-message" id="confirmPasswordError"></div>
+          </div>
+
+          <button type="submit" class="submit-btn" onclick="return validateSignup()">Create Account</button>
+
+          <div class="link-text">
+            Already have an account? <a onclick="showLogin()">Sign In</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Overlay -->
+      <div class="overlay-container">
+        <div class="overlay">
+          <div class="overlay-panel overlay-left">
+            <div class="icon">📚</div>
+            <h2>Welcome Back!</h2>
+            <p>Ready to continue your research journey? Sign in to access your account.</p>
+          </div>
+
+          <div class="overlay-panel overlay-right">
+            <div class="icon">📚</div>
+            <h2>Join Our Community</h2>
+            <p>Create an account to connect with research consultants and accelerate your academic success.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById('container');
+
+    function showLogin() {
+      container.classList.remove('right-panel-active');
+    }
+
+    function showSignup() {
+      container.classList.add('right-panel-active');
+    }
+
+    function selectRole(newRole) {
+      selectedRole = newRole;
+      document.getElementById('roleInput').value = newRole;
+      document.getElementById('consultant-btn').classList.remove('active');
+      document.getElementById('student-btn').classList.remove('active');
+      document.getElementById(newRole + '-btn').classList.add('active');
+    }
+
+    function togglePassword(fieldId, icon) {
+      const field = document.getElementById(fieldId);
+      const eyeOpen = icon.querySelectorAll('.eye-open');
+      const eyeClosed = icon.querySelector('.eye-closed');
+     
+      if (field.type === 'password') {
+        field.type = 'text';
+        eyeOpen.forEach(path => path.style.display = 'none');
+        eyeClosed.style.display = 'block';
+      } else {
+        field.type = 'password';
+        eyeOpen.forEach(path => path.style.display = 'block');
+        eyeClosed.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('input', function(e) {
+      if (e.target.tagName === 'INPUT') {
+        const errorId = e.target.id + 'Error';
+      }
+    });
+
+    function displayFieldErrors() {
+      {% if messages %}
+        {% for message in messages %}
+          const tag = "{{ message.tags }}";
+          const content = "{{ message|safe }}";
+          let targetId = '';
+          
+          // --- 1. CHECK LOGIN ERRORS FIRST (Specific) ---
+          if (tag.includes('login_email_error')) {
+            targetId = 'loginEmailError';
+          } else if (tag.includes('login_password_error')) {
+            targetId = 'loginPasswordError';
+          } else if (tag.includes('general_login_error')) {
+             targetId = 'generalLoginError';
+
+          // --- 2. CHECK REGISTRATION ERRORS (Generic) ---
+          } else if (tag.includes('full_name_error')) {
+            targetId = 'fullNameError';
+          } else if (tag.includes('email_error')) {
+            targetId = 'emailError';
+          } else if (tag.includes('confirm_password_error')) {
+            targetId = 'confirmPasswordError';
+          } else if (tag.includes('password_error')) {
+            targetId = 'passwordError';
+          } else if (tag.includes('role_error')) {
+            targetId = 'roleError';
+          } else if (tag.includes('general_error')) {
+            targetId = 'generalSignupError';
+          }
+
+          if (targetId) {
+              const errorDiv = document.getElementById(targetId);
+              if (errorDiv) {
+                errorDiv.innerHTML += '<p>' + content + '</p>';
+                errorDiv.style.display = 'block';
+              }
+          }
+        {% endfor %}
+      {% endif %}
+    }
+
+    function initFormState() {
+      const container = document.getElementById('container');
+      displayFieldErrors();
+      if (container.classList.contains('no-transition')) {
+          setTimeout(() => {
+              container.classList.remove('no-transition');
+          }, 50); 
+      }
+    }
+    document.addEventListener('DOMContentLoaded', initFormState);
+  </script>
+</body>
+</html>

@@ -1,7 +1,6 @@
 /* -------------------------
    Profile Page Styles
    ------------------------- */
-
 :root {
   --navy: #003366;
   --light-bg: #f5f3ed;
@@ -14,12 +13,14 @@
 
 /* Main Layout */
 body {
+  background-color: #f5f1e8 !important;
   background: var(--light-bg);
   color: var(--text-dark);
   font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
 }
 
 .main-content {
+  background-color: #f5f1e8 !important;
   max-width: 1000px;
   margin: 0 auto;
   padding: 40px;

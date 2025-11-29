@@ -1,3 +1,6 @@
+/* =========================================
+   1. ROOT VARIABLES & RESET
+   ========================================= */
 :root {
   --navy: #003366;
   --blue: #001f54;
@@ -22,6 +25,9 @@ body {
   color: var(--text-dark);
 }
 
+/* =========================================
+   2. NAVIGATION
+   ========================================= */
 .top-nav {
   background: var(--card-bg);
   padding: 16px 40px;
@@ -93,8 +99,11 @@ body {
   color: white;
 }
 
+/* =========================================
+   3. MAIN LAYOUT & STATS
+   ========================================= */
 .main-content {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 40px;
 }
@@ -105,13 +114,14 @@ body {
 
 .page-header h1 {
   font-size: 36px;
+  font-weight: 800;
   color: var(--navy);
   margin-bottom: 8px;
 }
 
 .page-header p {
-  color: var(--text-muted);
   font-size: 16px;
+  color: var(--text-muted);
 }
 
 .stats-grid {
@@ -155,6 +165,9 @@ body {
   margin-top: 6px;
 }
 
+/* =========================================
+   4. SECTION CARDS & APPROVALS
+   ========================================= */
 .section-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -169,12 +182,12 @@ body {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 12px;
-  margin-bottom: 20px;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .section-header h2 {
-  font-size: 20px;
+  font-size: 22px;
   color: var(--navy);
   font-weight: 700;
 }
@@ -248,14 +261,22 @@ body {
   color: var(--text-muted);
 }
 
+/* SHARED BUTTON STYLES FOR APPROVALS */
 .btn-approve,
-.btn-reject {
+.btn-reject,
+.btn-details,
+.btn-view-details {
   border: none;
   padding: 8px 14px;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px; /* Space between icon and text */
+  text-decoration: none;
 }
 
 .btn-approve {
@@ -276,6 +297,17 @@ body {
   background: #c82333;
 }
 
+.btn-details,
+.btn-view-details {
+  background: var(--navy);
+  color: white;
+}
+
+.btn-details:hover,
+.btn-view-details:hover {
+  background: #004080;
+}
+
 .empty-state {
   text-align: center;
   color: var(--text-muted);
@@ -283,6 +315,9 @@ body {
   font-size: 14px;
 }
 
+/* =========================================
+   5. TABLES & FORMS
+   ========================================= */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -345,41 +380,6 @@ body {
   text-decoration: underline;
 }
 
-@media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .approval-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .approval-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-}
-
-.main-content {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 40px;
-}
-.page-header {
-  margin-bottom: 32px;
-}
-.page-header h1 {
-  font-size: 36px;
-  font-weight: 800;
-  color: var(--navy);
-  margin-bottom: 8px;
-}
-.page-header p {
-  font-size: 16px;
-  color: var(--text-muted);
-}
-
 .btn-primary, .btn-secondary {
   padding: 14px 24px;
   border-radius: 8px;
@@ -388,21 +388,25 @@ body {
   font-weight: 700;
   transition: all 0.3s ease;
 }
+
 .btn-primary {
   background: var(--navy);
   color: white;
   border: none;
 }
+
 .btn-primary:hover {
   background: #004080;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
 }
+
 .btn-secondary {
   background: transparent;
   color: var(--text-muted);
   border: 2px solid var(--border-color);
 }
+
 .btn-secondary:hover {
   border-color: var(--navy);
   color: var(--navy);
@@ -411,6 +415,7 @@ body {
 .form-group {
   margin-bottom: 24px;
 }
+
 .form-group label {
   display: block;
   font-size: 13px;
@@ -420,6 +425,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
 .form-group input,
 .form-group textarea {
   width: 100%;
@@ -430,46 +436,25 @@ body {
   color: var(--text-dark);
   transition: all 0.3s ease;
 }
+
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--navy);
+  border-color: #000000;
   box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
 }
+
 .form-group textarea {
   resize: vertical;
   min-height: 100px;
 }
 
-.profile-card, .section-card, .report-card, .stat-box {
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 28px;
-}
-.report-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 51, 102, 0.12);
-  border-color: var(--navy);
-}
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
-}
-.section-header h2 {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--navy);
-}
 .date-range {
   display: flex;
   gap: 12px;
   align-items: center;
 }
+
 .date-range select {
   padding: 8px 16px;
   border: 1px solid var(--border-color);
@@ -481,30 +466,28 @@ body {
   cursor: pointer;
 }
 
-@media (max-width: 768px) {
-  .top-nav {
-    flex-direction: column;
-    gap: 16px;
-    padding: 16px 20px;
-  }
-  .nav-links {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .main-content {
-    padding: 20px;
-  }
-  .page-header h1 {
-    font-size: 28px;
-  }
-} 
-
-/* --- Reports Page Specific --- */
+/* =========================================
+   6. REPORTS PAGE SPECIFIC
+   ========================================= */
 .reports-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
   margin-bottom: 40px;
+}
+
+.report-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 28px;
+  transition: 0.3s;
+}
+
+.report-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 51, 102, 0.12);
+  border-color: var(--navy);
 }
 
 .report-card .icon {
@@ -553,7 +536,6 @@ body {
   transform: translateX(4px);
 }
 
-/* --- Stats Overview (Reports Dashboard) --- */
 .stats-overview {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -562,6 +544,10 @@ body {
 }
 
 .stat-box {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 28px;
   text-align: center;
 }
 
@@ -578,30 +564,9 @@ body {
   font-weight: 600;
 }
 
-/* --- Section Card (Reports “Recent Activity”) --- */
-.section-card {
-  margin-bottom: 28px;
-}
-
-.section-card .section-header {
-  border-bottom: 1px solid var(--border-color);
-}
-
-.section-card p {
-  color: var(--text-muted);
-  text-align: center;
-}
-
-/* Responsive layout for reports grid */
-@media (max-width: 768px) {
-  .reports-grid {
-    grid-template-columns: 1fr;
-  }
-  .stats-overview {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
+/* =========================================
+   7. MODAL BASE
+   ========================================= */
 .modal {
   display: none;
   position: fixed;
@@ -636,52 +601,136 @@ body {
   color: black;
 }
 
+/* =========================================
+   8. VERIFICATION DETAILS THEME
+   (Re-styled to match Navy Blue Theme)
+   ========================================= */
+
 .verification-details {
+  font-family: "Poppins", sans-serif;
+  color: var(--text-dark);
+  background-color: #fff;
+  border-radius: 20px;
+  padding: 25px 30px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  max-height: 85vh;
+  overflow-y: auto;
   margin-top: 20px;
+}
+
+.verification-details h3 {
+  color: var(--navy);
+  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  border-left: 4px solid var(--navy);
+  padding-left: 8px;
 }
 
 .detail-section {
   margin-bottom: 25px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
-}
-
-.detail-section h3 {
-  color: #003366;
-  margin-bottom: 15px;
+  background: var(--light-bg);
+  padding: 15px 20px;
+  border-radius: 15px;
+  border-bottom: none;
 }
 
 .detail-item {
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 10px;
 }
 
 .detail-item label {
-  font-weight: bold;
-  color: #666;
+  font-weight: 600;
+  color: var(--navy);
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 0;
+}
+
+.detail-item p {
+  color: var(--text-dark);
+  margin: 0;
+  text-align: right;
 }
 
 .document-link {
   display: inline-block;
-  padding: 8px 15px;
-  background: #003366;
-  color: white;
+  background-color: var(--navy);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
   text-decoration: none;
-  border-radius: 5px;
+  font-size: 14px;
+  transition: background 0.3s ease;
   margin-right: 10px;
 }
 
 .document-link:hover {
-  background: #002244;
+  background-color: #004080;
+}
+
+.proof-img {
+  max-width: 100%;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border: 2px solid var(--border-color);
 }
 
 .clickable-name {
-  color: #003366;
+  color: var(--navy);
   cursor: pointer;
   text-decoration: underline;
 }
 
 .clickable-name:hover {
-  color: #001f54;
+  color: var(--blue);
+}
+
+/* Consolidating button styles in Section 4, removing redundant one here */
+
+/* =========================================
+   9. RESPONSIVE UTILITIES
+   ========================================= */
+@media (max-width: 768px) {
+  .top-nav {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 20px;
+  }
+  
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .main-content {
+    padding: 20px;
+  }
+  
+  .page-header h1 {
+    font-size: 28px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .approval-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .approval-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  
+  .reports-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-overview {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

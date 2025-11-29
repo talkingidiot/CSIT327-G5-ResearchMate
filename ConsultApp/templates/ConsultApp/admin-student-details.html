@@ -1,0 +1,143 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ResearchMate — Student Details</title>
+  <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
+  <style>
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .detail-box {
+      background: var(--light-bg);
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 4px solid var(--navy);
+    }
+    .detail-box label {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .detail-box p {
+      font-size: 16px;
+      color: var(--text-dark);
+      font-weight: 600;
+      margin: 0;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--navy);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: 0.3s;
+      margin-bottom: 24px;
+    }
+    .back-btn:hover {
+      background: #004080;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="logo">ResearchMate</div>
+    
+    <div class="nav-links">
+      <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+      <a href="{% url 'admin_students' %}" class="active">👥 Students</a>
+      <a href="{% url 'admin_consultants' %}">👩‍🏫 Consultants</a>
+      <a href="{% url 'admin_reports' %}">📊 Reports</a>
+      <a href="{% url 'admin_profile' %}">👤 Profile</a>
+    </div>
+
+    <div class="user-section">
+      <span class="admin-label">Admin</span>
+      <form method="POST" action="{% url 'logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">🚪 Logout</button>
+      </form>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <a href="{% url 'admin_students' %}" class="back-btn">← Back to Students</a>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Student Profile Details</h1>
+      <p>Viewing profile for {{ full_name }}</p>
+    </div>
+
+    <!-- Student Details -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Personal Information</h2>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-box">
+          <label>Full Name</label>
+          <p>{{ full_name }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Email Address</label>
+          <p>{{ email }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Department</label>
+          <p>{{ department }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Course</label>
+          <p>{{ course }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Program</label>
+          <p>{{ program }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Year Level</label>
+          <p>{% if year_level != "N/A" %}{{ year_level }}{% if year_level == 1 %}st{% elif year_level == 2 %}nd{% elif year_level == 3 %}rd{% else %}th{% endif %} Year{% else %}N/A{% endif %}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Academic Information -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Academic Information</h2>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-box">
+          <label>Assigned Consultant</label>
+          <p>{{ assigned_consultant }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Sessions Completed</label>
+          <p>{{ sessions_completed }}</p>
+        </div>
+        <div class="detail-box">
+          <label>Date Joined</label>
+          <p>{{ date_joined|date:"F d, Y" }}</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

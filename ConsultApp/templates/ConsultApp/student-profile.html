@@ -6,15 +6,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Student Profile</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
-  <link rel="stylesheet" href="{% static 'ConsultApp/profile.css'%}">
+  <link rel="stylesheet" href="{% static 'ConsultApp/student-profile.css'%}">
   <style>
-    /* Match dashboard cream/beige background */
-    body {
-      background-color: #f5f1e8 !important;
-    }
-    
-    .main-content {
-      background-color: #f5f1e8 !important;
+    input[readonly] {
+      background-color: #f5f5f5;
+      cursor: not-allowed;
+      opacity: 0.7;
     }
   </style>
 </head>
@@ -28,7 +25,6 @@
       <a href="{% url 'student_profile' %}" class="active">👤 Profile</a>
       <a href="{% url 'student_appointments' %}">📅 Appointments</a>
       <a href="{% url 'student_history' %}">📜 History</a>
-      <a href="#">❓ Help</a>
     </div>
 
     <div class="user-section">
@@ -69,6 +65,11 @@
         <div class="profile-avatar">ST</div>
         <h3 id="displayName">{{ student.user.get_full_name|default:"Student" }}</h3>
           <div class="info-item">
+            <div class="info-label">Email</div>
+            <div class="info-value">{{ student.user.email }}</div>
+          </div>
+
+          <div class="info-item">
             <div class="info-label">Department</div>
             <div class="info-value">{{ student.student_department|default:"Not set" }}</div>
           </div>
@@ -81,8 +82,8 @@
           <div class="info-item">
             <div class="info-label">Year Level</div>
             <div class="info-value">
-              {% if student.student_year_level %}
-                {{ student.student_year_level }}{% if student.student_year_level == 1 %}st{% elif student.student_year_level == 2 %}nd{% elif student.student_year_level == 3 %}rd{% else %}th{% endif %} Year
+              {% if student.student_year_level > 0 %}
+                Year {{ student.student_year_level }}
               {% else %}
                 Not set
               {% endif %}
@@ -91,13 +92,30 @@
       </div>
 
       <div class="form-card">
-        <h2>Edit Profile Information</h2>
+        <div class="form-header">
+            <h2>Profile Information</h2>
+            <button type="button" id="editBtn" class="btn-primary" onclick="enableEditing()">
+                Edit Profile
+            </button>
+        </div>
+        {% if messages %}
+            {% for message in messages %}
+                {% if 'success' in message.tags or 'general_error' in message.tags %}
+                  <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
         <form method="POST" action="{% url 'student_profile' %}">
           {% csrf_token %}
           
           <div class="form-group">
-            <label for="fullName">Full Name</label>
-            <input type="text" name="fullName" id="fullName" value="{{ student.user.get_full_name }}" required>
+            <label for="fullName">Full Name <span style="color: #999; font-size: 12px;">(Cannot be changed)</span></label>
+            <input type="text" name="fullName" id="fullName" value="{{ student.user.get_full_name }}" readonly>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email Address <span style="color: #999; font-size: 12px;">(Cannot be changed)</span></label>
+            <input type="email" name="email" id="email" value="{{ student.user.email }}" readonly>
           </div>
 
           <div class="form-group">
@@ -111,11 +129,23 @@
               <option value="CNAHS" {% if student.student_department == "CNAHS" %}selected{% endif %}>College of Nursing & Allied Health Sciences</option>
               <option value="CCJ" {% if student.student_department == "CCJ" %}selected{% endif %}>College of Criminal Justice</option>
             </select>
+            {% for message in messages %}
+                {% if 'department_error' in message.tags %}
+                  <p style="color: #dc2626; font-size: 13px; margin-top: 5px;">{{ message }}</p>
+                {% endif %}
+            {% endfor %}
           </div>
 
           <div class="form-group">
             <label for="program">Program</label>
-            <input type="text" name="program" id="program" value="{{ student.student_program }}">
+            <select name="program" id="program">
+              <option value="">Select Program</option>
+            </select>
+            {% for message in messages %}
+                {% if 'program_error' in message.tags %}
+                  <p style="color: #dc2626; font-size: 13px; margin-top: 5px;">{{ message }}</p>
+                {% endif %}
+            {% endfor %}
           </div>
 
           <div class="form-group">
@@ -127,15 +157,133 @@
               <option value="3" {% if student.student_year_level == 3 %}selected{% endif %}>3rd Year</option>
               <option value="4" {% if student.student_year_level == 4 %}selected{% endif %}>4th Year</option>
             </select>
+            {% for message in messages %}
+                {% if 'year_level_error' in message.tags %}
+                  <p style="color: #dc2626; font-size: 13px; margin-top: 5px;">{{ message }}</p>
+                {% endif %}
+            {% endfor %}
           </div>
 
-          <div class="form-actions">
+          <div class="form-actions" id="actionButtons" style="display: none;">
             <button type="submit" class="btn-primary">💾 Save Changes</button>
-            <button type="button" class="btn-secondary" onclick="window.location.href='{% url 'student_dashboard' %}'">Cancel</button>
+            <button type="button" class="btn-secondary" onclick="cancelEditing()">Cancel</button>
           </div>
         </form>
       </div>
     </div>
   </main>
+  <script>
+    const programs = {
+      'CEA': [
+        'BS Architecture',
+        'BS Chemical Engineering',
+        'BS Civil Engineering',
+        'BS Computer Engineering',
+        'BS Electrical Engineering',
+        'BS Electronics Engineering',
+        'BS Industrial Engineering',
+        'BS Mechanical Engineering with Computational Science',
+        'BS Mechanical Engineering with Mechatronics',
+        'BS Mining Engineering'
+      ],
+      'CMBA': [
+        'BS Accountancy',
+        'BS Accounting Information Systems',
+        'BS Management Accounting',
+        'BS Business Administration - Banking & Financial Management',
+        'BS Business Administration - Business Analytics',
+        'BS Business Administration - General Business Management',
+        'BS Business Administration - Human Resource Management',
+        'BS Business Administration - Marketing Management',
+        'BS Business Administration - Operations Management',
+        'BS Business Administration - Quality Management',
+        'BS Hospitality Management',
+        'BS Tourism Management',
+        'BS Office Administration',
+        'Associate in Office Administration',
+        'Bachelor in Public Administration'
+      ],
+      'CAS': [
+        'AB Communication',
+        'AB English with Applied Linguistics',
+        'Bachelor of Elementary Education',
+        'Bachelor of Secondary Education - Major in English',
+        'Bachelor of Secondary Education - Major in Filipino',
+        'Bachelor of Secondary Education - Major in Mathematics',
+        'Bachelor of Secondary Education - Major in Science',
+        'Bachelor of Multimedia Arts',
+        'BS Biology',
+        'BS Math with Applied Industrial Mathematics',
+        'BS Psychology'
+      ],
+      'CNAHS': [
+        'BS Nursing',
+        'BS Pharmacy',
+        'BS Medical Technology'
+      ],
+      'CCS': [
+        'BS Computer Science',
+        'BS Information Technology'
+      ],
+      'CCJ': [
+        'BS Criminology'
+      ]
+    };
+
+    const departmentSelect = document.getElementById('department');
+    const programSelect = document.getElementById('program');
+    const currentProgram = "{{ student.student_program }}";
+
+    function updateProgramOptions() {
+      const selectedDept = departmentSelect.value;
+      programSelect.innerHTML = '<option value="">Select Program</option>';
+      
+      if (selectedDept && programs[selectedDept]) {
+        programs[selectedDept].forEach(program => {
+          const option = document.createElement('option');
+          option.value = program;
+          option.textContent = program;
+          if (program === currentProgram) {
+            option.selected = true;
+          }
+          programSelect.appendChild(option);
+        });
+      }
+    }
+
+    departmentSelect.addEventListener('change', updateProgramOptions);
+    
+    // Initialize on page load
+    updateProgramOptions();
+
+    function enableEditing() {
+      document.getElementById('editBtn').style.display = 'none';
+      document.getElementById('actionButtons').style.display = 'flex';
+      document.getElementById('department').disabled = false;
+      document.getElementById('program').disabled = false;
+      document.getElementById('yearLevel').disabled = false;
+    }
+
+    function cancelEditing() {
+      document.getElementById('editBtn').style.display = 'block';
+      document.getElementById('actionButtons').style.display = 'none';
+      document.getElementById('department').disabled = true;
+      document.getElementById('program').disabled = true;
+      document.getElementById('yearLevel').disabled = true;
+    }
+    
+    // Disable fields initially
+    document.getElementById('department').disabled = true;
+    document.getElementById('program').disabled = true;
+    document.getElementById('yearLevel').disabled = true;
+    
+    {% if messages %}
+      {% for message in messages %}
+          {% if 'error' in message.tags %}
+            enableEditing();
+          {% endif %}
+      {% endfor %}
+    {% endif %}
+</script>
 </body>
 </html>
