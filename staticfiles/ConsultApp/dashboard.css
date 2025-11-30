@@ -480,3 +480,18 @@ body{
 .booking-card p strong {
   color: #1f3327;
 }
+
+.alert-message {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+}
+.alert-message.error {
+  background-color: #ffe5e5;
+  color: #b10000;
+}
+.alert-message.success {
+  background-color: #e5ffe5;
+  color: #007a00;
+}
