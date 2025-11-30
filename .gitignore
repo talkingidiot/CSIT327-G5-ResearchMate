@@ -4,9 +4,9 @@ __pycache__/
 *$py.class
 
 # Django migrations
-*/migrations/*.py
-*/migrations/*.pyc
-*/migrations/__pycache__/
+# */migrations/*.py
+# */migrations/*.pyc
+# */migrations/__pycache__/
 
 # Environment variables
 .env
