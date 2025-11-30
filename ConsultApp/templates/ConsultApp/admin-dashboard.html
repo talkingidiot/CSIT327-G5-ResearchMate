@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Admin Dashboard</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
-  <link rel="stylesheet" href="{% static 'ConsultApp/details.css'%}">
 </head>
 <body>
   <!-- Top Navigation -->
@@ -90,7 +89,7 @@
               <button type="submit" class="btn-reject">✗ Reject</button>
             </form>
             <form action="{% url 'verification_details' req.id %}" method="get" style="display:inline;">
-              <button type="submit" class="btn-view-details">👁 View Details</button>
+              <button class="btn-details">View Details</button>
             </form>
           </div>
         </div>
@@ -107,7 +106,6 @@
       <div class="section-header">
         <h2>Recent Users</h2>
         <a href="{% url 'admin_students' %}">
-          <button>Manage All Users</button>
         </a>
       </div>
 
@@ -116,9 +114,7 @@
           <tr>
             <th>Name</th>
             <th>Role</th>
-            <th>Status</th>
             <th>Joined</th>
-            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -126,19 +122,11 @@
           <tr>
             <td><strong>{{ user.get_full_name|default:user.email }}</strong></td>
             <td>{{ user.role|title }}</td>
-            <td>
-              {% if user.is_active %}
-                <span class="status-badge active"><span class="dot"></span> active</span>
-              {% else %}
-                <span class="status-badge inactive"><span class="dot"></span> inactive</span>
-              {% endif %}
-            </td>
             <td>{{ user.date_joined|date:"M d, Y" }}</td>
-            <td><a href="#" class="action-link">Edit</a></td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="5" class="empty-state">No users found.</td>
+            <td colspan="3" class="empty-state">No users found.</td>
           </tr>
           {% endfor %}
         </tbody>

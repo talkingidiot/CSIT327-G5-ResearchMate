@@ -7,9 +7,103 @@
   <title>ResearchMate — History</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/student.css'%}">
   <link rel="stylesheet" href="{% static 'ConsultApp/student-dashboard.css'%}">
+  <style>
+    .feedback-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .feedback-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .feedback-content h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .star-rating {
+      display: flex;
+      gap: 8px;
+      font-size: 36px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .star {
+      cursor: pointer;
+      color: #ddd;
+      transition: color 0.2s;
+    }
+    .star.active {
+      color: #ffc107;
+    }
+    .star:hover {
+      color: #ffb300;
+    }
+    .feedback-comment {
+      width: 100%;
+      min-height: 100px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+      margin-top: 15px;
+    }
+    .feedback-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+    .btn-submit-feedback {
+      background: #4caf50;
+      color: white;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .btn-submit-feedback:hover {
+      background: #45a049;
+    }
+    .btn-cancel-feedback {
+      background: #f44336;
+      color: white;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-cancel-feedback:hover {
+      background: #da190b;
+    }
+    .feedback-given {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+  </style>
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
@@ -29,50 +123,97 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
+  <div id="detailsModal" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <h2>Session Details</h2>
+      <div id="detailsContent"></div>
+      <div class="modal-actions">
+        <button class="btn-close" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="feedbackModal" class="feedback-modal">
+    <div class="feedback-content">
+      <h2>Rate Your Session</h2>
+      <p style="text-align: center; color: #666; margin-bottom: 10px;">
+        How was your consultation with <strong id="consultantName"></strong>?
+      </p>
+      
+      <div class="star-rating" id="starRating">
+        <span class="star" data-rating="1">☆</span>
+        <span class="star" data-rating="2">☆</span>
+        <span class="star" data-rating="3">☆</span>
+        <span class="star" data-rating="4">☆</span>
+        <span class="star" data-rating="5">☆</span>
+      </div>
+      
+      <textarea 
+        id="feedbackComment" 
+        class="feedback-comment" 
+        placeholder="Share your experience (optional)..."
+      ></textarea>
+      
+      <form method="POST" id="feedbackForm">
+        {% csrf_token %}
+        <input type="hidden" name="appointment_id" id="appointmentId">
+        <input type="hidden" name="rating" id="ratingValue">
+        <input type="hidden" name="comment" id="commentValue">
+        
+        <div class="feedback-actions">
+          <button type="button" class="btn-cancel-feedback" onclick="closeFeedbackModal()">Cancel</button>
+          <button type="submit" class="btn-submit-feedback">Submit Feedback</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <main class="main-content">
-    <!-- Page Header -->
+    
     <div class="page-header">
       <h1>Booking History</h1>
       <p>View your previous consultation sessions</p>
     </div>
 
-    <!-- Filter Section -->
     <div class="filter-section">
       <div class="filter-controls">
-        <select name="time_filter">
-          <option value="">All Time</option>
+        <select id="timeFilter">
+          <option value="all">All Time</option>
           <option value="30">Last 30 days</option>
           <option value="90">Last 3 months</option>
-          <option value="180">Last 6 months</option>
           <option value="365">Last year</option>
         </select>
 
-        <select name="consultant_filter">
-          <option value="">All Consultants</option>
+        <select id="consultantFilter">
+          <option value="all">All Consultants</option>
           {% for consultant in consultants %}
             <option value="{{ consultant.user.id }}">{{ consultant.user.get_full_name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="results-count">
-        Showing {{ appointments|length }} result{{ appointments|length|pluralize }}
+        Showing <span id="visibleCount">{{ appointments|length }}</span> result(s)
       </div>
     </div>
 
-    <!-- History Grid -->
     <div class="history-grid">
       {% if appointments %}
         {% for appointment in appointments %}
-          <div class="booking-card">
+          <div class="booking-card" 
+               data-consultant="{{ appointment.consultant.user.id }}" 
+               data-date="{{ appointment.date|date:'Y-m-d' }}">
+            
             <div class="booking-header">
               <div class="consultant-info">
-                <h3>{{ appointment.consultant.get_full_name }}</h3>
-                <p class="specialty">{{ appointment.consultant.consultant.expertise|default:"No specialization listed" }}</p>
+                <h3>{{ appointment.consultant.user.get_full_name }}</h3>
+                <p class="specialty">{{ appointment.consultant.expertise|default:"Consultant" }}</p>
               </div>
-                <span class="status-badge {{ appointment.status }}">
-                    {{ appointment.status|title }}
-                </span>
+              
+              {% if appointment.status == 'completed' %}
+                <span class="status-badge completed">🏁 Completed</span>
+              {% elif appointment.status == 'cancelled' %}
+                <span class="status-badge cancelled">❌ Cancelled</span>
+              {% endif %}
             </div>
 
             <div class="booking-details">
@@ -91,15 +232,164 @@
             </div>
 
             <div class="booking-actions">
-              <button class="btn-details">📄 View Details</button>
-              <button class="btn-feedback">⭐ Feedback</button>
+              <button class="btn-details"
+                onclick="openDetails(
+                    '{{ appointment.id }}',
+                    '{{ appointment.topic }}',
+                    '{{ appointment.date|date:"M d, Y" }}',
+                    '{{ appointment.time|time:"g:i A" }}',
+                    '{{ appointment.duration_minutes }}',
+                    '{{ appointment.status|title }}',
+                    '{{ appointment.consultant.user.get_full_name }}'
+                )">
+                📄 View Details
+              </button>
+              
+              {% if appointment.status == 'completed' %}
+                {% if appointment.feedback %}
+                  <span class="feedback-given">⭐ Feedback Given ({{ appointment.feedback.rating }}/5)</span>
+                {% else %}
+                  <button class="btn-feedback" 
+                    onclick="openFeedbackModal(
+                      '{{ appointment.id }}',
+                      '{{ appointment.consultant.user.get_full_name }}'
+                    )">⭐ Give Feedback</button>
+                {% endif %}
+              {% endif %}
             </div>
           </div>
         {% endfor %}
       {% else %}
-        <p>No completed appointments found.</p>
+        <p style="text-align:center; opacity:0.7;">No history records found.</p>
       {% endif %}
     </div>
   </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const timeFilter = document.getElementById('timeFilter');
+        const consultantFilter = document.getElementById('consultantFilter');
+        const cards = document.querySelectorAll('.booking-card');
+        const countSpan = document.getElementById('visibleCount');
+
+        function applyFilters() {
+            const selectedTime = timeFilter.value;
+            const selectedConsultant = consultantFilter.value;
+            const today = new Date();
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const cardConsultantId = card.dataset.consultant;
+                const cardDate = new Date(card.dataset.date);
+
+                let consultantMatch = (selectedConsultant === 'all') || (cardConsultantId === selectedConsultant);
+                let timeMatch = true;
+
+                if (selectedTime !== 'all') {
+                    const daysAgo = parseInt(selectedTime);
+                    const timeLimit = new Date();
+                    timeLimit.setDate(today.getDate() - daysAgo);
+                    timeMatch = cardDate >= timeLimit;
+                }
+
+                if (consultantMatch && timeMatch) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            countSpan.textContent = visibleCount;
+        }
+
+        timeFilter.addEventListener('change', applyFilters);
+        consultantFilter.addEventListener('change', applyFilters);
+    });
+
+    const modal = document.getElementById("detailsModal");
+
+    function openDetails(id, topic, date, time, duration, status, consultant) {
+        const html = `
+          <p><strong>Session ID:</strong> ${id}</p>
+          <p><strong>Consultant:</strong> ${consultant}</p>
+          <p><strong>Topic:</strong> ${topic}</p>
+          <p><strong>Date:</strong> ${date}</p>
+          <p><strong>Time:</strong> ${time}</p>
+          <p><strong>Duration:</strong> ${duration} minutes</p>
+          <p><strong>Final Status:</strong> ${status}</p>
+        `;
+        document.getElementById("detailsContent").innerHTML = html;
+        modal.style.display = "flex";
+    }
+
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(e) {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+        if (e.target.id === 'feedbackModal') {
+            closeFeedbackModal();
+        }
+    };
+
+    // Feedback Modal Functions
+    const feedbackModal = document.getElementById('feedbackModal');
+    const stars = document.querySelectorAll('.star');
+    let selectedRating = 0;
+
+    function openFeedbackModal(appointmentId, consultantName) {
+        document.getElementById('appointmentId').value = appointmentId;
+        document.getElementById('consultantName').textContent = consultantName;
+        selectedRating = 0;
+        updateStars(0);
+        document.getElementById('feedbackComment').value = '';
+        feedbackModal.style.display = 'flex';
+    }
+
+    function closeFeedbackModal() {
+        feedbackModal.style.display = 'none';
+    }
+
+    function updateStars(rating) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('active');
+                star.textContent = '★';
+            } else {
+                star.classList.remove('active');
+                star.textContent = '☆';
+            }
+        });
+    }
+
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.dataset.rating);
+            updateStars(selectedRating);
+        });
+
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.dataset.rating);
+            updateStars(rating);
+        });
+    });
+
+    document.getElementById('starRating').addEventListener('mouseleave', function() {
+        updateStars(selectedRating);
+    });
+
+    document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+        if (selectedRating === 0) {
+            e.preventDefault();
+            alert('Please select a rating before submitting.');
+            return;
+        }
+        document.getElementById('ratingValue').value = selectedRating;
+        document.getElementById('commentValue').value = document.getElementById('feedbackComment').value;
+    });
+  </script>
 </body>
 </html>

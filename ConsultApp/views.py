@@ -59,7 +59,7 @@ def home_view(request):
 
 # 🔹 Auth Pages
 def login_register_view(request):
-    return render(request, "ConsultApp/login-register.html")
+    return render(request, "ConsultApp/login-register-new.html")
 
 # 🔹 Register View
 @csrf_exempt
@@ -68,14 +68,41 @@ def register_view(request):
         full_name = request.POST.get("full_name", "").strip()
         email = request.POST.get("email")
         password = request.POST.get("password")
+        confirm_password = request.POST.get("confirmPassword")
         role = request.POST.get("role")
+        fields = [full_name, email, password, confirm_password, role]
+        errors = False
+        
+        if not any(fields):
+            messages.error(request, "Please fill out the registration form.", extra_tags="general_error")
+            return redirect(request.path_info + '?show_signup=true')
+  
+        if not full_name:
+            messages.error(request, "Full Name is required.", extra_tags="full_name_error")
+            errors = True
+        if not email:
+            messages.error(request, "Email is required.", extra_tags="email_error")
+            errors = True
+        if not password:
+            messages.error(request, "Password is required.", extra_tags="password_error")
+            errors = True
+        if not confirm_password:
+            messages.error(request, "Confirm password is required.", extra_tags="confirm_password_error")
+            errors = True
+        if not role:
+            messages.error(request, "Please select a role.", extra_tags="role_error")
+            errors = True
+
+        if errors:
+            return redirect(request.path_info + '?show_signup=true')
+
+        if password and confirm_password and password != confirm_password:
+            messages.error(request, "Passwords do not match.", extra_tags="confirm_password_error")
+            return redirect(request.path_info + '?show_signup=true')
 
         if User.objects.filter(email__iexact=email).exists():
-            messages.error(request, "Email is already registered.")
-            return render(request, "ConsultApp/login-register.html", {
-                "show_signup": True,
-                "form_source": "register",
-            })
+            messages.error(request, "Email is already registered.", extra_tags="email_error")
+            return redirect(request.path_info + '?show_signup=true')
 
         name_parts = full_name.split()
         if len(name_parts) == 1:
@@ -85,33 +112,17 @@ def register_view(request):
             first_name = " ".join(name_parts[:-1]).title()
             last_name = name_parts[-1].title()
 
-        if not full_name or not email or not password or not role:
-            messages.error(request, "All fields are required.")
-            return render(request, "ConsultApp/login-register.html", {
-                "show_signup": True,
-                "form_source": "register",
-            })
-
         if User.objects.filter(first_name__iexact=first_name, last_name__iexact=last_name).exists():
-            messages.error(request, "A user with that name already exists.")
-            return render(request, "ConsultApp/login-register.html", {
-                "show_signup": True,
-                "form_source": "register",
-            })
+            messages.error(request, "A user with that name already exists.", extra_tags="full_name_error")
+            return redirect(request.path_info + '?show_signup=true')
 
         if not (email.endswith("@cit.edu") or email.endswith("@gmail.com")):
-            messages.error(request, "Please use your institutional email address.")
-            return render(request, "ConsultApp/login-register.html", {
-                "show_signup": True,
-                "form_source": "register",
-            })
+            messages.error(request, "Please use your institutional or personal email address.", extra_tags="email_error")
+            return redirect(request.path_info + '?show_signup=true')
 
         if len(password) < 8:
-            messages.error(request, "Password must be at least 8 characters long.")
-            return render(request, "ConsultApp/login-register.html", {
-                "show_signup": True,
-                "form_source": "register",
-            })
+            messages.error(request, "Password must be at least 8 characters long.", extra_tags="password_error")
+            return redirect(request.path_info + '?show_signup=true')
 
         user = User.objects.create_user(
             email=email,
@@ -137,38 +148,42 @@ def register_view(request):
                 workplace=request.POST.get("workplace") or "",
                 is_verified=False
             )
-        # elif role == "admin":
-        #     user.is_staff = True
-        #     user.is_superuser = True
-        #     user.save()
-        #     Admin.objects.create(
-        #         user=user,
-        #         contact_number=request.POST.get("contact_number_admin") or ""
-        #     )
 
-        messages.success(request, f"Account created successfully as {role.title()}!", extra_tags="login")
+        messages.success(request, f"Account created successfully as {role.title()}!", extra_tags="success")
         response = redirect("login")
         response["Clear-SessionStorage"] = "true"
         return response
 
-    return render(request, "ConsultApp/login-register.html")
+    return render(request, "ConsultApp/login-register-new.html")
 
 # 🔹 Login View
 @csrf_exempt
 def login_view(request):
     if request.method == "POST":
-        email = request.POST.get("email")
-        password = request.POST.get("password")
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "")
+        errors = False
+        fields = [email, password]
 
-        if not email or not password:
-            messages.error(request, "Please fill in both email and password.", extra_tags="login")
-            return render(request, "ConsultApp/login-register.html")
+        if not any(fields):
+            messages.error(request, "Please enter your email and password.", extra_tags="general_login_error")
+            return redirect("login")
+        
+        if not email:
+            messages.error(request, "Email is required.", extra_tags="login_email_error")
+            errors = True
+        if not password:
+            messages.error(request, "Password is required.", extra_tags="login_password_error")
+            errors = True
+        
+        if errors:
+            return redirect("login")
 
         user = authenticate(request, email=email, password=password)
 
         if user is None:
-            messages.error(request, "Invalid credentials. Please try again or register your account.", extra_tags="login")
-            return render(request, "ConsultApp/login-register.html")
+            messages.error(request, "Invalid credentials. Please try again or register your account.", extra_tags="general_login_error")
+            return render(request, "ConsultApp/login-register-new.html")
 
         if user is not None:
             login(request, user)
@@ -179,9 +194,10 @@ def login_view(request):
             elif user.role == "admin":
                 return redirect("admin_dashboard")
         else:
-            messages.error(request, "Invalid credentials. Please try again or register your account.", extra_tags="login")
+            messages.error(request, "Invalid credentials. Please try again.", extra_tags="general_login_error")
+            return redirect("login")
 
-    return render(request, "ConsultApp/login-register.html", {"form_source":"login"})
+    return render(request, "ConsultApp/login-register-new.html", {"form_source":"login"})
 
 # 🔹 Logout View
 def logout_view(request):
@@ -190,6 +206,10 @@ def logout_view(request):
     return redirect("login")
 
 # 🔹 Consultant Views
+
+# Add this function after the logout_view and before update_appointment_status
+# Around line 210 in your views.py
+
 @login_required
 def consultant_dashboard(request):
     consultant_user = request.user
@@ -215,11 +235,27 @@ def consultant_dashboard(request):
     total_students = Student.objects.count()
     total_appointments = Appointment.objects.filter(consultant=consultant).count() if consultant else 0
 
+    assigned_students = Student.objects.filter(assigned_consultant=consultant) if consultant else []
+
     pending_appointments = Appointment.objects.filter(consultant=consultant, status='pending')
     confirmed_appointments = Appointment.objects.filter(consultant=consultant, status='confirmed')
     cancelled_appointments = Appointment.objects.filter(consultant=consultant, status='cancelled')
 
     market_listing = Market.objects.filter(consultant=consultant).first() if consultant else None
+
+    # ✨ ADD THESE LINES FOR FEEDBACK
+    from .models import Feedback
+    consultant_feedbacks = []
+    average_rating = 0
+    
+    if consultant:
+        consultant_feedbacks = Feedback.objects.filter(
+            consultant=consultant
+        ).select_related('student__user').order_by('-created_at')[:10]
+        
+        if consultant_feedbacks:
+            total = sum(f.rating for f in consultant_feedbacks)
+            average_rating = total / len(consultant_feedbacks)
 
     context = {
         "consultant": consultant,
@@ -230,10 +266,12 @@ def consultant_dashboard(request):
         "total_students": total_students,
         "total_appointments": total_appointments,
         "appointments": confirmed_appointments,
-        "students": [],
+        "students": assigned_students,
         "pending_appointments": pending_appointments,
         "cancelled_appointments": cancelled_appointments,
-        "market_listing": market_listing,  
+        "market_listing": market_listing,
+        "consultant_feedbacks": consultant_feedbacks,  # ✨ ADD THIS
+        "average_rating": average_rating,  # ✨ ADD THIS
     }
 
     return render(request, "ConsultApp/consultant-dashboard.html", context)
@@ -289,6 +327,39 @@ def consultant_appointments_view(request):
 
     return render(request, 'ConsultApp/consultant-appointments.html', {'appointments': appointments})
 
+from django.utils import timezone
+
+@login_required
+def consultant_history_view(request):
+    consultant_user = request.user
+    
+    try:
+        consultant = Consultant.objects.get(user=consultant_user)
+    except Consultant.DoesNotExist:
+        return render(request, "ConsultApp/error.html", {"message": "Consultant record not found."})
+
+    now = timezone.now().date()
+    current_time = timezone.now().time()
+    
+    active_appts = Appointment.objects.filter(consultant=consultant, status='confirmed')
+    
+    for appt in active_appts:
+        if appt.date < now or (appt.date == now and appt.time < current_time):
+            appt.status = 'completed'
+            appt.save()
+            
+            # ✅ UPDATE STUDENT'S SESSIONS COMPLETED
+            student = appt.student
+            student.sessions_completed += 1
+            student.save()
+
+    appointments = Appointment.objects.filter(
+        consultant=consultant,
+        status__in=['completed', 'cancelled']
+    ).select_related('student__user').order_by('-date', '-time')
+
+    context = {"appointments": appointments}
+    return render(request, "ConsultApp/consultant-history.html", context)
 
 @login_required
 def consultant_students_view(request):
@@ -309,38 +380,25 @@ def consultant_profile_view(request):
     completed = 0
     missing_fields = []
 
-    if user.first_name:
-        completed += 1
-    else:
-        missing_fields.append("First Name")
+    if user.first_name: completed += 1
+    else: missing_fields.append("First Name")
 
-    if user.last_name:
-        completed += 1
-    else:
-        missing_fields.append("Last Name")
+    if user.last_name: completed += 1
+    else: missing_fields.append("Last Name")
 
-    if user.email:
-        completed += 1
-    else:
-        missing_fields.append("Email Address")
+    if user.email: completed += 1
+    else: missing_fields.append("Email Address")
 
-    if profile.contact_number:
-        completed += 1
-    else:
-        missing_fields.append("Contact Number")
+    if profile.contact_number: completed += 1
+    else: missing_fields.append("Contact Number")
 
-    if profile.expertise:
-        completed += 1
-    else:
-        missing_fields.append("Expertise")
+    if profile.expertise: completed += 1
+    else: missing_fields.append("Expertise")
 
-    if profile.workplace:
-        completed += 1
-    else:
-        missing_fields.append("Workplace")
+    if profile.workplace: completed += 1
+    else: missing_fields.append("Workplace")
 
-    verification_complete = profile.is_verified
-    if verification_complete:
+    if profile.is_verified:
         completed += 1
         total_fields += 1
     else:
@@ -354,31 +412,65 @@ def consultant_profile_view(request):
         contact_number = request.POST.get("contact_number", "").strip()
         expertise = request.POST.get("expertise", "").strip()
         workplace = request.POST.get("workplace", "").strip()
+        errors = False
 
         # Validate name
-        is_valid, error = validate_name(full_name)
-        if not is_valid:
-            messages.error(request, error)
-            return redirect("consultant_profile")
+        is_valid_name, name_error = validate_name(full_name)
+        if not is_valid_name:
+            messages.error(request, name_error, extra_tags="full_name_error")
+            errors = True
+
+        # Validate email
+        if not email:
+            messages.error(request, "Email cannot be empty.", extra_tags="email_error")
+            errors = True
+        elif User.objects.filter(email=email).exclude(pk=user.pk).exists():
+            messages.error(request, "This email is already in use by another account.", extra_tags="email_error")
+            errors = True
 
         # Validate contact
-        is_valid, error = validate_contact(contact_number)
-        if not is_valid:
-            messages.error(request, error)
-            return redirect("consultant_profile")
+        is_valid_contact, contact_error = validate_contact(contact_number)
+        if not is_valid_contact:
+            messages.error(request, contact_error, extra_tags="contact_number_error")
+            errors = True
 
         # Validate expertise
-        is_valid, error = validate_text_field(expertise, "Expertise", max_length=100)
-        if not is_valid:
-            messages.error(request, error)
-            return redirect("consultant_profile")
+        is_valid_exp, exp_error = validate_text_field(expertise, "Expertise", max_length=100)
+        if not is_valid_exp:
+            messages.error(request, exp_error, extra_tags="expertise_error")
+            errors = True
 
         # Validate workplace
-        is_valid, error = validate_text_field(workplace, "Workplace", max_length=150)
-        if not is_valid:
-            messages.error(request, error)
+        is_valid_work, work_error = validate_text_field(workplace, "Workplace", max_length=150)
+        if not is_valid_work:
+            messages.error(request, work_error, extra_tags="workplace_error")
+            errors = True
+
+        if errors:
+            return redirect("consultant_profile")
+        
+        try:
+            name_parts = full_name.split()
+            if len(name_parts) == 1:
+                user.first_name = name_parts[0].title()
+                user.last_name = ""
+            else:
+                user.first_name = " ".join(name_parts[:-1]).title()
+                user.last_name = name_parts[-1].title()
+            user.email = email
+            user.save()
+
+            profile.contact_number = contact_number
+            profile.expertise = expertise
+            profile.workplace = workplace
+            profile.save()
+
+            messages.success(request, "Profile updated successfully!", extra_tags="success")
             return redirect("consultant_profile")
 
+        except Exception as e:
+            messages.error(request, f"An unexpected error occurred: {e}", extra_tags="general_error")
+            return redirect("consultant_profile")
     context = {
         "user": user,
         "profile": profile,
@@ -404,11 +496,54 @@ def consultant_verification_view(request):
     ).exists()
 
     if request.method == "POST":
-        contact = request.POST.get("contact")
-        expertise = request.POST.get("expertise")
-        workplace = request.POST.get("workplace", "")
-        qualification = request.POST.get("qualification")
-        proof = request.FILES.get("license")
+        full_name = request.POST.get("fullName", "").strip()
+        contact = request.POST.get("contact", "").strip()
+        
+        # Get multiple expertise selections
+        expertise_list = request.POST.getlist("expertise")
+        expertise = ", ".join(expertise_list) if expertise_list else ""
+        
+        workplace = request.POST.get("workplace", "").strip()
+        qualification = request.POST.get("qualification", "").strip()
+        bio = request.POST.get("bio", "").strip()
+        
+        # Get files - but we'll only use the first one uploaded
+        valid_id = request.FILES.get("validId")
+        professional_license = request.FILES.get("license")
+        profile_photo = request.FILES.get("profilePhoto")
+        
+        # Use whichever file was uploaded (prioritize license, then ID, then photo)
+        proof_document = professional_license or valid_id or profile_photo
+
+        # Validations
+        errors = False
+        
+        if not full_name or not re.match(r'^[a-zA-Z\s\-]+$', full_name):
+            messages.error(request, "Full name is required and must contain only letters, spaces, and hyphens.")
+            errors = True
+            
+        if not contact or not re.match(r'^09[0-9]{9}$', contact):
+            messages.error(request, "Contact number must be exactly 11 digits starting with 09.")
+            errors = True
+            
+        if not expertise_list:
+            messages.error(request, "Please select at least one area of expertise.")
+            errors = True
+            
+        if not workplace or not re.match(r'^[A-Za-z0-9\s\-\.]+$', workplace):
+            messages.error(request, "Workplace is required and must be valid.")
+            errors = True
+            
+        if not qualification or not re.match(r'^[A-Za-z0-9\s\-\.,]+$', qualification):
+            messages.error(request, "Qualification is required and must be valid.")
+            errors = True
+            
+        if not proof_document:
+            messages.error(request, "Please upload at least one document (Valid ID, Professional License, or Profile Photo).")
+            errors = True
+        
+        if errors:
+            return redirect('consultant_verification')
 
         Verification.objects.create(
             consultant=consultant_user,
@@ -416,7 +551,7 @@ def consultant_verification_view(request):
             expertise=expertise,
             workplace=workplace,
             qualification=qualification,
-            proof_document=proof,
+            proof_document=proof_document,  # Using the old field name
             status='pending',
         )
 
@@ -439,43 +574,142 @@ def consultant_market(request):
         messages.error(request, "You must be verified to register your availability.")
         return redirect('consultant_dashboard')
 
-    if request.method == "POST":
-        expertise = request.POST.get("expertise")
-        profession = request.POST.get("profession")
-        available_from_str = request.POST.get("available_from")
-        available_to_str = request.POST.get("available_to") 
-        rate_per_hour = request.POST.get("rate_per_hour")
-        meeting_place = request.POST.get("meeting_place")
-        description = request.POST.get("description", "")
-        is_active = "is_active" in request.POST
+    # Get verification data to pre-fill form
+    verification = Verification.objects.filter(
+        consultant=request.user,
+        status='approved'
+    ).order_by('-reviewed_at').first()
 
-        if not all([expertise, profession, available_from_str, available_to_str, rate_per_hour, meeting_place]):
-            messages.error(request, "Please fill in all fields.")
-            return render(request, "ConsultApp/consultant-market.html")
+    if request.method == "POST":
+        # Get multiple expertise selections
+        expertise_list = request.POST.getlist("expertise")
+        expertise = ", ".join(expertise_list) if expertise_list else ""
+        
+        # Get multiple day selections
+        days_list = request.POST.getlist("available_days")
+        available_days = ",".join(days_list) if days_list else ""
+        
+        profession = request.POST.get("profession", "").strip()
+        workplace = request.POST.get("workplace", "").strip()
+        available_from_str = request.POST.get("available_from", "").strip()
+        available_to_str = request.POST.get("available_to", "").strip()
+        rate_per_hour = request.POST.get("rate_per_hour", "").strip()
+        meeting_place = request.POST.get("meeting_place", "").strip()
+        description = request.POST.get("description", "").strip()
+
+        # Validations
+        errors = False
+        
+        if not expertise_list:
+            messages.error(request, "Please select at least one area of expertise.")
+            errors = True
+        
+        if not days_list:
+            messages.error(request, "Please select at least one available day.")
+            errors = True
+            
+        if not profession or not re.match(r'^[A-Za-z0-9\s\-]+$', profession):
+            messages.error(request, "Profession is required and must be valid.")
+            errors = True
+        
+        if not workplace or not re.match(r'^[A-Za-z0-9\s\-\.]+$', workplace):
+            messages.error(request, "Workplace is required and must be valid.")
+            errors = True
+            
+        if not all([available_from_str, available_to_str, rate_per_hour, meeting_place]):
+            messages.error(request, "Please fill in all required fields.")
+            errors = True
+            
+        if errors:
+            context = {
+                'market_listing': Market.objects.filter(consultant=consultant).first(),
+                'verification': verification,
+                'consultant': consultant
+            }
+            return render(request, "ConsultApp/consultant-market.html", context)
 
         try:
-            available_from = datetime.strptime(available_from_str, "%I:%M %p").time()
-            available_to = datetime.strptime(available_to_str, "%I:%M %p").time()
+            available_from = datetime.strptime(available_from_str, "%H:%M").time()
+            available_to = datetime.strptime(available_to_str, "%H:%M").time()
+            
+            if available_from >= available_to:
+                messages.error(request, "Available To time must be after Available From time.")
+                context = {
+                    'market_listing': Market.objects.filter(consultant=consultant).first(),
+                    'verification': verification,
+                    'consultant': consultant
+                }
+                return render(request, "ConsultApp/consultant-market.html", context)
+                
         except ValueError:
-            return render(request, "ConsultApp/consultant-market.html", {
-                "error": "Invalid time format. Please select valid times."
-            })
-        Market.objects.create(
-            consultant=consultant,
-            expertise=expertise,
-            profession=profession,
-            available_from=available_from,
-            available_to=available_to,
-            rate_per_hour=rate_per_hour,
-            meeting_place=meeting_place,
-            description=description,
-            is_active=is_active,
-        )
-
-        messages.success(request, "✅ You are now listed in the market!")
+            messages.error(request, "Invalid time format. Please select valid times.")
+            context = {
+                'market_listing': Market.objects.filter(consultant=consultant).first(),
+                'verification': verification,
+                'consultant': consultant
+            }
+            return render(request, "ConsultApp/consultant-market.html", context)
+        
+        try:
+            rate = int(rate_per_hour)
+            if rate < 100 or rate > 10000:
+                messages.error(request, "Rate must be between ₱100 and ₱10,000.")
+                context = {
+                    'market_listing': Market.objects.filter(consultant=consultant).first(),
+                    'verification': verification,
+                    'consultant': consultant
+                }
+                return render(request, "ConsultApp/consultant-market.html", context)
+        except ValueError:
+            messages.error(request, "Invalid rate amount.")
+            context = {
+                'market_listing': Market.objects.filter(consultant=consultant).first(),
+                'verification': verification,
+                'consultant': consultant
+            }
+            return render(request, "ConsultApp/consultant-market.html", context)
+        
+        # Check if market listing already exists
+        market_listing = Market.objects.filter(consultant=consultant).first()
+        
+        if market_listing:
+            # Update existing listing
+            market_listing.expertise = expertise
+            market_listing.profession = profession
+            market_listing.available_from = available_from
+            market_listing.available_to = available_to
+            market_listing.available_days = available_days
+            market_listing.rate_per_hour = rate
+            market_listing.meeting_place = meeting_place
+            market_listing.description = description
+            market_listing.is_active = True
+            market_listing.save()
+            messages.success(request, "✅ Market listing updated successfully!")
+        else:
+            # Create new listing
+            Market.objects.create(
+                consultant=consultant,
+                expertise=expertise,
+                profession=profession,
+                available_from=available_from,
+                available_to=available_to,
+                available_days=available_days,
+                rate_per_hour=rate,
+                meeting_place=meeting_place,
+                description=description,
+                is_active=True,
+            )
+            messages.success(request, "✅ You are now listed in the market!")
+        
         return redirect('consultant_dashboard')
 
-    return render(request, "ConsultApp/consultant-market.html")
+    market_listing = Market.objects.filter(consultant=consultant).first()
+    context = {
+        'market_listing': market_listing,
+        'verification': verification,
+        'consultant': consultant
+    }
+    return render(request, "ConsultApp/consultant-market.html", context)
 
 @login_required
 @require_POST
@@ -560,25 +794,17 @@ def student_profile_view(request):
     completed = 0
     missing_fields = []
 
-    if user.first_name:
-        completed += 1
-    else:
-        missing_fields.append("First Name")
+    if user.first_name: completed += 1
+    else: missing_fields.append("First Name")
 
-    if user.last_name:
-        completed += 1
-    else:
-        missing_fields.append("Last Name")
+    if user.last_name: completed += 1
+    else: missing_fields.append("Last Name")
 
-    if student.student_department:
-        completed += 1
-    else:
-        missing_fields.append("Department")
+    if student.student_department: completed += 1
+    else: missing_fields.append("Department")
 
-    if student.student_program:
-        completed += 1
-    else:
-        missing_fields.append("Program")
+    if student.student_program: completed += 1
+    else: missing_fields.append("Program")
 
     if student.student_year_level and student.student_year_level > 0:
         completed += 1
@@ -592,49 +818,65 @@ def student_profile_view(request):
         department = request.POST.get("department", "").strip()
         program = request.POST.get("program", "").strip()
         year_level = request.POST.get("yearLevel", "0")
+        errors = False
 
         # Validate name
-        if full_name:
-            is_valid, error = validate_name(full_name)
-            if not is_valid:
-                messages.error(request, error)
-                return redirect("student_profile")
+        is_valid_name, name_error = validate_name(full_name)
+        if not is_valid_name:
+            messages.error(request, name_error, extra_tags="full_name_error")
+            errors = True
             
-            user.first_name = full_name.split(" ")[0]
-            if len(full_name.split(" ")) > 1:
-                user.last_name = " ".join(full_name.split(" ")[1:])
-            user.save()
+        user.first_name = full_name.split(" ")[0]
+        if len(full_name.split(" ")) > 1:
+            user.last_name = " ".join(full_name.split(" ")[1:])
+        user.save()
 
         # Validate department
-        if department:
-            is_valid, error = validate_text_field(department, "Department", max_length=100)
-            if not is_valid:
-                messages.error(request, error)
-                return redirect("student_profile")
-            student.student_department = department
+        is_valid_dept, dept_error = validate_text_field(department, "Department", max_length=100)
+        if not is_valid_dept:
+            messages.error(request, dept_error, extra_tags="department_error")
+            errors = True
 
         # Validate program
-        if program:
-            is_valid, error = validate_text_field(program, "Program", max_length=150)
-            if not is_valid:
-                messages.error(request, error)
-                return redirect("student_profile")
-            student.student_program = program
+        is_valid_prog, prog_error = validate_text_field(program, "Program", max_length=150)
+        if not is_valid_prog:
+            messages.error(request, prog_error, extra_tags="program_error")
+            errors = True
 
         # Validate year level
         try:
             year_level_int = int(year_level)
-            if year_level_int < 0 or year_level_int > 6:
-                messages.error(request, "Please select a valid year level.")
-                return redirect("student_profile")
-            student.student_year_level = year_level_int
+            if year_level_int < 1 or year_level_int > 6:
+                messages.error(request, "Please select a valid year level (1-6).", extra_tags="year_level_error")
+                errors = True
         except ValueError:
-            messages.error(request, "Invalid year level.")
+            messages.error(request, "Invalid year level format.", extra_tags="year_level_error")
+            errors = True
+
+        if errors:
+            return redirect("student_profile")
+        
+        try:
+            name_parts = full_name.split()
+            if len(name_parts) == 1:
+                user.first_name = name_parts[0].title()
+                user.last_name = ""
+            else:
+                user.first_name = " ".join(name_parts[:-1]).title()
+                user.last_name = name_parts[-1].title()
+            user.save()
+
+            student.student_department = department
+            student.student_program = program
+            student.student_year_level = year_level_int
+            student.save()
+
+            messages.success(request, "Profile updated successfully!", extra_tags="success")
             return redirect("student_profile")
 
-        student.save()
-        messages.success(request, "Profile updated successfully!")
-        return redirect("student_profile")
+        except Exception as e:
+            messages.error(request, f"An unexpected error occurred: {e}", extra_tags="general_error")
+            return redirect("student_profile")
 
     context = {
         "student": student,
@@ -650,15 +892,85 @@ def student_history_view(request):
     if not student:
         return render(request, "ConsultApp/error.html", {"message": "Student record not found."})
 
+    now = timezone.now().date()
+    current_time = timezone.now().time()
+    
+    potential_updates = Appointment.objects.filter(
+        student=student, 
+        status__in=["pending", "confirmed"]
+    )
+
+    for appt in potential_updates:
+        if appt.date < now or (appt.date == now and appt.time < current_time):
+            appt.status = "completed"
+            appt.save()
+            
+            student.sessions_completed += 1
+            student.save()
+
+    # Include feedback in the query using select_related
     appointments = Appointment.objects.filter(
         student=student,
         status__in=['completed', 'cancelled']
-    ).select_related('consultant__user').order_by('-date', '-time')
+    ).select_related('consultant__user', 'feedback').order_by('-date', '-time')
 
     consultants = Consultant.objects.select_related('user').all()
 
     context = {"appointments": appointments, "consultants": consultants}
     return render(request, "ConsultApp/student-history.html", context)
+
+@login_required
+def submit_feedback(request):
+    """Handle student feedback submission"""
+    if request.method == "POST":
+        student = Student.objects.filter(user=request.user).first()
+        if not student:
+            messages.error(request, "Student profile not found.")
+            return redirect('student_history')
+        
+        appointment_id = request.POST.get('appointment_id')
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment', '').strip()
+        
+        try:
+            appointment = Appointment.objects.get(
+                id=appointment_id,
+                student=student,
+                status='completed'
+            )
+            
+            # Check if feedback already exists
+            if hasattr(appointment, 'feedback'):
+                messages.warning(request, "You have already submitted feedback for this session.")
+                return redirect('student_history')
+            
+            # Validate rating
+            rating_int = int(rating)
+            if rating_int < 1 or rating_int > 5:
+                messages.error(request, "Please provide a valid rating (1-5 stars).")
+                return redirect('student_history')
+            
+            # Create feedback
+            from .models import Feedback
+            Feedback.objects.create(
+                appointment=appointment,
+                student=student,
+                consultant=appointment.consultant,
+                rating=rating_int,
+                comment=comment
+            )
+            
+            messages.success(request, "✅ Thank you for your feedback!")
+            return redirect('student_history')
+            
+        except Appointment.DoesNotExist:
+            messages.error(request, "Appointment not found or cannot be reviewed.")
+            return redirect('student_history')
+        except ValueError:
+            messages.error(request, "Invalid rating value.")
+            return redirect('student_history')
+    
+    return redirect('student_history')
 
 @login_required
 def student_appointments_view(request):
@@ -673,6 +985,10 @@ def student_appointments_view(request):
             if appt.date < now or (appt.date == now and appt.time < current_time):
                 appt.status = "completed"
                 appt.save()
+                
+                # ✅ UPDATE STUDENT'S SESSIONS COMPLETED
+                student.sessions_completed += 1
+                student.save()
 
     active_appointments = Appointment.objects.filter(
         student=student,
@@ -685,6 +1001,7 @@ def student_appointments_view(request):
         "appointments": active_appointments,
         "consultants": consultants
     })
+
 
 @login_required
 def book_appointment(request, consultant_id=None):
@@ -701,6 +1018,7 @@ def book_appointment(request, consultant_id=None):
         ).order_by('-updated_at').first()
 
     def generate_hourly_slots(available_from, available_to):
+        """Generate hourly time slots"""
         slots = []
         if not available_from or not available_to:
             return slots
@@ -817,6 +1135,23 @@ def book_appointment(request, consultant_id=None):
                 "today": timezone.localdate().isoformat(),
             })
 
+        # Check if the selected date falls on an available day
+        day_name = date_obj.strftime('%A').lower()  # e.g., 'monday', 'tuesday'
+        if not market.is_available_on_day(day_name):
+            messages.error(
+                request,
+                f"This consultant is not available on {date_obj.strftime('%A')}s. "
+                f"Please choose a different date."
+            )
+            slots = generate_hourly_slots(market.available_from, market.available_to)
+            return render(request, "ConsultApp/book_appointment.html", {
+                "consultant": consultant,
+                "market": market,
+                "consultants": consultants_with_market,
+                "slots": slots,
+                "today": timezone.localdate().isoformat(),
+            })
+
         available_from = market.available_from
         available_to = market.available_to
         start_dt = dt_datetime.combine(date_obj, start_time_obj)
@@ -838,6 +1173,7 @@ def book_appointment(request, consultant_id=None):
                 "today": timezone.localdate().isoformat(),
             })
 
+        # Check for conflicts with existing appointments
         conflicts = []
         existing_appts = Appointment.objects.filter(
             consultant=consultant, 
@@ -854,7 +1190,7 @@ def book_appointment(request, consultant_id=None):
         if conflicts:
             messages.error(
                 request, 
-                "This time slot conflicts with an existing appointment. "
+                "❌ This time slot is already booked. "
                 "Please choose another time."
             )
             slots = generate_hourly_slots(market.available_from, market.available_to)
@@ -899,8 +1235,25 @@ def book_appointment(request, consultant_id=None):
             })
 
     slots = []
-    if market:
+    unavailable_dates = []
+    if market and consultant:
         slots = generate_hourly_slots(market.available_from, market.available_to)
+        
+        # Generate list of unavailable dates (dates not in available_days or fully booked)
+        today = timezone.localdate()
+        available_days_list = market.get_available_days_list()
+        
+        # Get all dates with bookings in next 60 days
+        future_date = today + timedelta(days=60)
+        
+        # Generate unavailable dates
+        for i in range(60):
+            check_date = today + timedelta(days=i)
+            day_name = check_date.strftime('%A').lower()
+            
+            # If day is not in available days, mark as unavailable
+            if day_name not in available_days_list:
+                unavailable_dates.append(check_date.isoformat())
 
     today_iso = timezone.localdate().isoformat()
 
@@ -910,6 +1263,7 @@ def book_appointment(request, consultant_id=None):
         "consultants": consultants_with_market,
         "slots": slots,
         "today": today_iso,
+        "unavailable_dates": unavailable_dates,
     })
 
 @login_required
@@ -966,6 +1320,7 @@ def admin_consultants_view(request):
 @user_passes_test(is_admin)
 def admin_reports_view(request):
     return render(request, "ConsultApp/admin-reports.html")
+
 @login_required
 @user_passes_test(is_admin)
 def admin_profile_view(request):
@@ -974,18 +1329,19 @@ def admin_profile_view(request):
 
     completed = 0
     total_fields = 4
+    missing_fields = []
 
-    if admin_user.first_name:
-        completed += 1
+    if admin_user.first_name: completed += 1
+    else: missing_fields.append("First Name")
 
-    if admin_user.last_name:
-        completed += 1
+    if admin_user.last_name: completed += 1
+    else: missing_fields.append("Last Name")
 
-    if admin_user.email:
-        completed += 1
+    if admin_user.email: completed += 1
+    else: missing_fields.append("Email Address")
 
-    if admin_profile.contact_number:
-        completed += 1
+    if admin_profile.contact_number: completed += 1
+    else: missing_fields.append("Contact Number")
 
     progress_percentage = int((completed / total_fields) * 100)
 
@@ -993,46 +1349,96 @@ def admin_profile_view(request):
         full_name = request.POST.get("full_name", "").strip()
         email = request.POST.get("email", "").strip()
         contact = request.POST.get("contact", "").strip()
+        errors = False
 
         # Validate name
-        is_valid, error = validate_name(full_name)
-        if not is_valid:
-            messages.error(request, error)
-            return redirect("admin_profile")
+        is_valid_name, name_error = validate_name(full_name)
+        if not is_valid_name:
+            messages.error(request, name_error, extra_tags="full_name_error")
+            errors = True
+
+        # Validate email
+        if not email:
+            messages.error(request, "Email cannot be empty.", extra_tags="email_error")
+            errors = True
+        elif User.objects.filter(email=email).exclude(pk=admin_user.pk).exists():
+            messages.error(request, "This email is already in use by another account.", extra_tags="email_error")
+            errors = True
 
         # Validate contact
-        is_valid, error = validate_contact(contact)
-        if not is_valid:
-            messages.error(request, error)
+        is_valid_contact, contact_error = validate_contact(contact)
+        if not is_valid_contact:
+            messages.error(request, contact_error, extra_tags="contact_error")
+            errors = True
+
+        if errors:
             return redirect("admin_profile")
         
-        parts = full_name.split()
+        try:
+            parts = full_name.split()
+            if len(parts) >= 2:
+                admin_user.first_name = parts[0]
+                admin_user.last_name = " ".join(parts[1:])
+            else:
+                admin_user.first_name = full_name
+                admin_user.last_name = ""
+            
+            admin_user.email = email
+            admin_user.save()
 
-        if len(parts) >= 2:
-            admin_user.first_name = parts[0]
-            admin_user.last_name = " ".join(parts[1:])
-        else:
-            admin_user.first_name = full_name
-            admin_user.last_name = ""
+            admin_profile.contact_number = contact
+            admin_profile.save()
 
-        admin_user.email = email
-        admin_user.save()
+            messages.success(request, "Profile updated successfully!", extra_tags="success")
+            return redirect("admin_profile")
 
-        admin_profile.contact_number = contact
-        admin_profile.save()
-
-        messages.success(request, "Profile updated successfully!")
-        return redirect("admin_profile")
-
+        except Exception as e:
+            messages.error(request, f"An unexpected error occurred: {e}", extra_tags="general_error")
+            return redirect("admin_profile")
+        
     context = {
         "admin_name": f"{admin_user.first_name} {admin_user.last_name}".strip(),
         "admin_email": admin_user.email,
         "admin_contact": admin_profile.contact_number or "Not set",
         "admin_role": "System Administrator",
         "profile_progress": progress_percentage,
+        "missing_fields": missing_fields,
     }
     
     return render(request, "ConsultApp/admin-profile.html", context)
+
+# ADD THIS FUNCTION TO YOUR views.py FILE
+# Put it after your admin_profile_view function or at the end of the admin views section
+
+@login_required
+@user_passes_test(is_admin)
+def sync_sessions_completed(request):
+    """
+    One-time sync function to update all students' sessions_completed 
+    based on their actual completed appointments.
+    Only accessible by admin.
+    """
+    students = Student.objects.all()
+    updated_count = 0
+    
+    for student in students:
+        # Count actual completed appointments
+        actual_completed = Appointment.objects.filter(
+            student=student,
+            status='completed'
+        ).count()
+        
+        # Update if different
+        if student.sessions_completed != actual_completed:
+            student.sessions_completed = actual_completed
+            student.save()
+            updated_count += 1
+    
+    messages.success(
+        request, 
+        f"✅ Synced sessions completed for {updated_count} students!"
+    )
+    return redirect('admin_dashboard')
 
 
 # 🔹 Verification Modal
@@ -1141,3 +1547,106 @@ def all_consultants_view(request):
         .filter(consultant__is_verified=True, is_active=True)
     )
     return render(request, "ConsultApp/all-consultants.html", {"consultants": consultants})
+
+# ADD THIS FUNCTION TO YOUR views.py FILE
+# (Add it near the other admin views, after admin_students_view)
+
+@login_required
+@user_passes_test(is_admin)
+def student_profile_admin_view(request, student_id):
+    """Admin view for student profile details"""
+    student = get_object_or_404(Student, user__id=student_id)
+    user = student.user
+    
+    context = {
+        "student": student,
+        "user": user,
+        "full_name": user.get_full_name(),
+        "email": user.email,
+        "department": student.student_department or "N/A",
+        "course": student.student_course or "N/A",
+        "program": student.student_program or "N/A",
+        "year_level": student.student_year_level if student.student_year_level > 0 else "N/A",
+        "assigned_consultant": student.assigned_consultant.user.get_full_name() if student.assigned_consultant else "None",
+        "sessions_completed": student.sessions_completed,
+        "date_joined": user.date_joined,
+        "is_active": user.is_active,
+    }
+    
+    return render(request, "ConsultApp/admin-student-details.html", context)
+
+# ADD THIS FUNCTION TO YOUR views.py FILE
+# (Add it right after the student_profile_admin_view function)
+
+@login_required
+@user_passes_test(is_admin)
+def consultant_profile_admin_view(request, consultant_id):
+    """Admin view for consultant profile details"""
+    consultant = get_object_or_404(Consultant, user__id=consultant_id)
+    user = consultant.user
+    
+    # Get verification info
+    verification = Verification.objects.filter(
+        consultant=user,
+        status='approved'
+    ).order_by('-reviewed_at').first()
+    
+    # Get market listing
+    market_listing = Market.objects.filter(consultant=consultant).first()
+    
+    # Get assigned students count
+    assigned_students_count = Student.objects.filter(assigned_consultant=consultant).count()
+    
+    context = {
+        "consultant": consultant,
+        "user": user,
+        "full_name": user.get_full_name(),
+        "email": user.email,
+        "contact_number": consultant.contact_number or "N/A",
+        "expertise": consultant.expertise or "N/A",
+        "workplace": consultant.workplace or "N/A",
+        "is_verified": consultant.is_verified,
+        "verification": verification,
+        "market_listing": market_listing,
+        "assigned_students_count": assigned_students_count,
+        "date_joined": user.date_joined,
+        "is_active": user.is_active,
+    }
+    
+    return render(request, "ConsultApp/admin-consultant-details.html", context)
+
+@login_required
+def consultant_details(request, consultant_user_id):
+    """Simple page showing consultant details and feedback"""
+    try:
+        consultant = Consultant.objects.get(user__id=consultant_user_id)
+        market = Market.objects.filter(consultant=consultant, is_active=True).first()
+        
+        if not market:
+            messages.error(request, "This consultant is not currently available.")
+            return redirect('student_dashboard')
+        
+        # Get all feedback for this consultant
+        from .models import Feedback
+        feedbacks = Feedback.objects.filter(
+            consultant=consultant
+        ).select_related('student__user').order_by('-created_at')
+        
+        # Calculate average rating
+        average_rating = 0
+        if feedbacks.exists():
+            total = sum(f.rating for f in feedbacks)
+            average_rating = total / feedbacks.count()
+        
+        context = {
+            'consultant': consultant,
+            'market': market,
+            'feedbacks': feedbacks,
+            'average_rating': average_rating,
+        }
+        
+        return render(request, 'ConsultApp/consultant-details.html', context)
+        
+    except Consultant.DoesNotExist:
+        messages.error(request, "Consultant not found.")
+        return redirect('student_dashboard')

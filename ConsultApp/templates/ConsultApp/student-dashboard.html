@@ -6,333 +6,129 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Student Dashboard</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/student-dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'ConsultApp/card-grid.css' %}">
   <style>
-    /* ===== ENHANCED CONSULTANT CARDS ===== */
-    .consultants-section {
-      margin-top: 2rem;
-    }
-
-    .consultants-section h2 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #1a202c;
-      margin-bottom: 1.5rem;
-    }
-
-    .consultants-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .consultant-card {
-      background: #ffffff;
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      transition: all 0.3s ease;
-      border: 1px solid #e2e8f0;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .consultant-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #4299e1, #667eea);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-
-    .consultant-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-      border-color: #cbd5e0;
-    }
-
-    .consultant-card:hover::before {
-      transform: scaleX(1);
-    }
-
-    .consultant-card img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin: 0 auto 1rem;
-      display: block;
-      border: 3px solid #e2e8f0;
-      transition: border-color 0.3s ease;
-    }
-
-    .consultant-card:hover img {
-      border-color: #4299e1;
-    }
-
-    .consultant-card h4 {
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: #2d3748;
-      text-align: center;
-      margin-bottom: 0.5rem;
-    }
-
-    .consultant-card > p {
-      font-size: 0.9rem;
-      color: #4a5568;
-      text-align: center;
-      margin-bottom: 0.75rem;
-      line-height: 1.5;
-    }
-
-    .consultant-card .rate {
+    .available-days-inline {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      font-weight: 600;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .day-badge-small {
+      padding: 2px 8px;
+      background: #e6ffed;
       color: #38a169;
-      margin-bottom: 0.5rem;
-      padding: 0.5rem;
-      background: #f0fff4;
       border-radius: 8px;
-    }
-
-    .consultant-card .meeting {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.875rem;
-      color: #4a5568;
-      margin-bottom: 1rem;
-      padding: 0.4rem;
-      background: #f7fafc;
-      border-radius: 6px;
-    }
-
-    .btn-view-details {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-
-    .btn-view-details:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-    }
-
-    .btn-view-details:active {
-      transform: translateY(0);
-    }
-
-    /* Empty state styling */
-    .consultants-section > p {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: #718096;
-      font-size: 1rem;
-      background: #f7fafc;
-      border-radius: 12px;
-      border: 2px dashed #cbd5e0;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .consultants-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-      
-      .consultant-card {
-        padding: 1.25rem;
-      }
-    }
-
-    /* Enhanced Modal Styles */
-    .modal { 
-      position: fixed; 
-      inset: 0; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      z-index: 9999;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes slideUp {
-      from { 
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to { 
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .modal-content { 
-      background: #ffffff;
-      padding: 0;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 550px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      overflow: hidden;
-      animation: slideUp 0.3s ease;
-    }
-
-    .modal-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 2rem;
-      position: relative;
-      color: white;
-    }
-
-    .modal-header h2 {
-      margin: 0;
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: white;
-    }
-
-    .modal-body {
-      padding: 2rem;
-    }
-
-    .modal-info-grid {
-      display: grid;
-      gap: 1.25rem;
-    }
-
-    .modal-info-item {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .modal-info-label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: #718096;
-    }
-
-    .modal-info-value {
-      font-size: 1rem;
-      color: #2d3748;
+      font-size: 0.75rem;
       font-weight: 500;
     }
-
-    .modal-info-value.large {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #38a169;
+    .feedback-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 2px solid #f0f0f0;
     }
-
-    .modal-description {
-      background: #f7fafc;
-      padding: 1rem;
-      border-radius: 8px;
-      border-left: 4px solid #667eea;
-      color: #4a5568;
-      line-height: 1.6;
-      font-size: 0.95rem;
-    }
-
-    .modal-time-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      background: #edf2f7;
-      border-radius: 8px;
-      font-weight: 600;
-      color: #2d3748;
-    }
-    
-    .modal-close { 
-      position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
+    .feedback-header {
       display: flex;
       align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 1.5rem;
-      color: white;
-      transition: all 0.3s ease;
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      gap: 8px;
+      margin-bottom: 16px;
     }
-
-    .modal-close:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: rotate(90deg);
+    .feedback-header h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #333;
     }
-    
-    .btn-primary { 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #fff;
-      padding: 0.875rem 2rem;
-      border-radius: 10px;
-      text-decoration: none;
-      display: inline-block;
+    .feedback-stats {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .average-rating {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .rating-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: #ffc107;
+    }
+    .rating-stars {
+      color: #ffc107;
+      font-size: 20px;
+    }
+    .total-reviews {
+      color: #666;
+      font-size: 14px;
+    }
+    .feedback-list {
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .feedback-item {
+      background: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .feedback-item:last-child {
+      margin-bottom: 0;
+    }
+    .feedback-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .feedback-student {
       font-weight: 600;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-      border: none;
-      cursor: pointer;
-      width: 100%;
+      color: #333;
+      font-size: 14px;
+    }
+    .feedback-rating {
+      color: #ffc107;
+      font-size: 16px;
+    }
+    .feedback-date {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+    .feedback-comment {
+      color: #555;
+      font-size: 14px;
+      line-height: 1.5;
+      font-style: italic;
+    }
+    .no-feedback {
       text-align: center;
+      padding: 32px;
+      color: #999;
+      font-style: italic;
     }
-    
-    .btn-primary:hover { 
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    .feedback-list::-webkit-scrollbar {
+      width: 6px;
     }
-
-    .modal-footer {
-      padding: 1.5rem 2rem;
-      background: #f7fafc;
-      border-top: 1px solid #e2e8f0;
+    .feedback-list::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
     }
-
-    .info-icon {
-      display: inline-block;
-      margin-right: 0.5rem;
-      font-size: 1.1rem;
+    .feedback-list::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 3px;
+    }
+    .feedback-list::-webkit-scrollbar-thumb:hover {
+      background: #555;
     }
   </style>
 </head>
 <body>
-  <!-- ===== TOP NAVIGATION ===== -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
@@ -341,7 +137,6 @@
       <a href="{% url 'student_profile' %}">👤 Profile</a>
       <a href="{% url 'student_appointments' %}">📅 Appointments</a>
       <a href="{% url 'student_history' %}">📜 History</a>
-      <a href="#">❓ Help</a>
     </div>
 
     <div class="user-section">
@@ -415,21 +210,14 @@
                   <p class="meeting">📍 {{ market.meeting_place }}</p>
 
                   <!-- View Details Button -->
-                  <button
-                    class="btn-view-details"
-                    data-consultant-user-id="{{ market.consultant.user.id }}"
-                    data-market-id="{{ market.id }}"
-                    data-name="{{ market.consultant.user.get_full_name|escapejs }}"
-                    data-expertise="{{ market.expertise|default:''|escapejs }}"
-                    data-profession="{{ market.profession|default:''|escapejs }}"
-                    data-rate="{{ market.rate_per_hour|default:'0' }}"
-                    data-available-from="{{ market.available_from|time:'H:i' }}"
-                    data-available-to="{{ market.available_to|time:'H:i' }}"
-                    data-meeting-place="{{ market.meeting_place|default:''|escapejs }}"
-                    data-description="{{ market.description|default:''|escapejs }}"
-                  >
+                  <a href="{% url 'consultant_details' market.consultant.user.id %}" class="btn-view-details">
                     View Details
-                  </button>
+                  </a>
+                  
+                  <!-- Book Now Button -->
+                  <a href="{% url 'book_appointment_with_consultant' market.consultant.user.id %}" class="btn-primary" style="display: inline-block; padding: 10px 20px; background: #4caf50; color: white; text-decoration: none; border-radius: 8px; text-align: center; margin-top: 8px;">
+                    📅 Book Now
+                  </a>
                 </div>
               {% endfor %}
             </div>
@@ -483,127 +271,8 @@
     </div>
   </main>
 
-  <!-- ===== CONSULTANT MODAL ===== -->
-  <div id="consultantModal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span id="modalClose" class="modal-close">&times;</span>
-        <h2 id="modalName"></h2>
-      </div>
-
-      <div class="modal-body">
-        <div class="modal-info-grid">
-          <div class="modal-info-item">
-            <div class="modal-info-label">
-              <span class="info-icon">💼</span>Profession
-            </div>
-            <div class="modal-info-value" id="modalProfession"></div>
-          </div>
-
-          <div class="modal-info-item">
-            <div class="modal-info-label">
-              <span class="info-icon">⭐</span>Expertise
-            </div>
-            <div class="modal-info-value" id="modalExpertise"></div>
-          </div>
-
-          <div class="modal-info-item">
-            <div class="modal-info-label">
-              <span class="info-icon">📍</span>Meeting Place
-            </div>
-            <div class="modal-info-value" id="modalMeetingPlace"></div>
-          </div>
-
-          <div class="modal-info-item">
-            <div class="modal-info-label">
-              <span class="info-icon">📝</span>About
-            </div>
-            <div class="modal-description" id="modalDescription"></div>
-          </div>
-
-          <div class="modal-info-item">
-            <div class="modal-info-label">
-              <span class="info-icon">🕐</span>Available Hours
-            </div>
-            <div class="modal-time-badge">
-              <span id="modalAvailable"></span>
-            </div>
-          </div>
-
-          <div class="modal-info-item">
-            <div class="modal-info-label">
-              <span class="info-icon">💰</span>Hourly Rate
-            </div>
-            <div class="modal-info-value large">
-              ₱<span id="modalRate"></span> / hour
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <a id="modalBookBtn" href="#" class="btn-primary">
-          📅 Book Consultation Now
-        </a>
-      </div>
-    </div>
-  </div>
-
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const modal = document.getElementById('consultantModal');
-      const modalClose = document.getElementById('modalClose');
-      const modalName = document.getElementById('modalName');
-      const modalProfession = document.getElementById('modalProfession');
-      const modalExpertise = document.getElementById('modalExpertise');
-      const modalMeetingPlace = document.getElementById('modalMeetingPlace');
-      const modalDescription = document.getElementById('modalDescription');
-      const modalAvailable = document.getElementById('modalAvailable');
-      const modalRate = document.getElementById('modalRate');
-      const modalBookBtn = document.getElementById('modalBookBtn');
-
-      document.querySelectorAll('.btn-view-details').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const userId = btn.dataset.consultantUserId;
-          const name = btn.dataset.name || '';
-          const profession = btn.dataset.profession || '';
-          const expertise = btn.dataset.expertise || '';
-          const meetingPlace = btn.dataset.meetingPlace || '';
-          const description = btn.dataset.description || '';
-          const availFrom = btn.dataset.availableFrom || '';
-          const availTo = btn.dataset.availableTo || '';
-          const rate = btn.dataset.rate || '0';
-
-          modalName.textContent = name;
-          modalProfession.textContent = profession;
-          modalExpertise.textContent = expertise;
-          modalMeetingPlace.textContent = meetingPlace;
-          modalDescription.textContent = description || 'No description provided.';
-          modalAvailable.textContent = formatTime(availFrom) + ' - ' + formatTime(availTo);
-          modalRate.textContent = rate;
-
-          const urlTemplate = "{% url 'book_appointment_with_consultant' 0 %}";
-          modalBookBtn.href = urlTemplate.replace('0', userId);
-
-          modal.style.display = 'flex';
-        });
-      });
-
-      modalClose.addEventListener('click', () => modal.style.display = 'none');
-      modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-
-      function formatTime(hhmm) {
-        if (!hhmm) return '';
-        const parts = hhmm.split(':');
-        if (parts.length < 2) return hhmm;
-        let h = parseInt(parts[0], 10);
-        const m = parts[1];
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        h = h % 12;
-        if (h === 0) h = 12;
-        return h + ':' + m + ' ' + ampm;
-      }
-    });
+    // Simple script - just for closing messages if needed
   </script>
 </body>
 </html>

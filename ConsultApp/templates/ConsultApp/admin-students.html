@@ -50,7 +50,7 @@
             <th>Program</th>
             <th>Year Level</th>
             <th>Email</th>
-            <th>Status</th>
+            <th>Sessions Completed</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -58,17 +58,19 @@
           {% for student in students %}
           <tr>
             <td><strong>{{ student.user.first_name }} {{ student.user.last_name }}</strong></td>
-            <td>{{ student.student_course|default:"—" }}</td>
-            <td>{{ student.student_year_level }}{% if student.student_year_level == 1 %}st{% elif student.student_year_level == 2 %}nd{% elif student.student_year_level == 3 %}rd{% else %}th{% endif %} Year</td>
-            <td>{{ student.user.email }}</td>
+            <td>{% if student.student_program %}{{ student.student_program }}{% else %}N/A{% endif %}</td>
             <td>
-              {% if student.user.is_active %}
-                <span class="status-badge active"><span class="dot"></span> active</span>
+              {% if student.student_year_level and student.student_year_level > 0 %}
+                {{ student.student_year_level }}{% if student.student_year_level == 1 %}st{% elif student.student_year_level == 2 %}nd{% elif student.student_year_level == 3 %}rd{% else %}th{% endif %} Year
               {% else %}
-                <span class="status-badge inactive"><span class="dot"></span> inactive</span>
+                N/A
               {% endif %}
             </td>
-            <td><a href="#" class="action-link">Edit</a></td>
+            <td>{{ student.user.email }}</td>
+            <td><strong>{{ student.sessions_completed }}</strong></td>
+            <td>
+              <a href="{% url 'student_profile_view' student.user.id %}" class="btn-view-details">👁 View Details</a>
+            </td>
           </tr>
           {% empty %}
           <tr>

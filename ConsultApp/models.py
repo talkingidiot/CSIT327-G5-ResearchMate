@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.conf import settings
 from django.db import models
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 
 # Validator for names (letters, spaces, hyphens only)
 name_validator = RegexValidator(
@@ -108,7 +108,30 @@ class Appointment(models.Model):
     research_title = models.CharField(max_length=200, validators=[alphanumeric_validator], blank=True)
     
     def __str__(self):
-        return f"{self.student.get_full_name()} — {self.topic}"
+        return f"{self.student.user.get_full_name()} — {self.topic}"
+
+
+class Feedback(models.Model):
+    """Feedback from students about completed appointments"""
+    appointment = models.OneToOneField(
+        Appointment, 
+        on_delete=models.CASCADE, 
+        related_name='feedback'
+    )
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    consultant = models.ForeignKey(Consultant, on_delete=models.CASCADE)
+    rating = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Rating from 1 to 5 stars"
+    )
+    comment = models.TextField(blank=True, help_text="Optional feedback comment")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Feedback by {self.student.user.get_full_name()} - {self.rating} stars"
+    
+    class Meta:
+        ordering = ['-created_at']
 
 
 class Verification(models.Model):
@@ -132,6 +155,16 @@ class Verification(models.Model):
         return f"{self.consultant.get_full_name()} - {self.status.capitalize()}"
 
 class Market(models.Model):
+    DAYS_CHOICES = [
+        ('monday', 'Monday'),
+        ('tuesday', 'Tuesday'),
+        ('wednesday', 'Wednesday'),
+        ('thursday', 'Thursday'),
+        ('friday', 'Friday'),
+        ('saturday', 'Saturday'),
+        ('sunday', 'Sunday'),
+    ]
+    
     consultant = models.ForeignKey(
         Consultant, on_delete=models.CASCADE, related_name="market_listings"
     )
@@ -139,6 +172,11 @@ class Market(models.Model):
     profession = models.CharField(max_length=100, validators=[alphanumeric_validator])
     available_from = models.TimeField()
     available_to = models.TimeField(null=True, blank=True)
+    available_days = models.CharField(
+        max_length=200, 
+        help_text="Comma-separated days (e.g., 'monday,wednesday,friday')",
+        blank=True
+    )
     rate_per_hour = models.PositiveIntegerField(help_text="Rate in PHP per hour")
     meeting_place = models.CharField(max_length=200, validators=[alphanumeric_validator], help_text="e.g. Online, CIT Campus, Coffee Shop")
     description = models.TextField(blank=True, help_text="Optional: short service description")
@@ -148,3 +186,13 @@ class Market(models.Model):
 
     def __str__(self):
         return f"{self.consultant.user.get_full_name()} — {self.profession} ({self.expertise})"
+    
+    def get_available_days_list(self):
+        """Returns a list of available days"""
+        if self.available_days:
+            return [day.strip() for day in self.available_days.split(',')]
+        return []
+    
+    def is_available_on_day(self, day_name):
+        """Check if consultant is available on a specific day (e.g., 'monday')"""
+        return day_name.lower() in self.get_available_days_list()

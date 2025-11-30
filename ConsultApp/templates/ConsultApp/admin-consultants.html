@@ -58,9 +58,17 @@
           {% for consultant in consultants %}
           <tr>
             <td><strong>{{ consultant.user.first_name }} {{ consultant.user.last_name }}</strong></td>
-            <td>{{ consultant.area_of_expertise|default:"—" }}</td>
+            <td>{% if consultant.expertise %}{{ consultant.expertise }}{% else %}N/A{% endif %}</td>
             <td>{{ consultant.user.email }}</td>
-            <td>{{ consultant.qualification|default:"—" }}</td>
+            <td>
+              {% if consultant.is_verified %}
+                {% with verification=consultant.user.verification_set.all|first %}
+                  {% if verification.qualification %}{{ verification.qualification|truncatewords:5 }}{% else %}N/A{% endif %}
+                {% endwith %}
+              {% else %}
+                N/A
+              {% endif %}
+            </td>
             <td>
               {% if consultant.is_verified %}
                 <span class="status-badge verified"><span class="dot"></span> verified</span>
@@ -71,9 +79,7 @@
               {% endif %}
             </td>
             <td>
-              <a href="#" class="action-link">View</a>
-              <a href="#" class="action-link">Edit</a>
-              <a href="#" class="action-link danger">Remove</a>
+              <a href="{% url 'consultant_profile_view' consultant.user.id %}" class="btn-view-details">👁 View Details</a>
             </td>
           </tr>
           {% empty %}

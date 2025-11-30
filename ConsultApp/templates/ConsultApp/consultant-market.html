@@ -6,8 +6,71 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ResearchMate — {% if market_listing %}Edit{% else %}Add{% endif %} Market Listing</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/verification.css'%}">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <style>
+    .expertise-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .expertise-option {
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: white;
+    }
+    
+    .expertise-option:hover {
+      border-color: #4CAF50;
+      background: #f1f8f4;
+    }
+    
+    .expertise-option.selected {
+      border-color: #4CAF50;
+      background: #4CAF50;
+      color: white;
+    }
+    
+    .expertise-option input[type="checkbox"] {
+      display: none;
+    }
+
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .day-option {
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: white;
+    }
+    
+    .day-option:hover {
+      border-color: #4CAF50;
+      background: #f1f8f4;
+    }
+    
+    .day-option.selected {
+      border-color: #4CAF50;
+      background: #4CAF50;
+      color: white;
+    }
+    
+    .day-option input[type="checkbox"] {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <nav class="top-nav">
@@ -18,6 +81,7 @@
       <a href="{% url 'consultant_profile' %}">👤 My Profile</a>
       <a href="{% url 'consultant_students' %}">🧑‍🎓 Students</a>
       <a href="{% url 'consultant_appointments' %}">📅 Appointments</a>
+      <a href="{% url 'consultant_history' %}">📜 History</a>
     </div>
 
     <div class="user-section">
@@ -53,26 +117,134 @@
     <div class="form-card">
       <h2>📋 Market Listing Form</h2>
       
-      <form method="POST" action="{% url 'consultant_market' %}">
+      <form id="marketForm" method="POST" action="{% url 'consultant_market' %}">
         {% csrf_token %}
         
         <div class="form-section">
           <h3>💼 Professional Details</h3>
 
           <div class="form-group">
-            <label for="expertise">Expertise / Specialization *</label>
-            <input type="text" id="expertise" name="expertise" 
-                   placeholder="e.g. Data Analysis, Research Methodology" 
-                   value="{% if market_listing %}{{ market_listing.expertise }}{% endif %}"
-                   required>
+            <label>Expertise / Specialization * (Select all that apply)</label>
+            <div class="expertise-grid" id="expertiseGrid">
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Research Methodology">
+                <span>📊 Research Methodology</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Data Analysis">
+                <span>📈 Data Analysis</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Statistical Analysis">
+                <span>📉 Statistical Analysis</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Qualitative Research">
+                <span>💬 Qualitative Research</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Quantitative Research">
+                <span>🔢 Quantitative Research</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Machine Learning">
+                <span>🤖 Machine Learning</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Artificial Intelligence">
+                <span>🧠 Artificial Intelligence</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Web Development">
+                <span>🌐 Web Development</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Mobile Development">
+                <span>📱 Mobile Development</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Database Design">
+                <span>🗄️ Database Design</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Cybersecurity">
+                <span>🔒 Cybersecurity</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Network Administration">
+                <span>🌐 Network Administration</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="UI/UX Design">
+                <span>🎨 UI/UX Design</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="System Analysis">
+                <span>⚙️ System Analysis</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Software Engineering">
+                <span>💻 Software Engineering</span>
+              </label>
+              <label class="expertise-option">
+                <input type="checkbox" name="expertise" value="Thesis Writing">
+                <span>✍️ Thesis Writing</span>
+              </label>
+            </div>
+            <p class="error-message" id="expertiseError" style="display: none; color: #dc2626; font-size: 13px; margin-top: 5px;">Please select at least one expertise</p>
           </div>
 
           <div class="form-group">
             <label for="profession">Profession *</label>
             <input type="text" id="profession" name="profession" 
                    placeholder="e.g. Research Consultant, Data Analyst" 
-                   value="{% if market_listing %}{{ market_listing.profession }}{% endif %}"
+                   value="{% if market_listing %}{{ market_listing.profession }}{% elif verification %}{{ verification.qualification }}{% endif %}"
+                   pattern="[A-Za-z0-9\s\-]+" title="Only letters, numbers, spaces, and hyphens allowed"
                    required>
+          </div>
+
+          <div class="form-group">
+            <label for="workplace">Workplace *</label>
+            <input type="text" id="workplace" name="workplace" 
+                   placeholder="e.g. ABC University, XYZ Research Center" 
+                   value="{% if market_listing %}{{ market_listing.workplace }}{% elif verification %}{{ verification.workplace }}{% elif consultant %}{{ consultant.workplace }}{% endif %}"
+                   pattern="[A-Za-z0-9\s\-]+" title="Only letters, numbers, spaces, and hyphens allowed"
+                   required>
+          </div>
+
+          <div class="form-group">
+            <label>Available Days * (Select all that apply)</label>
+            <div class="days-grid" id="daysGrid">
+              <label class="day-option">
+                <input type="checkbox" name="available_days" value="monday">
+                <span>📅 Monday</span>
+              </label>
+              <label class="day-option">
+                <input type="checkbox" name="available_days" value="tuesday">
+                <span>📅 Tuesday</span>
+              </label>
+              <label class="day-option">
+                <input type="checkbox" name="available_days" value="wednesday">
+                <span>📅 Wednesday</span>
+              </label>
+              <label class="day-option">
+                <input type="checkbox" name="available_days" value="thursday">
+                <span>📅 Thursday</span>
+              </label>
+              <label class="day-option">
+                <input type="checkbox" name="available_days" value="friday">
+                <span>📅 Friday</span>
+              </label>
+              <label class="day-option">
+                <input type="checkbox" name="available_days" value="saturday">
+                <span>📅 Saturday</span>
+              </label>
+              <label class="day-option">
+                <input type="checkbox" name="available_days" value="sunday">
+                <span>📅 Sunday</span>
+              </label>
+            </div>
+            <p class="error-message" id="daysError" style="display: none; color: #dc2626; font-size: 13px; margin-top: 5px;">Please select at least one available day</p>
           </div>
 
           <div class="form-group">
@@ -84,7 +256,7 @@
 
           <div class="form-group">
             <label for="available_to">Available To *</label>
-            <input type="time" id="available_until" name="available_to" 
+            <input type="time" id="available_to" name="available_to" 
                    value="{% if market_listing %}{{ market_listing.available_to|time:'H:i' }}{% endif %}"
                    required>
           </div>
@@ -92,31 +264,32 @@
           <div class="form-group">
             <label for="rate_per_hour">Rate per Hour (₱) *</label>
             <input type="number" id="rate_per_hour" name="rate_per_hour" 
-                   placeholder="e.g. ₱500" min="100" step="50" 
+                   placeholder="e.g. 500" min="100" max="10000" step="50" 
                    value="{% if market_listing %}{{ market_listing.rate_per_hour }}{% endif %}"
                    required>
+            <p class="file-hint">Minimum: ₱100, Maximum: ₱10,000</p>
           </div>
 
           <div class="form-group">
             <label for="meeting_place">Meeting Place *</label>
-            <input type="text" id="meeting_place" name="meeting_place" 
-                   placeholder="e.g. Online (Zoom), CIT Campus" 
-                   value="{% if market_listing %}{{ market_listing.meeting_place }}{% endif %}"
-                   required>
+            <select id="meeting_place" name="meeting_place" required>
+              <option value="">Select meeting location</option>
+              <option value="Online (Zoom)" {% if market_listing and market_listing.meeting_place == "Online (Zoom)" %}selected{% endif %}>Online (Zoom)</option>
+              <option value="Online (Google Meet)" {% if market_listing and market_listing.meeting_place == "Online (Google Meet)" %}selected{% endif %}>Online (Google Meet)</option>
+              <option value="Online (Microsoft Teams)" {% if market_listing and market_listing.meeting_place == "Online (Microsoft Teams)" %}selected{% endif %}>Online (Microsoft Teams)</option>
+              <option value="CIT Campus" {% if market_listing and market_listing.meeting_place == "CIT Campus" %}selected{% endif %}>CIT Campus</option>
+              <option value="Coffee Shop" {% if market_listing and market_listing.meeting_place == "Coffee Shop" %}selected{% endif %}>Coffee Shop</option>
+              <option value="Library" {% if market_listing and market_listing.meeting_place == "Library" %}selected{% endif %}>Library</option>
+              <option value="Consultant Office" {% if market_listing and market_listing.meeting_place == "Consultant Office" %}selected{% endif %}>Consultant Office</option>
+            </select>
           </div>
 
           <div class="form-group">
             <label for="description">Service Description (Optional)</label>
             <textarea id="description" name="description" 
                       placeholder="Briefly describe what you offer..." 
-                      rows="3">{% if market_listing %}{{ market_listing.description }}{% endif %}</textarea>
-          </div>
-
-          <div class="form-group checkbox-group">
-            <label>
-              Active Listing
-              <input type="checkbox" name="is_active" {% if not market_listing or market_listing.is_active %}checked{% endif %}>
-            </label>
+                      rows="3" maxlength="500">{% if market_listing %}{{ market_listing.description }}{% endif %}</textarea>
+            <p class="file-hint">Maximum 500 characters</p>
           </div>
         </div>
 
@@ -129,18 +302,100 @@
   </main>
 
   <script>
-    flatpickr("#available_from", {
-      enableTime: true,
-      noCalendar: true,
-      dateFormat: "h:i K", 
-      time_24hr: false
+    // Toggle expertise selection
+    document.querySelectorAll('.expertise-option').forEach(option => {
+      option.addEventListener('click', function() {
+        const checkbox = this.querySelector('input[type="checkbox"]');
+        checkbox.checked = !checkbox.checked;
+        this.classList.toggle('selected', checkbox.checked);
+      });
     });
 
-    flatpickr("#available_until", {
-      enableTime: true,
-      noCalendar: true,
-      dateFormat: "h:i K",
-      time_24hr: false
+    // Toggle day selection
+    document.querySelectorAll('.day-option').forEach(option => {
+      option.addEventListener('click', function() {
+        const checkbox = this.querySelector('input[type="checkbox"]');
+        checkbox.checked = !checkbox.checked;
+        this.classList.toggle('selected', checkbox.checked);
+      });
+    });
+
+    // Pre-select existing expertise
+    {% if market_listing and market_listing.expertise %}
+      const existingExpertise = "{{ market_listing.expertise }}".split(', ');
+      existingExpertise.forEach(exp => {
+        const checkbox = document.querySelector(`input[name="expertise"][value="${exp.trim()}"]`);
+        if (checkbox) {
+          checkbox.checked = true;
+          checkbox.closest('.expertise-option').classList.add('selected');
+        }
+      });
+    {% elif verification and verification.expertise %}
+      const verificationExpertise = "{{ verification.expertise }}".split(', ');
+      verificationExpertise.forEach(exp => {
+        const checkbox = document.querySelector(`input[name="expertise"][value="${exp.trim()}"]`);
+        if (checkbox) {
+          checkbox.checked = true;
+          checkbox.closest('.expertise-option').classList.add('selected');
+        }
+      });
+    {% endif %}
+
+    // Pre-select existing days
+    {% if market_listing and market_listing.available_days %}
+      const existingDays = "{{ market_listing.available_days }}".split(',');
+      existingDays.forEach(day => {
+        const checkbox = document.querySelector(`input[name="available_days"][value="${day.trim()}"]`);
+        if (checkbox) {
+          checkbox.checked = true;
+          checkbox.closest('.day-option').classList.add('selected');
+        }
+      });
+    {% endif %}
+
+    // Form validation
+    document.getElementById('marketForm').addEventListener('submit', function(e) {
+      const expertiseChecked = document.querySelectorAll('input[name="expertise"]:checked').length;
+      const expertiseError = document.getElementById('expertiseError');
+      
+      const daysChecked = document.querySelectorAll('input[name="available_days"]:checked').length;
+      const daysError = document.getElementById('daysError');
+      
+      let hasError = false;
+      
+      if (expertiseChecked === 0) {
+        e.preventDefault();
+        expertiseError.style.display = 'block';
+        document.getElementById('expertiseGrid').scrollIntoView({ behavior: 'smooth' });
+        hasError = true;
+      } else {
+        expertiseError.style.display = 'none';
+      }
+
+      if (daysChecked === 0) {
+        e.preventDefault();
+        daysError.style.display = 'block';
+        if (!hasError) {
+          document.getElementById('daysGrid').scrollIntoView({ behavior: 'smooth' });
+        }
+        hasError = true;
+      } else {
+        daysError.style.display = 'none';
+      }
+
+      if (hasError) {
+        return false;
+      }
+
+      // Validate time range
+      const timeFrom = document.getElementById('available_from').value;
+      const timeTo = document.getElementById('available_to').value;
+      
+      if (timeFrom && timeTo && timeFrom >= timeTo) {
+        e.preventDefault();
+        alert('Available To time must be after Available From time');
+        return false;
+      }
     });
   </script>
 </body>
