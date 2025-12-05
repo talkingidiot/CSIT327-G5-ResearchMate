@@ -6,48 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consultant Verification</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/verification.css'%}">
-  <style>
-    .expertise-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-    }
-    
-    .expertise-option {
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 12px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      background: white;
-    }
-    
-    .expertise-option:hover {
-      border-color: #4CAF50;
-      background: #f1f8f4;
-    }
-    
-    .expertise-option.selected {
-      border-color: #4CAF50;
-      background: #4CAF50;
-      color: white;
-    }
-    
-    .expertise-option input[type="checkbox"] {
-      display: none;
-    }
-    
-    .error-message {
-      color: #dc2626;
-      font-size: 13px;
-      margin-top: 5px;
-    }
-  </style>
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
@@ -68,7 +28,6 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
     {% if messages %}
       <div class="alert">
@@ -78,45 +37,42 @@
       </div>
     {% endif %}
 
-    <!-- Page Header -->
     <div class="page-header">
       <div class="badge">🎓 Consultant Access</div>
       <h1>Consultant Verification</h1>
       <p>Fill in your details to be verified and available for bookings</p>
     </div>
 
-    <!-- Info Box -->
     <div class="info-box">
       <h4>ℹ️ Verification Process</h4>
       <p>Your application will be reviewed by our admin team within 2-3 business days. You'll receive an email notification once your verification is approved.</p>
     </div>
 
-    <!-- Form Card -->
     <div class="form-card">
       <h2>📋 Verification Form</h2>
       
       <form id="verificationForm" method="POST" action="{% url 'consultant_verification' %}" enctype="multipart/form-data">
         {% csrf_token %}
         
-        <!-- Personal Information -->
         <div class="form-section">
           <h3>👤 Personal Information</h3>
           
           <div class="form-group">
-            <label for="fullName">Full Name *</label>
-            <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" 
-                   pattern="[A-Za-z\s\-]+" title="Only letters, spaces, and hyphens allowed" required>
+            <label for="fullName">Full Name * <span style="color: #999; font-size: 12px;">(Cannot be changed)</span></label>
+            <input type="text" id="fullName" name="fullName" value="{{ user_full_name }}" 
+                  pattern="[A-Za-z\s\-]+" title="Only letters, spaces, and hyphens allowed" readonly required
+                  style="background-color: #f5f5f5; cursor: not-allowed; opacity: 0.7;">
           </div>
 
           <div class="form-group">
             <label for="contact">Contact Number (Philippine) *</label>
-            <input type="tel" id="contact" name="contact" placeholder="09123456789" 
-                   pattern="09[0-9]{9}" maxlength="11" title="Must be 11 digits starting with 09" required>
+            <input type="tel" id="contact" name="contact" 
+              value="{{ submitted_data.contact|default:'' }}" 
+              placeholder="09XXXXXXXXX" required >
             <p class="file-hint">Format: 09XXXXXXXXX (11 digits)</p>
           </div>
         </div>
 
-        <!-- Professional Information -->
         <div class="form-section">
           <h3>💼 Professional Information</h3>
           
@@ -124,67 +80,83 @@
             <label>Expertise / Specialization * (Select all that apply)</label>
             <div class="expertise-grid" id="expertiseGrid">
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Research Methodology">
+                <input type="checkbox" name="expertise" value="Research Methodology"
+                {% if 'Research Methodology' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>📊 Research Methodology</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Data Analysis">
+                <input type="checkbox" name="expertise" value="Data Analysis"
+                {% if 'Data Analysis' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>📈 Data Analysis</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Statistical Analysis">
+                <input type="checkbox" name="expertise" value="Statistical Analysis"
+                {% if 'Statistical Analysis' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>📉 Statistical Analysis</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Qualitative Research">
+                <input type="checkbox" name="expertise" value="Qualitative Research"
+                {% if 'Qualitative Research' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>💬 Qualitative Research</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Quantitative Research">
+                <input type="checkbox" name="expertise" value="Quantitative Research"
+                {% if 'Quantitative Research' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>🔢 Quantitative Research</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Machine Learning">
+                <input type="checkbox" name="expertise" value="Machine Learning"
+                {% if 'Machine Learning' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>🤖 Machine Learning</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Artificial Intelligence">
+                <input type="checkbox" name="expertise" value="Artificial Intelligence"
+                {% if 'Artificial Intelligence' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>🧠 Artificial Intelligence</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Web Development">
+                <input type="checkbox" name="expertise" value="Web Development"
+                {% if 'Web Development' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>🌐 Web Development</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Mobile Development">
+                <input type="checkbox" name="expertise" value="Mobile Development"
+                {% if 'Mobile Development' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>📱 Mobile Development</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Database Design">
+                <input type="checkbox" name="expertise" value="Database Design"
+                {% if 'Database Design' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>🗄️ Database Design</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Cybersecurity">
+                <input type="checkbox" name="expertise" value="Cybersecurity"
+                {% if 'Cybersecurity' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>🔒 Cybersecurity</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Network Administration">
+                <input type="checkbox" name="expertise" value="Network Administration"
+                {% if 'Network Administration' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>🌐 Network Administration</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="UI/UX Design">
+                <input type="checkbox" name="expertise" value="UI/UX Design"
+                {% if 'UI/UX Design' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>🎨 UI/UX Design</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="System Analysis">
+                <input type="checkbox" name="expertise" value="System Analysis"
+                {% if 'System Analysis' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>⚙️ System Analysis</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Software Engineering">
+                <input type="checkbox" name="expertise" value="Software Engineering"
+                {% if 'Software Engineering' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>💻 Software Engineering</span>
               </label>
               <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Thesis Writing">
+                <input type="checkbox" name="expertise" value="Thesis Writing"
+                {% if 'Thesis Writing' in submitted_data.expertise_list %}checked{% endif %}>
                 <span>✍️ Thesis Writing</span>
               </label>
             </div>
@@ -193,24 +165,24 @@
 
           <div class="form-group">
             <label for="workplace">Workplace *</label>
-            <input type="text" id="workplace" name="workplace" placeholder="Your current workplace"
-                   pattern="[A-Za-z0-9\s\-\.]+" title="Only letters, numbers, spaces, hyphens, and periods allowed" required>
+            <input type="text" id="workplace" name="workplace" 
+              value="{{ submitted_data.workplace|default:'' }}" required >
           </div>
 
           <div class="form-group">
             <label for="qualification">Qualification *</label>
-            <input type="text" id="qualification" name="qualification" placeholder="Your degree or certification"
-                   pattern="[A-Za-z0-9\s\-\.,]+" title="Only letters, numbers, spaces, hyphens, periods, and commas allowed" required>
+            <input type="text" id="qualification" name="qualification" 
+              value="{{ submitted_data.qualification|default:'' }}" required >
+              <p class="file-hint">College degree or educational background</p>
           </div>
 
           <div class="form-group">
             <label for="bio">Short Bio</label>
-            <textarea id="bio" name="bio" placeholder="Introduce yourself and your experience..." maxlength="500"></textarea>
+            <textarea id="bio" name="bio" placeholder="Introduce yourself...">{{ submitted_data.bio|default:'' }}</textarea>
             <p class="file-hint">Tell us about your background and what makes you a great consultant (max 500 characters)</p>
           </div>
         </div>
 
-        <!-- Document Upload (Single file, but shows 3 options) -->
         <div class="form-section">
           <h3>📄 Required Document</h3>
           <p style="color: #666; margin-bottom: 15px;">Upload one of the following documents for verification:</p>
@@ -236,10 +208,9 @@
           <p class="error-message" id="fileError" style="display: none;">Please upload at least one document</p>
         </div>
 
-        <!-- Form Actions -->
         <div class="form-actions">
           <button type="submit" id="submitVerification" class="btn-submit">
-            ✓ Submit Verification Request
+            Submit Verification Request
           </button>
           <button type="button" class="btn-cancel" onclick="window.location.href='{% url 'consultant_dashboard' %}'">
             Cancel
@@ -248,68 +219,32 @@
       </form>
     </div>
   </main>
-
   <script>
-    // Toggle expertise selection
-    document.querySelectorAll('.expertise-option').forEach(option => {
-      option.addEventListener('click', function() {
-        const checkbox = this.querySelector('input[type="checkbox"]');
-        checkbox.checked = !checkbox.checked;
-        this.classList.toggle('selected', checkbox.checked);
-      });
-    });
+    document.addEventListener("DOMContentLoaded", function() {
+      const options = document.querySelectorAll('.expertise-option');
 
-    // Form validation
-    document.getElementById('verificationForm').addEventListener('submit', function(e) {
-      let hasError = false;
-      
-      // Check expertise
-      const expertiseChecked = document.querySelectorAll('input[name="expertise"]:checked').length;
-      const errorMsg = document.getElementById('expertiseError');
-      
-      if (expertiseChecked === 0) {
-        e.preventDefault();
-        errorMsg.style.display = 'block';
-        document.getElementById('expertiseGrid').scrollIntoView({ behavior: 'smooth' });
-        hasError = true;
-      } else {
-        errorMsg.style.display = 'none';
-      }
+      options.forEach(option => {
+        const checkbox = option.querySelector('input[type="checkbox"]');
 
-      // Check if at least one file is uploaded
-      const validId = document.getElementById('validId').files.length;
-      const license = document.getElementById('license').files.length;
-      const profilePhoto = document.getElementById('profilePhoto').files.length;
-      const fileError = document.getElementById('fileError');
-      
-      if (validId === 0 && license === 0 && profilePhoto === 0) {
-        e.preventDefault();
-        fileError.style.display = 'block';
-        hasError = true;
-      } else {
-        fileError.style.display = 'none';
-      }
-
-      if (hasError) return false;
-
-      // Validate file sizes
-      const files = ['validId', 'license', 'profilePhoto'];
-      for (let fileId of files) {
-        const fileInput = document.getElementById(fileId);
-        if (fileInput.files.length > 0) {
-          const fileSize = fileInput.files[0].size / 1024 / 1024; // in MB
-          if (fileSize > 5) {
-            e.preventDefault();
-            alert(`File size must be less than 5MB`);
-            return false;
-          }
+        if (checkbox.checked) {
+          option.classList.add('selected');
         }
-      }
-    });
 
-    // Contact number formatting
-    document.getElementById('contact').addEventListener('input', function(e) {
-      this.value = this.value.replace(/[^0-9]/g, '');
+        checkbox.addEventListener('change', function() {
+          if (checkbox.checked) {
+            option.classList.add('selected');
+          } else {
+            option.classList.remove('selected');
+          }
+        });
+      });
+
+      const contactInput = document.getElementById('contact');
+      if (contactInput) {
+        contactInput.addEventListener('input', function(e) {
+          this.value = this.value.replace(/[^0-9]/g, '');
+        });
+      }
     });
   </script>
 </body>

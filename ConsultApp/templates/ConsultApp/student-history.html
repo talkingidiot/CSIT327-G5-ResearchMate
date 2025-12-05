@@ -7,101 +7,7 @@
   <title>ResearchMate — History</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/student.css'%}">
   <link rel="stylesheet" href="{% static 'ConsultApp/student-dashboard.css'%}">
-  <style>
-    .feedback-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
-    .feedback-content {
-      background: white;
-      padding: 30px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    }
-    .feedback-content h2 {
-      margin-top: 0;
-      margin-bottom: 20px;
-      color: #333;
-    }
-    .star-rating {
-      display: flex;
-      gap: 8px;
-      font-size: 36px;
-      justify-content: center;
-      margin: 20px 0;
-    }
-    .star {
-      cursor: pointer;
-      color: #ddd;
-      transition: color 0.2s;
-    }
-    .star.active {
-      color: #ffc107;
-    }
-    .star:hover {
-      color: #ffb300;
-    }
-    .feedback-comment {
-      width: 100%;
-      min-height: 100px;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 14px;
-      resize: vertical;
-      margin-top: 15px;
-    }
-    .feedback-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-      justify-content: flex-end;
-    }
-    .btn-submit-feedback {
-      background: #4caf50;
-      color: white;
-      padding: 10px 24px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-    }
-    .btn-submit-feedback:hover {
-      background: #45a049;
-    }
-    .btn-cancel-feedback {
-      background: #f44336;
-      color: white;
-      padding: 10px 24px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .btn-cancel-feedback:hover {
-      background: #da190b;
-    }
-    .feedback-given {
-      background: #e8f5e9;
-      color: #2e7d32;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 500;
-    }
-  </style>
+  <link rel="stylesheet" href="{% static 'ConsultApp/feedback.css'%}">
 </head>
 <body>
   <nav class="top-nav">
@@ -154,7 +60,7 @@
         placeholder="Share your experience (optional)..."
       ></textarea>
       
-      <form method="POST" id="feedbackForm">
+      <form method="POST" id="feedbackForm" action="{% url 'submit_feedback' %}">
         {% csrf_token %}
         <input type="hidden" name="appointment_id" id="appointmentId">
         <input type="hidden" name="rating" id="ratingValue">
@@ -190,6 +96,13 @@
             <option value="{{ consultant.user.id }}">{{ consultant.user.get_full_name }}</option>
           {% endfor %}
         </select>
+        
+        <select id="statusFilter">
+          <option value="all">All Statuses</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="disputed">Pending Admin Review</option>
+        </select>
       </div>
       <div class="results-count">
         Showing <span id="visibleCount">{{ appointments|length }}</span> result(s)
@@ -201,7 +114,8 @@
         {% for appointment in appointments %}
           <div class="booking-card" 
                data-consultant="{{ appointment.consultant.user.id }}" 
-               data-date="{{ appointment.date|date:'Y-m-d' }}">
+               data-date="{{ appointment.date|date:'Y-m-d' }}"
+               data-status="{{ appointment.status }}">
             
             <div class="booking-header">
               <div class="consultant-info">
@@ -213,6 +127,8 @@
                 <span class="status-badge completed">🏁 Completed</span>
               {% elif appointment.status == 'cancelled' %}
                 <span class="status-badge cancelled">❌ Cancelled</span>
+              {% elif appointment.status == 'disputed' %}
+                <span class="status-badge disputed">⚠️ Pending Admin Review</span>
               {% endif %}
             </div>
 
@@ -229,6 +145,14 @@
                 <span class="label">Duration:</span>
                 <span class="value">{{ appointment.duration_minutes }} minutes</span>
               </div>
+              
+              {% if appointment.status == 'disputed' %}
+                <div class="dispute-info-box">
+                  <p><strong>⏳ Status:</strong> Pending Admin Review</p>
+                  <p><strong>Your dispute reason:</strong> "{{ appointment.student_dispute_remark }}"</p>
+                  <p style="font-size: 12px; margin-top: 8px;">An administrator will review this case and make a final decision.</p>
+                </div>
+              {% endif %}
             </div>
 
             <div class="booking-actions">
@@ -255,6 +179,10 @@
                       '{{ appointment.consultant.user.get_full_name }}'
                     )">⭐ Give Feedback</button>
                 {% endif %}
+              {% elif appointment.status == 'disputed' %}
+                <span style="font-size: 13px; color: #856404; background: #fff3cd; padding: 6px 12px; border-radius: 4px; display: inline-block;">
+                  ⏳ Pending Admin Review
+                </span>
               {% endif %}
             </div>
           </div>
@@ -269,20 +197,24 @@
     document.addEventListener("DOMContentLoaded", function() {
         const timeFilter = document.getElementById('timeFilter');
         const consultantFilter = document.getElementById('consultantFilter');
+        const statusFilter = document.getElementById('statusFilter');
         const cards = document.querySelectorAll('.booking-card');
         const countSpan = document.getElementById('visibleCount');
 
         function applyFilters() {
             const selectedTime = timeFilter.value;
             const selectedConsultant = consultantFilter.value;
+            const selectedStatus = statusFilter.value;
             const today = new Date();
             let visibleCount = 0;
 
             cards.forEach(card => {
                 const cardConsultantId = card.dataset.consultant;
                 const cardDate = new Date(card.dataset.date);
+                const cardStatus = card.dataset.status;
 
                 let consultantMatch = (selectedConsultant === 'all') || (cardConsultantId === selectedConsultant);
+                let statusMatch = (selectedStatus === 'all') || (cardStatus === selectedStatus);
                 let timeMatch = true;
 
                 if (selectedTime !== 'all') {
@@ -292,7 +224,7 @@
                     timeMatch = cardDate >= timeLimit;
                 }
 
-                if (consultantMatch && timeMatch) {
+                if (consultantMatch && timeMatch && statusMatch) {
                     card.style.display = 'block';
                     visibleCount++;
                 } else {
@@ -304,6 +236,7 @@
 
         timeFilter.addEventListener('change', applyFilters);
         consultantFilter.addEventListener('change', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
     });
 
     const modal = document.getElementById("detailsModal");

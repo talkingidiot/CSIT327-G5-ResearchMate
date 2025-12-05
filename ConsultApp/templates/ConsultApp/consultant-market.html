@@ -6,71 +6,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ResearchMate — {% if market_listing %}Edit{% else %}Add{% endif %} Market Listing</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/verification.css'%}">
-  <style>
-    .expertise-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-    }
-    
-    .expertise-option {
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 12px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      background: white;
-    }
-    
-    .expertise-option:hover {
-      border-color: #4CAF50;
-      background: #f1f8f4;
-    }
-    
-    .expertise-option.selected {
-      border-color: #4CAF50;
-      background: #4CAF50;
-      color: white;
-    }
-    
-    .expertise-option input[type="checkbox"] {
-      display: none;
-    }
-
-    .days-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-    }
-    
-    .day-option {
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      background: white;
-    }
-    
-    .day-option:hover {
-      border-color: #4CAF50;
-      background: #f1f8f4;
-    }
-    
-    .day-option.selected {
-      border-color: #4CAF50;
-      background: #4CAF50;
-      color: white;
-    }
-    
-    .day-option input[type="checkbox"] {
-      display: none;
-    }
-  </style>
 </head>
 <body>
   <nav class="top-nav">
@@ -93,7 +28,6 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
     {% if messages %}
       <div class="alert">
@@ -294,7 +228,7 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn-submit">✓ {% if market_listing %}Update{% else %}Submit{% endif %} Listing</button>
+          <button type="submit" class="btn-submit">{% if market_listing %}Update{% else %}Submit{% endif %} Listing</button>
           <button type="button" class="btn-cancel" onclick="window.location.href='{% url 'consultant_dashboard' %}'">Cancel</button>
         </div>
       </form>
@@ -302,7 +236,6 @@
   </main>
 
   <script>
-    // Toggle expertise selection
     document.querySelectorAll('.expertise-option').forEach(option => {
       option.addEventListener('click', function() {
         const checkbox = this.querySelector('input[type="checkbox"]');
@@ -311,7 +244,6 @@
       });
     });
 
-    // Toggle day selection
     document.querySelectorAll('.day-option').forEach(option => {
       option.addEventListener('click', function() {
         const checkbox = this.querySelector('input[type="checkbox"]');
@@ -320,7 +252,6 @@
       });
     });
 
-    // Pre-select existing expertise
     {% if market_listing and market_listing.expertise %}
       const existingExpertise = "{{ market_listing.expertise }}".split(', ');
       existingExpertise.forEach(exp => {
@@ -341,7 +272,6 @@
       });
     {% endif %}
 
-    // Pre-select existing days
     {% if market_listing and market_listing.available_days %}
       const existingDays = "{{ market_listing.available_days }}".split(',');
       existingDays.forEach(day => {

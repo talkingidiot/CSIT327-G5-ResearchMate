@@ -6,62 +6,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Consultant Details</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
-  <style>
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-    .detail-box {
-      background: var(--light-bg);
-      padding: 20px;
-      border-radius: 12px;
-      border-left: 4px solid var(--navy);
-    }
-    .detail-box label {
-      font-size: 12px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      font-weight: 600;
-      display: block;
-      margin-bottom: 8px;
-    }
-    .detail-box p {
-      font-size: 16px;
-      color: var(--text-dark);
-      font-weight: 600;
-      margin: 0;
-    }
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      background: var(--navy);
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: 0.3s;
-      margin-bottom: 24px;
-    }
-    .back-btn:hover {
-      background: #004080;
-    }
-  </style>
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
       <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+      <a href="{% url 'admin_profile' %}">👤 Profile</a>
       <a href="{% url 'admin_students' %}">👥 Students</a>
       <a href="{% url 'admin_consultants' %}" class="active">👩‍🏫 Consultants</a>
-      <a href="{% url 'admin_reports' %}">📊 Reports</a>
-      <a href="{% url 'admin_profile' %}">👤 Profile</a>
     </div>
 
     <div class="user-section">
@@ -73,17 +27,14 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
     <a href="{% url 'admin_consultants' %}" class="back-btn">← Back to Consultants</a>
 
-    <!-- Page Header -->
     <div class="page-header">
       <h1>Consultant Profile Details</h1>
       <p>Viewing profile for {{ full_name }}</p>
     </div>
 
-    <!-- Personal Information -->
     <div class="section-card">
       <div class="section-header">
         <h2>Personal Information</h2>
@@ -113,17 +64,20 @@
         <div class="detail-box">
           <label>Verification Status</label>
           <p>
-            {% if is_verified %}
-              <span class="status-badge verified"><span class="dot"></span> Verified</span>
+            {% if consultant_status == 'verified' %}
+              <span class="status-badge verified"><span class="dot"></span> verified</span>
+            {% elif consultant_status == 'pending' %}
+              <span class="status-badge pending"><span class="dot"></span> pending</span>
+            {% elif consultant_status == 'not_verified' %}
+              <span class="status-badge unverified"><span class="dot"></span> not verified</span>
             {% else %}
-              <span class="status-badge pending"><span class="dot"></span> Not Verified</span>
+              <span class="status-badge inactive"><span class="dot"></span> inactive</span>
             {% endif %}
           </p>
         </div>
       </div>
     </div>
 
-    <!-- Professional Information -->
     <div class="section-card">
       <div class="section-header">
         <h2>Professional Information</h2>
@@ -157,7 +111,6 @@
       </div>
     </div>
 
-    <!-- Market Listing (if available) -->
     {% if market_listing %}
     <div class="section-card">
       <div class="section-header">

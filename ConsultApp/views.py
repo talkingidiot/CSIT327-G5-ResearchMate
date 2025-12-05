@@ -7,7 +7,9 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from datetime import datetime, timedelta, time as dt_time, datetime as dt_datetime
 from .models import User, Student, Consultant, Admin, Appointment, Verification, Market
-
+from django.db.models import Prefetch, Case, When, Value, BooleanField
+from supabase import create_client, Client 
+from django.core.files.uploadedfile import UploadedFile
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.template.loader import render_to_string
@@ -17,8 +19,58 @@ from django.conf import settings
 from django.urls import reverse
 from django.db.models import Q
 import re
+import mimetypes
 
 User = get_user_model()
+
+# Initializing client connection
+try:
+    supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+except Exception as e:
+    print(f"Supabase Client Error: {e}")
+    supabase = None
+
+# Documents image/file helper function
+def get_verification_documents(user_id):
+    if not supabase:
+        return {}
+        
+    documents = {}
+    try:
+        files = supabase.storage.from_("verification_documents").list(f"{user_id}")
+        
+        for file_obj in files:
+            file_name = file_obj.get('name', '')
+            
+            key = None
+            if file_name.startswith('validId'): key = 'validId'
+            elif file_name.startswith('license'): key = 'license'
+            elif file_name.startswith('profilePhoto'): key = 'profilePhoto'
+            
+            if key:
+                path = f"{user_id}/{file_name}"
+                res = supabase.storage.from_("verification_documents").create_signed_url(path, 600)
+                
+                if isinstance(res, dict) and 'signedURL' in res:
+                    documents[key] = res['signedURL']
+                elif isinstance(res, str):
+                    documents[key] = res
+                    
+    except Exception as e:
+        print(f"Error fetching documents for {user_id}: {e}")
+        
+    return documents
+
+# Avatar image helper function
+def get_avatar_url(user_id):
+    if not supabase:
+        return None
+    try:
+        # Construct path: user_id/profile.png
+        storage_path = f"{user_id}/profile.png"
+        return supabase.storage.from_("avatars").get_public_url(storage_path)
+    except Exception:
+        return None
 
 # Validation helper functions
 def validate_name(name):
@@ -66,7 +118,7 @@ def login_register_view(request):
 def register_view(request):
     if request.method == "POST":
         full_name = request.POST.get("full_name", "").strip()
-        email = request.POST.get("email")
+        email = request.POST.get("signup_email")
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirmPassword")
         role = request.POST.get("role")
@@ -160,7 +212,7 @@ def register_view(request):
 @csrf_exempt
 def login_view(request):
     if request.method == "POST":
-        email = request.POST.get("email", "").strip()
+        email = request.POST.get("login_email", "").strip()
         password = request.POST.get("password", "")
         errors = False
         fields = [email, password]
@@ -206,15 +258,19 @@ def logout_view(request):
     return redirect("login")
 
 # 🔹 Consultant Views
-
-# Add this function after the logout_view and before update_appointment_status
-# Around line 210 in your views.py
-
 @login_required
 def consultant_dashboard(request):
     consultant_user = request.user
     consultant = Consultant.objects.filter(user=consultant_user).first()
-
+    base_avatar_url = get_avatar_url(consultant_user.id)
+    avatar_url = None
+    if base_avatar_url:
+        timestamp = request.session.get('avatar_version', int(datetime.now().timestamp()))
+        avatar_url = f"{base_avatar_url}?t={timestamp}"
+    def attach_avatar(person):
+        user_id = person.user.id if hasattr(person, 'user') else person.student.user.id
+        url = get_avatar_url(user_id)
+        return f"{url}?t={timestamp}" if url else None
     pending_verification = Verification.objects.filter(
         consultant=consultant_user,
         status='pending'
@@ -234,16 +290,34 @@ def consultant_dashboard(request):
 
     total_students = Student.objects.count()
     total_appointments = Appointment.objects.filter(consultant=consultant).count() if consultant else 0
+        
+    assigned_students = list(Student.objects.filter(
+        student_appointments__consultant=consultant
+    ).select_related('user').distinct()) if consultant else []
 
-    assigned_students = Student.objects.filter(assigned_consultant=consultant) if consultant else []
+    for stud in assigned_students:
+        stud.avatar_url = attach_avatar(stud)
 
-    pending_appointments = Appointment.objects.filter(consultant=consultant, status='pending')
-    confirmed_appointments = Appointment.objects.filter(consultant=consultant, status='confirmed')
+    
+    pending_appointments = list(Appointment.objects.filter(
+        consultant=consultant, status='pending'
+    ).select_related('student__user'))
+    
+    for appt in pending_appointments:
+        appt.student.avatar_url = attach_avatar(appt.student)
+
+    
+    confirmed_appointments = list(Appointment.objects.filter(
+        consultant=consultant, status='confirmed'
+    ).select_related('student__user'))
+
+    for appt in confirmed_appointments:
+        appt.student.avatar_url = attach_avatar(appt.student)
+    
     cancelled_appointments = Appointment.objects.filter(consultant=consultant, status='cancelled')
 
     market_listing = Market.objects.filter(consultant=consultant).first() if consultant else None
 
-    # ✨ ADD THESE LINES FOR FEEDBACK
     from .models import Feedback
     consultant_feedbacks = []
     average_rating = 0
@@ -270,8 +344,9 @@ def consultant_dashboard(request):
         "pending_appointments": pending_appointments,
         "cancelled_appointments": cancelled_appointments,
         "market_listing": market_listing,
-        "consultant_feedbacks": consultant_feedbacks,  # ✨ ADD THIS
-        "average_rating": average_rating,  # ✨ ADD THIS
+        "consultant_feedbacks": consultant_feedbacks,
+        "average_rating": average_rating,
+        "avatar_url": avatar_url,
     }
 
     return render(request, "ConsultApp/consultant-dashboard.html", context)
@@ -312,7 +387,6 @@ def update_appointment_status(request, appointment_id):
                 f"Appointment with {appointment.student.user.get_full_name()} rejected."
             )
 
-    # ✅ Keep your original redirection
     next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or 'consultant_dashboard'
     return redirect(next_url)
 
@@ -347,15 +421,13 @@ def consultant_history_view(request):
         if appt.date < now or (appt.date == now and appt.time < current_time):
             appt.status = 'completed'
             appt.save()
-            
-            # ✅ UPDATE STUDENT'S SESSIONS COMPLETED
             student = appt.student
             student.sessions_completed += 1
             student.save()
 
     appointments = Appointment.objects.filter(
         consultant=consultant,
-        status__in=['completed', 'cancelled']
+        status__in=['completed', 'cancelled', 'disputed', 'pending_student_review']
     ).select_related('student__user').order_by('-date', '-time')
 
     context = {"appointments": appointments}
@@ -365,7 +437,20 @@ def consultant_history_view(request):
 def consultant_students_view(request):
     try:
         consultant = Consultant.objects.get(user=request.user)
-        students = Student.objects.filter(assigned_consultant=consultant)
+        
+        students = list(Student.objects.filter(
+            student_appointments__consultant=consultant
+        ).select_related('user').distinct()) 
+        
+        timestamp = int(datetime.now().timestamp())
+        
+        for student in students:
+            url = get_avatar_url(student.user.id)
+            if url:
+                student.avatar_url = f"{url}?t={timestamp}"
+            else:
+                student.avatar_url = None
+                
     except Consultant.DoesNotExist:
         students = []
 
@@ -375,7 +460,12 @@ def consultant_students_view(request):
 def consultant_profile_view(request):
     user = request.user
     profile, created = Consultant.objects.get_or_create(user=user)
-
+    base_avatar_url = get_avatar_url(user.id)
+    avatar_url = None
+    if base_avatar_url:
+        timestamp = request.session.get('avatar_version', int(datetime.now().timestamp()))
+        avatar_url = f"{base_avatar_url}?t={timestamp}"
+        
     total_fields = 6  
     completed = 0
     missing_fields = []
@@ -407,6 +497,42 @@ def consultant_profile_view(request):
     completion_percentage = int((completed / total_fields) * 100)
 
     if request.method == "POST":
+        upload_error_occurred = False
+
+        if "remove_avatar" in request.POST:
+            try:
+                file_path = f"{user.id}/profile.png"
+                supabase.storage.from_("avatars").remove([file_path])
+                request.session['avatar_version'] = int(datetime.now().timestamp())
+            except Exception as e:
+                messages.error(request, f"Failed to remove image: {e}", extra_tags="general_error")
+        
+        if "avatar_upload" in request.FILES and supabase:
+            uploaded_file = request.FILES["avatar_upload"]
+            
+            content_type = getattr(uploaded_file, 'content_type', '')
+            if not content_type:
+                 content_type, _ = mimetypes.guess_type(uploaded_file.name)
+
+            if content_type and content_type.startswith('image/'):
+                try:
+                    file_path = f"{user.id}/profile.png"
+                    file_data = uploaded_file.read()
+
+                    supabase.storage.from_("avatars").upload(
+                        file_path, 
+                        file_data, 
+                        file_options={"content-type": content_type, "upsert": "true"}
+                    )
+                    
+                    request.session['avatar_version'] = int(datetime.now().timestamp())
+                except Exception as e:
+                    messages.error(request, f"Image upload failed: {e}", extra_tags="general_error")
+                    upload_error_occurred = True
+            else:
+                messages.error(request, "File must be a valid image.", extra_tags="general_error")
+                upload_error_occurred = True
+
         full_name = request.POST.get("full_name", "").strip()
         email = request.POST.get("email", "").strip()
         contact_number = request.POST.get("contact_number", "").strip()
@@ -429,10 +555,10 @@ def consultant_profile_view(request):
             errors = True
 
         # Validate contact
-        is_valid_contact, contact_error = validate_contact(contact_number)
-        if not is_valid_contact:
-            messages.error(request, contact_error, extra_tags="contact_number_error")
-            errors = True
+        if contact_number:
+            if not re.match(r'^09[0-9]{9}$', contact_number):
+                messages.error(request, "Contact number must be exactly 11 digits starting with 09 (e.g., 09123456789).", extra_tags="contact_number_error")
+                errors = True
 
         # Validate expertise
         is_valid_exp, exp_error = validate_text_field(expertise, "Expertise", max_length=100)
@@ -465,7 +591,11 @@ def consultant_profile_view(request):
             profile.workplace = workplace
             profile.save()
 
-            messages.success(request, "Profile updated successfully!", extra_tags="success")
+            if not upload_error_occurred:
+                messages.success(request, "Profile updated successfully!", extra_tags="success")
+            else:
+                 messages.warning(request, "Info updated, but image upload failed.", extra_tags="general_error")
+
             return redirect("consultant_profile")
 
         except Exception as e:
@@ -476,6 +606,7 @@ def consultant_profile_view(request):
         "profile": profile,
         "completion_percentage": completion_percentage,
         "missing_fields": missing_fields,
+        "avatar_url": avatar_url,
     }
     return render(request, "ConsultApp/consultant-profile.html", context)
 
@@ -495,27 +626,33 @@ def consultant_verification_view(request):
         consultant=consultant_user, status='pending'
     ).exists()
 
+    context = {
+        'has_pending_verification': has_pending_verification,
+        'user_full_name': consultant_user.get_full_name(),
+        'submitted_data': {} 
+    }
+
     if request.method == "POST":
         full_name = request.POST.get("fullName", "").strip()
         contact = request.POST.get("contact", "").strip()
-        
-        # Get multiple expertise selections
         expertise_list = request.POST.getlist("expertise")
-        expertise = ", ".join(expertise_list) if expertise_list else ""
-        
         workplace = request.POST.get("workplace", "").strip()
         qualification = request.POST.get("qualification", "").strip()
         bio = request.POST.get("bio", "").strip()
-        
-        # Get files - but we'll only use the first one uploaded
         valid_id = request.FILES.get("validId")
-        professional_license = request.FILES.get("license")
+        license_doc = request.FILES.get("license")
         profile_photo = request.FILES.get("profilePhoto")
         
-        # Use whichever file was uploaded (prioritize license, then ID, then photo)
-        proof_document = professional_license or valid_id or profile_photo
+        uploaded_files = [f for f in [valid_id, license_doc, profile_photo] if f]
 
-        # Validations
+        context['submitted_data'] = {
+            'contact': contact,
+            'workplace': workplace,
+            'qualification': qualification,
+            'bio': bio,
+            'expertise_list': expertise_list,
+        }
+
         errors = False
         
         if not full_name or not re.match(r'^[a-zA-Z\s\-]+$', full_name):
@@ -538,29 +675,42 @@ def consultant_verification_view(request):
             messages.error(request, "Qualification is required and must be valid.")
             errors = True
             
-        if not proof_document:
-            messages.error(request, "Please upload at least one document (Valid ID, Professional License, or Profile Photo).")
+        if not uploaded_files:
+            messages.error(request, "Please upload at least one document (Valid ID, License, or Photo).")
             errors = True
+        else:
+            for file_obj in uploaded_files:
+                if file_obj.size > 5 * 1024 * 1024:
+                    messages.error(request, f"The file '{file_obj.name}' is too large. Max size is 5MB.")
+                    errors = True
+
+                allowed_types = ['image/jpeg', 'image/png', 'application/pdf']
+                if file_obj.content_type not in allowed_types:
+                    messages.error(request, f"The file '{file_obj.name}' has an invalid format. Only JPG, PNG, or PDF are allowed.")
+                    errors = True
         
         if errors:
-            return redirect('consultant_verification')
+            return render(request, "ConsultApp/consultant-verification.html", context)
+
+        expertise_str = ", ".join(expertise_list)
 
         Verification.objects.create(
             consultant=consultant_user,
             contact_number=contact,
-            expertise=expertise,
+            expertise=expertise_str,
             workplace=workplace,
             qualification=qualification,
-            proof_document=proof_document,  # Using the old field name
+            bio=bio,
+            valid_id=valid_id,         
+            license=license_doc,       
+            profile_photo=profile_photo, 
             status='pending',
         )
 
-        messages.success(request, "Verification submitted! Await admin approval.")
+        messages.success(request, "Verification submitted successfully! Please wait for admin approval.")
         return redirect('consultant_dashboard')
 
-    return render(request, "ConsultApp/consultant-verification.html", {
-        'has_pending_verification': has_pending_verification
-    })
+    return render(request, "ConsultApp/consultant-verification.html", context)
 
 @login_required
 def consultant_market(request):
@@ -574,21 +724,16 @@ def consultant_market(request):
         messages.error(request, "You must be verified to register your availability.")
         return redirect('consultant_dashboard')
 
-    # Get verification data to pre-fill form
     verification = Verification.objects.filter(
         consultant=request.user,
         status='approved'
     ).order_by('-reviewed_at').first()
 
     if request.method == "POST":
-        # Get multiple expertise selections
         expertise_list = request.POST.getlist("expertise")
         expertise = ", ".join(expertise_list) if expertise_list else ""
-        
-        # Get multiple day selections
         days_list = request.POST.getlist("available_days")
         available_days = ",".join(days_list) if days_list else ""
-        
         profession = request.POST.get("profession", "").strip()
         workplace = request.POST.get("workplace", "").strip()
         available_from_str = request.POST.get("available_from", "").strip()
@@ -669,11 +814,9 @@ def consultant_market(request):
             }
             return render(request, "ConsultApp/consultant-market.html", context)
         
-        # Check if market listing already exists
         market_listing = Market.objects.filter(consultant=consultant).first()
         
         if market_listing:
-            # Update existing listing
             market_listing.expertise = expertise
             market_listing.profession = profession
             market_listing.available_from = available_from
@@ -686,7 +829,6 @@ def consultant_market(request):
             market_listing.save()
             messages.success(request, "✅ Market listing updated successfully!")
         else:
-            # Create new listing
             Market.objects.create(
                 consultant=consultant,
                 expertise=expertise,
@@ -718,7 +860,6 @@ def toggle_market_status(request, market_id):
         consultant = Consultant.objects.get(user=request.user)
         market_listing = get_object_or_404(Market, id=market_id, consultant=consultant)
         
-        # Toggle the status - this flips True to False or False to True
         market_listing.is_active = not market_listing.is_active
         market_listing.save()
         
@@ -741,32 +882,49 @@ def student_dashboard(request):
         messages.error(request, "Student profile not found.")
         return redirect('login_view')
 
+    base_avatar_url = get_avatar_url(request.user.id)
+    avatar_url = None
+    if base_avatar_url:
+        timestamp = request.session.get('avatar_version', int(datetime.now().timestamp()))
+        avatar_url = f"{base_avatar_url}?t={timestamp}"
+
     now = timezone.now()
 
     upcoming_sessions = Appointment.objects.filter(
         student=student, status__in=["confirmed", "pending"]
     ).order_by("date")[:5]
 
+    pending_reviews = Appointment.objects.filter(
+        student=student,
+        status='pending_student_review'
+    ).select_related('consultant__user').order_by('date')
+
     query = request.GET.get("q", "").strip()
 
-    recommended_consultants = Market.objects.select_related("consultant__user").filter(
+    consultants_qs = Market.objects.select_related("consultant__user").filter(
         consultant__is_verified=True,
         is_active=True,
     )
 
     if query:
-        # Filter results by first name, last name, expertise, profession
-        recommended_consultants = recommended_consultants.filter(
+        consultants_qs = consultants_qs.filter(
             Q(consultant__user__first_name__icontains=query) |
             Q(consultant__user__last_name__icontains=query) |
             Q(expertise__icontains=query) |
             Q(profession__icontains=query)
         )
     else:
-        # Default: show 3 random consultants
-        recommended_consultants = recommended_consultants.order_by("?")[:3]
+        consultants_qs = consultants_qs.order_by("?")[:3]
 
-    # Statistics
+    recommended_consultants = list(consultants_qs)
+
+    for market in recommended_consultants:
+        c_url = get_avatar_url(market.consultant.user.id)
+        if c_url:
+            market.consultant.avatar_url = f"{c_url}?t={timestamp}"
+        else:
+            market.consultant.avatar_url = None
+
     stats = {
         "current": Appointment.objects.filter(student=student, status="confirmed").count(),
         "previous": Appointment.objects.filter(student=student, status="completed").count(),
@@ -779,8 +937,10 @@ def student_dashboard(request):
         "student": student,
         "recommended_consultants": recommended_consultants,
         "upcoming_sessions": upcoming_sessions,
+        "pending_reviews": pending_reviews, 
         "stats": stats,
         "query": query,
+        "avatar_url": avatar_url,
     }
 
     return render(request, "ConsultApp/student-dashboard.html", context)
@@ -789,6 +949,11 @@ def student_dashboard(request):
 def student_profile_view(request):
     student = Student.objects.get(user=request.user)
     user = request.user
+    base_avatar_url = get_avatar_url(user.id)
+    avatar_url = None
+    if base_avatar_url:
+        timestamp = request.session.get('avatar_version', int(datetime.now().timestamp()))
+        avatar_url = f"{base_avatar_url}?t={timestamp}"
 
     total_fields = 5
     completed = 0
@@ -814,6 +979,46 @@ def student_profile_view(request):
     completion_percentage = int((completed / total_fields) * 100)
 
     if request.method == "POST":
+        if request.POST.get("delete_avatar") == "true":
+            try:
+                file_path = f"{user.id}/profile.png"
+                supabase.storage.from_("avatars").remove([file_path])
+                
+                request.session['avatar_version'] = int(datetime.now().timestamp())
+                
+                messages.success(request, "Profile photo removed.", extra_tags="success")
+                return redirect("student_profile")
+            except Exception as e:
+                messages.error(request, f"Failed to remove photo: {e}", extra_tags="general_error")
+                return redirect("student_profile")
+            
+        upload_error_occurred = False
+        if "avatar_upload" in request.FILES and supabase:
+            uploaded_file = request.FILES["avatar_upload"]
+            
+            content_type = getattr(uploaded_file, 'content_type', '')
+            if not content_type:
+                 content_type, _ = mimetypes.guess_type(uploaded_file.name)
+
+            if content_type and content_type.startswith('image/'):
+                try:
+                    file_path = f"{user.id}/profile.png"
+                    file_data = uploaded_file.read()
+
+                    supabase.storage.from_("avatars").upload(
+                        file_path, 
+                        file_data, 
+                        file_options={"content-type": content_type, "upsert": "true"}
+                    )
+                    
+                    request.session['avatar_version'] = int(datetime.now().timestamp())
+                except Exception as e:
+                    messages.error(request, f"Image upload failed: {e}", extra_tags="general_error")
+                    upload_error_occurred = True 
+            else:
+                messages.error(request, "File must be a valid image.", extra_tags="general_error")
+                upload_error_occurred = True
+
         full_name = request.POST.get("fullName", "").strip()
         department = request.POST.get("department", "").strip()
         program = request.POST.get("program", "").strip()
@@ -870,8 +1075,10 @@ def student_profile_view(request):
             student.student_program = program
             student.student_year_level = year_level_int
             student.save()
-
-            messages.success(request, "Profile updated successfully!", extra_tags="success")
+            if not upload_error_occurred:
+                messages.success(request, "Profile updated successfully!", extra_tags="success")
+            else:
+                messages.warning(request, "Profile info updated, but image upload failed.", extra_tags="general_error")         
             return redirect("student_profile")
 
         except Exception as e:
@@ -882,9 +1089,9 @@ def student_profile_view(request):
         "student": student,
         "completion_percentage": completion_percentage,
         "missing_fields": missing_fields,
+        "avatar_url": avatar_url,
     }
     return render(request, "ConsultApp/student-profile.html", context)
-
 
 @login_required
 def student_history_view(request):
@@ -908,10 +1115,9 @@ def student_history_view(request):
             student.sessions_completed += 1
             student.save()
 
-    # Include feedback in the query using select_related
     appointments = Appointment.objects.filter(
         student=student,
-        status__in=['completed', 'cancelled']
+        status__in=['completed', 'cancelled', 'disputed']
     ).select_related('consultant__user', 'feedback').order_by('-date', '-time')
 
     consultants = Consultant.objects.select_related('user').all()
@@ -921,7 +1127,6 @@ def student_history_view(request):
 
 @login_required
 def submit_feedback(request):
-    """Handle student feedback submission"""
     if request.method == "POST":
         student = Student.objects.filter(user=request.user).first()
         if not student:
@@ -939,18 +1144,15 @@ def submit_feedback(request):
                 status='completed'
             )
             
-            # Check if feedback already exists
             if hasattr(appointment, 'feedback'):
                 messages.warning(request, "You have already submitted feedback for this session.")
                 return redirect('student_history')
             
-            # Validate rating
             rating_int = int(rating)
             if rating_int < 1 or rating_int > 5:
                 messages.error(request, "Please provide a valid rating (1-5 stars).")
                 return redirect('student_history')
             
-            # Create feedback
             from .models import Feedback
             Feedback.objects.create(
                 appointment=appointment,
@@ -986,13 +1188,12 @@ def student_appointments_view(request):
                 appt.status = "completed"
                 appt.save()
                 
-                # ✅ UPDATE STUDENT'S SESSIONS COMPLETED
                 student.sessions_completed += 1
                 student.save()
 
     active_appointments = Appointment.objects.filter(
         student=student,
-        status__in=["pending", "confirmed"]
+        status__in=["pending", "confirmed", "pending_student_review", "disputed"]
     ).order_by('date', 'time')
 
     consultants = Consultant.objects.all()
@@ -1040,7 +1241,7 @@ def book_appointment(request, consultant_id=None):
             consultant = Consultant.objects.get(user__id=consultant_id, is_verified=True)
             market = get_market_for_consultant(consultant)
             if not market:
-                messages.error(request, "This consultant is currently unavailable for bookings.")
+                messages.error(request, "⚠️ This consultant is currently unavailable for bookings. Please select another consultant.")
                 return redirect('student_dashboard')
         except Consultant.DoesNotExist:
             messages.error(request, "Consultant not found.")
@@ -1055,35 +1256,41 @@ def book_appointment(request, consultant_id=None):
         if not consultant:
             form_consultant_id = request.POST.get("consultant_id")
             if not form_consultant_id:
-                messages.error(request, "Please select a consultant.")
+                messages.error(request, "⚠️ Please select a consultant from the list to proceed with your booking.")
                 return render(request, "ConsultApp/book_appointment.html", {
                     "consultant": None,
                     "market": None,
                     "consultants": consultants_with_market,
                     "slots": [],
                     "today": timezone.localdate().isoformat(),
+                    "tomorrow": (timezone.localdate() + timedelta(days=1)).isoformat(),
+                    "unavailable_dates": "[]",
                 })
             
             try:
                 consultant = Consultant.objects.get(user__id=int(form_consultant_id), is_verified=True)
                 market = get_market_for_consultant(consultant)
                 if not market:
-                    messages.error(request, "Selected consultant is currently unavailable.")
+                    messages.error(request, "⚠️ This consultant is currently unavailable for bookings. Please select another consultant.")
                     return render(request, "ConsultApp/book_appointment.html", {
                         "consultant": None,
                         "market": None,
                         "consultants": consultants_with_market,
                         "slots": [],
                         "today": timezone.localdate().isoformat(),
+                        "tomorrow": (timezone.localdate() + timedelta(days=1)).isoformat(),
+                        "unavailable_dates": "[]",
                     })
             except (Consultant.DoesNotExist, ValueError):
-                messages.error(request, "Invalid consultant selected.")
+                messages.error(request, "⚠️ Invalid consultant selection. Please choose a valid consultant.")
                 return render(request, "ConsultApp/book_appointment.html", {
                     "consultant": None,
                     "market": None,
                     "consultants": consultants_with_market,
                     "slots": [],
                     "today": timezone.localdate().isoformat(),
+                    "tomorrow": (timezone.localdate() + timedelta(days=1)).isoformat(),
+                    "unavailable_dates": "[]",
                 })
 
         date_str = request.POST.get("date", "").strip()
@@ -1093,14 +1300,27 @@ def book_appointment(request, consultant_id=None):
         research_title = request.POST.get("research_title", "").strip()
 
         if not date_str or not start_time_str or not topic:
-            messages.error(request, "Please fill in all required fields (Date, Time, Topic).")
+            messages.error(request, "⚠️ Please fill in all required fields: Date, Time, and Consultation Topic.")
             slots = generate_hourly_slots(market.available_from, market.available_to)
+            unavailable_dates = []
+            if market:
+                today = timezone.localdate()
+                available_days_list = [day.strip().lower() for day in market.get_available_days_list()]
+                for i in range(60):
+                    check_date = today + timedelta(days=i)
+                    day_name = check_date.strftime('%A').lower()
+                    if available_days_list and day_name not in available_days_list:
+                        unavailable_dates.append(check_date.isoformat())
+            
+            import json
             return render(request, "ConsultApp/book_appointment.html", {
                 "consultant": consultant,
                 "market": market,
                 "consultants": consultants_with_market,
                 "slots": slots,
                 "today": timezone.localdate().isoformat(),
+                "tomorrow": (timezone.localdate() + timedelta(days=1)).isoformat(),
+                "unavailable_dates": json.dumps(unavailable_dates),
             })
 
         try:
@@ -1114,42 +1334,112 @@ def book_appointment(request, consultant_id=None):
             date_obj = dt_datetime.strptime(date_str, "%Y-%m-%d").date()
             start_time_obj = dt_datetime.strptime(start_time_str, "%H:%M").time()
         except ValueError:
-            messages.error(request, "Invalid date or time format. Please use the date picker.")
+            messages.error(request, "⚠️ Invalid date or time format. Please use the date picker to select a valid date and time.")
             slots = generate_hourly_slots(market.available_from, market.available_to)
+            unavailable_dates = []
+            if market:
+                today = timezone.localdate()
+                available_days_list = [day.strip().lower() for day in market.get_available_days_list()]
+                for i in range(60):
+                    check_date = today + timedelta(days=i)
+                    day_name = check_date.strftime('%A').lower()
+                    if available_days_list and day_name not in available_days_list:
+                        unavailable_dates.append(check_date.isoformat())
+            
+            import json
             return render(request, "ConsultApp/book_appointment.html", {
                 "consultant": consultant,
                 "market": market,
                 "consultants": consultants_with_market,
                 "slots": slots,
                 "today": timezone.localdate().isoformat(),
+                "tomorrow": (timezone.localdate() + timedelta(days=1)).isoformat(),
+                "unavailable_dates": json.dumps(unavailable_dates),
             })
 
-        if date_obj < timezone.localdate():
-            messages.error(request, "Cannot book appointments in the past.")
+        today = timezone.localdate()
+        if date_obj <= today:
+            messages.error(request, "⚠️ Same-day bookings are not allowed. Appointments must be scheduled at least one day in advance. Please select a date starting from tomorrow.")
             slots = generate_hourly_slots(market.available_from, market.available_to)
+            unavailable_dates = []
+            if market:
+                available_days_list = [day.strip().lower() for day in market.get_available_days_list()]
+                for i in range(60):
+                    check_date = today + timedelta(days=i)
+                    day_name = check_date.strftime('%A').lower()
+                    if available_days_list and day_name not in available_days_list:
+                        unavailable_dates.append(check_date.isoformat())
+            
+            import json
+            return render(request, "ConsultApp/book_appointment.html", {
+                "consultant": consultant,
+                "market": market,
+                "consultants": consultants_with_market,
+                "slots": slots,
+                "today": today.isoformat(),
+                "tomorrow": (today + timedelta(days=1)).isoformat(),
+                "unavailable_dates": json.dumps(unavailable_dates),
+            })
+
+        existing_student_booking = Appointment.objects.filter(
+            student=student,
+            date=date_obj,
+            status__in=['pending', 'confirmed']
+        ).exists()
+        
+        if existing_student_booking:
+            messages.error(request, "⚠️ You already have a consultation scheduled for this date. Please select a different date or cancel your existing appointment first.")
+            slots = generate_hourly_slots(market.available_from, market.available_to)
+            unavailable_dates = []
+            if market:
+                today = timezone.localdate()
+                available_days_list = [day.strip().lower() for day in market.get_available_days_list()]
+                for i in range(60):
+                    check_date = today + timedelta(days=i)
+                    day_name = check_date.strftime('%A').lower()
+                    if available_days_list and day_name not in available_days_list:
+                        unavailable_dates.append(check_date.isoformat())
+            
+            import json
             return render(request, "ConsultApp/book_appointment.html", {
                 "consultant": consultant,
                 "market": market,
                 "consultants": consultants_with_market,
                 "slots": slots,
                 "today": timezone.localdate().isoformat(),
+                "tomorrow": (timezone.localdate() + timedelta(days=1)).isoformat(),
+                "unavailable_dates": json.dumps(unavailable_dates),
             })
 
-        # Check if the selected date falls on an available day
-        day_name = date_obj.strftime('%A').lower()  # e.g., 'monday', 'tuesday'
-        if not market.is_available_on_day(day_name):
+        day_name = date_obj.strftime('%A').lower()
+        available_days_list = market.get_available_days_list()
+        available_days_lower = [day.strip().lower() for day in available_days_list]
+        
+        if not available_days_lower or day_name not in available_days_lower:
+            available_days_display = ", ".join([day.title() for day in available_days_list])
             messages.error(
                 request,
-                f"This consultant is not available on {date_obj.strftime('%A')}s. "
-                f"Please choose a different date."
+                f"⚠️ This consultant is unavailable on {date_obj.strftime('%A')}s. Please choose another date."
             )
             slots = generate_hourly_slots(market.available_from, market.available_to)
+            unavailable_dates = []
+            if market:
+                today = timezone.localdate()
+                for i in range(60):
+                    check_date = today + timedelta(days=i)
+                    check_day = check_date.strftime('%A').lower()
+                    if available_days_lower and check_day not in available_days_lower:
+                        unavailable_dates.append(check_date.isoformat())
+            
+            import json
             return render(request, "ConsultApp/book_appointment.html", {
                 "consultant": consultant,
                 "market": market,
                 "consultants": consultants_with_market,
                 "slots": slots,
                 "today": timezone.localdate().isoformat(),
+                "tomorrow": (timezone.localdate() + timedelta(days=1)).isoformat(),
+                "unavailable_dates": json.dumps(unavailable_dates),
             })
 
         available_from = market.available_from
@@ -1161,24 +1451,35 @@ def book_appointment(request, consultant_id=None):
         if not (available_from <= start_time_obj and end_time_obj <= available_to):
             messages.error(
                 request, 
-                f"Selected time is outside consultant's availability "
-                f"({available_from.strftime('%I:%M %p')} - {available_to.strftime('%I:%M %p')})."
+                f"⚠️ The selected time is outside the consultant's available hours ({available_from.strftime('%I:%M %p')} - {available_to.strftime('%I:%M %p')}). Please select a time within their availability."
             )
             slots = generate_hourly_slots(market.available_from, market.available_to)
+            unavailable_dates = []
+            if market:
+                today = timezone.localdate()
+                available_days_lower = [day.strip().lower() for day in market.get_available_days_list()]
+                for i in range(60):
+                    check_date = today + timedelta(days=i)
+                    check_day = check_date.strftime('%A').lower()
+                    if available_days_lower and check_day not in available_days_lower:
+                        unavailable_dates.append(check_date.isoformat())
+            
+            import json
             return render(request, "ConsultApp/book_appointment.html", {
                 "consultant": consultant,
                 "market": market,
                 "consultants": consultants_with_market,
                 "slots": slots,
                 "today": timezone.localdate().isoformat(),
+                "tomorrow": (timezone.localdate() + timedelta(days=1)).isoformat(),
+                "unavailable_dates": json.dumps(unavailable_dates),
             })
 
-        # Check for conflicts with existing appointments
         conflicts = []
         existing_appts = Appointment.objects.filter(
             consultant=consultant, 
             date=date_obj,
-            status__in=['pending', 'confirmed']  
+            status__in=['pending', 'confirmed']
         )
         
         for ap in existing_appts:
@@ -1188,18 +1489,27 @@ def book_appointment(request, consultant_id=None):
                 conflicts.append(ap)
         
         if conflicts:
-            messages.error(
-                request, 
-                "❌ This time slot is already booked. "
-                "Please choose another time."
-            )
+            messages.error(request, "⚠️ This time slot has already been booked by another student. Please select a different time or date.")
             slots = generate_hourly_slots(market.available_from, market.available_to)
+            unavailable_dates = []
+            if market:
+                today = timezone.localdate()
+                available_days_lower = [day.strip().lower() for day in market.get_available_days_list()]
+                for i in range(60):
+                    check_date = today + timedelta(days=i)
+                    check_day = check_date.strftime('%A').lower()
+                    if available_days_lower and check_day not in available_days_lower:
+                        unavailable_dates.append(check_date.isoformat())
+            
+            import json
             return render(request, "ConsultApp/book_appointment.html", {
                 "consultant": consultant,
                 "market": market,
                 "consultants": consultants_with_market,
                 "slots": slots,
                 "today": timezone.localdate().isoformat(),
+                "tomorrow": (timezone.localdate() + timedelta(days=1)).isoformat(),
+                "unavailable_dates": json.dumps(unavailable_dates),
             })
 
         try:
@@ -1217,53 +1527,62 @@ def book_appointment(request, consultant_id=None):
             consultant_name = consultant.user.get_full_name()
             messages.success(
                 request, 
-                f"✅ You successfully booked {consultant_name}! "
-                f"Your appointment is pending confirmation."
+                f"✅ Booking confirmed! Your consultation with {consultant_name} on {date_obj.strftime('%B %d, %Y')} at {start_time_obj.strftime('%I:%M %p')} is pending approval."
             )
             
             return redirect('student_dashboard')
             
         except Exception as e:
-            messages.error(request, f"Failed to create appointment: {str(e)}")
+            messages.error(request, "⚠️ Unable to complete your booking at this time. Please try again or contact support if the issue persists.")
             slots = generate_hourly_slots(market.available_from, market.available_to)
+            unavailable_dates = []
+            if market:
+                today = timezone.localdate()
+                available_days_lower = [day.strip().lower() for day in market.get_available_days_list()]
+                for i in range(60):
+                    check_date = today + timedelta(days=i)
+                    check_day = check_date.strftime('%A').lower()
+                    if available_days_lower and check_day not in available_days_lower:
+                        unavailable_dates.append(check_date.isoformat())
+            
+            import json
             return render(request, "ConsultApp/book_appointment.html", {
                 "consultant": consultant,
                 "market": market,
                 "consultants": consultants_with_market,
                 "slots": slots,
                 "today": timezone.localdate().isoformat(),
+                "tomorrow": (timezone.localdate() + timedelta(days=1)).isoformat(),
+                "unavailable_dates": json.dumps(unavailable_dates),
             })
-
+        
     slots = []
     unavailable_dates = []
+    today = timezone.localdate()
+    tomorrow = today + timedelta(days=1)
+    
     if market and consultant:
         slots = generate_hourly_slots(market.available_from, market.available_to)
         
-        # Generate list of unavailable dates (dates not in available_days or fully booked)
-        today = timezone.localdate()
-        available_days_list = market.get_available_days_list()
+        available_days_list = [day.strip().lower() for day in market.get_available_days_list()]
         
-        # Get all dates with bookings in next 60 days
-        future_date = today + timedelta(days=60)
-        
-        # Generate unavailable dates
         for i in range(60):
             check_date = today + timedelta(days=i)
             day_name = check_date.strftime('%A').lower()
-            
-            # If day is not in available days, mark as unavailable
-            if day_name not in available_days_list:
+        
+            if check_date <= today or (available_days_list and day_name not in available_days_list):
                 unavailable_dates.append(check_date.isoformat())
 
-    today_iso = timezone.localdate().isoformat()
+    import json
 
     return render(request, "ConsultApp/book_appointment.html", {
         "consultant": consultant,
         "market": market,
         "consultants": consultants_with_market,
         "slots": slots,
-        "today": today_iso,
-        "unavailable_dates": unavailable_dates,
+        "today": today.isoformat(),
+        "tomorrow": tomorrow.isoformat(),
+        "unavailable_dates": json.dumps(unavailable_dates),
     })
 
 @login_required
@@ -1281,6 +1600,39 @@ def cancel_appointment(request, appointment_id):
     messages.success(request, "Your appointment has been cancelled.")
     return redirect('student_appointments')
 
+@login_required
+def consultant_details(request, consultant_user_id):
+    try:
+        consultant = Consultant.objects.get(user__id=consultant_user_id)
+        market = Market.objects.filter(consultant=consultant, is_active=True).first()
+        
+        if not market:
+            messages.error(request, "This consultant is not currently available.")
+            return redirect('student_dashboard')
+        
+        from .models import Feedback
+        feedbacks = Feedback.objects.filter(
+            consultant=consultant
+        ).select_related('student__user').order_by('-created_at')
+        
+        average_rating = 0
+        if feedbacks.exists():
+            total = sum(f.rating for f in feedbacks)
+            average_rating = total / feedbacks.count()
+        
+        context = {
+            'consultant': consultant,
+            'market': market,
+            'feedbacks': feedbacks,
+            'average_rating': average_rating,
+        }
+        
+        return render(request, 'ConsultApp/consultant-details.html', context)
+        
+    except Consultant.DoesNotExist:
+        messages.error(request, "Consultant not found.")
+        return redirect('student_dashboard')    
+
 # 🔹 Admin Views
 def is_admin(user):
     return user.is_superuser or getattr(user, "user_type", "") == "Admin"
@@ -1294,6 +1646,9 @@ def admin_dashboard(request):
     active_bookings = Appointment.objects.count()
     recent_users = User.objects.order_by('-date_joined')[:5]
     verification_requests = Verification.objects.filter(status='pending').select_related('consultant')
+    disputed_appointments = Appointment.objects.filter(
+        status='disputed'
+    ).select_related('student__user', 'consultant__user').order_by('-disputed_at')
 
     return render(request, "ConsultApp/admin-dashboard.html", {
         "total_students": total_students,
@@ -1302,6 +1657,7 @@ def admin_dashboard(request):
         "active_bookings": active_bookings,
         "recent_users": recent_users,
         "verification_requests": verification_requests,
+        "disputed_appointments": disputed_appointments,  # NEW
     })
 
 @login_required
@@ -1313,7 +1669,31 @@ def admin_students_view(request):
 @login_required
 @user_passes_test(is_admin)
 def admin_consultants_view(request):
-    consultants = Consultant.objects.select_related('user').all()
+    consultants = Consultant.objects.select_related('user').annotate(
+        has_pending_verification=Case(
+            When(
+                user__verification__status='pending',
+                then=Value(True)
+            ),
+            default=Value(False),
+            output_field=BooleanField()
+        )
+    ).all()
+    
+    verifications_prefetch = Prefetch(
+        'user__verification_set',
+        queryset=Verification.objects.order_by('-created_at'),
+        to_attr='latest_verification'
+    )
+
+    consultants = Consultant.objects.select_related('user').prefetch_related(verifications_prefetch).annotate(
+        has_pending_verification=Case(
+            When(user__verification__status='pending', then=Value(True)),
+            default=Value(False),
+            output_field=BooleanField()
+        )
+    ).all()
+    
     return render(request, "ConsultApp/admin-consultants.html", {"consultants": consultants})
 
 @login_required
@@ -1326,7 +1706,18 @@ def admin_reports_view(request):
 def admin_profile_view(request):
     admin_user = request.user
     admin_profile, _ = Admin.objects.get_or_create(user=admin_user)
+    avatar_path = f"{admin_user.id}/profile.png"
+    avatar_url = None
 
+    try:
+        base_avatar_url = supabase.storage.from_("avatars").get_public_url(avatar_path)
+    except:
+        base_avatar_url = None
+    if base_avatar_url:
+        timestamp = request.session.get('admin_avatar_version', int(datetime.now().timestamp()))
+        avatar_url = f"{base_avatar_url}?t={timestamp}"
+
+    
     completed = 0
     total_fields = 4
     missing_fields = []
@@ -1346,6 +1737,40 @@ def admin_profile_view(request):
     progress_percentage = int((completed / total_fields) * 100)
 
     if request.method == "POST":
+        if request.POST.get("delete_avatar") == "true":
+            try:
+                supabase.storage.from_("avatars").remove([avatar_path])
+                request.session['admin_avatar_version'] = int(datetime.now().timestamp())
+                messages.success(request, "Profile photo removed.", extra_tags="success")
+                return redirect("admin_profile")
+            except Exception as e:
+                messages.error(request, f"Failed to remove photo: {e}", extra_tags="general_error")
+                return redirect("admin_profile")
+
+        upload_error_occurred = False
+        if "avatar_upload" in request.FILES:
+            uploaded_file = request.FILES["avatar_upload"]
+            content_type = getattr(uploaded_file, 'content_type', '')
+            if not content_type:
+                 content_type, _ = mimetypes.guess_type(uploaded_file.name)
+
+            if content_type and content_type.startswith('image/'):
+                try:
+                    file_data = uploaded_file.read()
+                    supabase.storage.from_("avatars").upload(
+                        avatar_path, 
+                        file_data, 
+                        file_options={"content-type": content_type, "upsert": "true"}
+                    )
+                    request.session['admin_avatar_version'] = int(datetime.now().timestamp())
+                except Exception as e:
+                    messages.error(request, f"Image upload failed: {e}", extra_tags="general_error")
+                    upload_error_occurred = True
+            else:
+                messages.error(request, "File must be a valid image.", extra_tags="general_error")
+                upload_error_occurred = True
+        
+
         full_name = request.POST.get("full_name", "").strip()
         email = request.POST.get("email", "").strip()
         contact = request.POST.get("contact", "").strip()
@@ -1366,10 +1791,10 @@ def admin_profile_view(request):
             errors = True
 
         # Validate contact
-        is_valid_contact, contact_error = validate_contact(contact)
-        if not is_valid_contact:
-            messages.error(request, contact_error, extra_tags="contact_error")
-            errors = True
+        if contact:
+            if not re.match(r'^09[0-9]{9}$', contact):
+                messages.error(request, "Contact number must be exactly 11 digits starting with 09 (e.g., 09123456789).", extra_tags="contact_error")
+                errors = True
 
         if errors:
             return redirect("admin_profile")
@@ -1389,6 +1814,11 @@ def admin_profile_view(request):
             admin_profile.contact_number = contact
             admin_profile.save()
 
+            if not upload_error_occurred:
+                messages.success(request, "Profile updated successfully!", extra_tags="success")
+            else:
+                messages.warning(request, "Info updated, but image failed to upload.", extra_tags="general_error")
+
             messages.success(request, "Profile updated successfully!", extra_tags="success")
             return redirect("admin_profile")
 
@@ -1398,37 +1828,29 @@ def admin_profile_view(request):
         
     context = {
         "admin_name": f"{admin_user.first_name} {admin_user.last_name}".strip(),
+        "admin_user": admin_user,
         "admin_email": admin_user.email,
         "admin_contact": admin_profile.contact_number or "Not set",
         "admin_role": "System Administrator",
         "profile_progress": progress_percentage,
         "missing_fields": missing_fields,
+        "avatar_url": avatar_url,
     }
     
     return render(request, "ConsultApp/admin-profile.html", context)
 
-# ADD THIS FUNCTION TO YOUR views.py FILE
-# Put it after your admin_profile_view function or at the end of the admin views section
-
 @login_required
 @user_passes_test(is_admin)
 def sync_sessions_completed(request):
-    """
-    One-time sync function to update all students' sessions_completed 
-    based on their actual completed appointments.
-    Only accessible by admin.
-    """
     students = Student.objects.all()
     updated_count = 0
     
     for student in students:
-        # Count actual completed appointments
         actual_completed = Appointment.objects.filter(
             student=student,
             status='completed'
         ).count()
         
-        # Update if different
         if student.sessions_completed != actual_completed:
             student.sessions_completed = actual_completed
             student.save()
@@ -1441,7 +1863,7 @@ def sync_sessions_completed(request):
     return redirect('admin_dashboard')
 
 
-# 🔹 Verification Modal
+# 🔹 Verification Details 
 @login_required
 @user_passes_test(is_admin)
 def verification_details(request, verification_id):
@@ -1548,13 +1970,9 @@ def all_consultants_view(request):
     )
     return render(request, "ConsultApp/all-consultants.html", {"consultants": consultants})
 
-# ADD THIS FUNCTION TO YOUR views.py FILE
-# (Add it near the other admin views, after admin_students_view)
-
 @login_required
 @user_passes_test(is_admin)
 def student_profile_admin_view(request, student_id):
-    """Admin view for student profile details"""
     student = get_object_or_404(Student, user__id=student_id)
     user = student.user
     
@@ -1575,27 +1993,34 @@ def student_profile_admin_view(request, student_id):
     
     return render(request, "ConsultApp/admin-student-details.html", context)
 
-# ADD THIS FUNCTION TO YOUR views.py FILE
-# (Add it right after the student_profile_admin_view function)
-
 @login_required
 @user_passes_test(is_admin)
 def consultant_profile_admin_view(request, consultant_id):
-    """Admin view for consultant profile details"""
     consultant = get_object_or_404(Consultant, user__id=consultant_id)
     user = consultant.user
     
-    # Get verification info
     verification = Verification.objects.filter(
         consultant=user,
         status='approved'
     ).order_by('-reviewed_at').first()
     
-    # Get market listing
+    pending_verification = Verification.objects.filter(
+        consultant=user,
+        status='pending'
+    ).order_by('-created_at').first()
+
     market_listing = Market.objects.filter(consultant=consultant).first()
     
-    # Get assigned students count
     assigned_students_count = Student.objects.filter(assigned_consultant=consultant).count()
+    
+    if consultant.is_verified:
+        status_context = 'verified'
+    elif pending_verification:
+        status_context = 'pending'
+    elif user.is_active:
+        status_context = 'not_verified' 
+    else:
+        status_context = 'inactive'
     
     context = {
         "consultant": consultant,
@@ -1611,42 +2036,139 @@ def consultant_profile_admin_view(request, consultant_id):
         "assigned_students_count": assigned_students_count,
         "date_joined": user.date_joined,
         "is_active": user.is_active,
+        "consultant_status": status_context, 
+        "pending_verification": pending_verification,
     }
     
     return render(request, "ConsultApp/admin-consultant-details.html", context)
 
 @login_required
-def consultant_details(request, consultant_user_id):
-    """Simple page showing consultant details and feedback"""
-    try:
-        consultant = Consultant.objects.get(user__id=consultant_user_id)
-        market = Market.objects.filter(consultant=consultant, is_active=True).first()
+@require_POST
+def mark_meeting_status(request, appointment_id):
+    consultant = get_object_or_404(Consultant, user=request.user)
+    appointment = get_object_or_404(
+        Appointment, 
+        id=appointment_id, 
+        consultant=consultant,
+        status='confirmed'
+    )
+    
+    action = request.POST.get('action')
+    
+    if action == 'completed':
+        appointment.consultant_marked_as = 'completed'
+        appointment.status = 'pending_student_review'
+        appointment.save()
+        messages.success(request, "✅ Meeting marked as completed. Awaiting student confirmation.")
+    elif action == 'not_completed':
+        appointment.consultant_marked_as = 'not_completed'
+        appointment.status = 'pending_student_review'
+        appointment.save()
+        messages.info(request, "Meeting marked as not completed. Student will be notified.")
+    else:
+        messages.error(request, "Invalid action.")
+    
+    return redirect('consultant_history')
+
+
+@login_required
+@require_POST
+def student_confirm_or_dispute(request, appointment_id):
+    student = get_object_or_404(Student, user=request.user)
+    appointment = get_object_or_404(
+        Appointment,
+        id=appointment_id,
+        student=student,
+        status='pending_student_review'
+    )
+    
+    action = request.POST.get('action')
+    
+    if action == 'confirm':
+        if appointment.consultant_marked_as == 'completed':
+            appointment.status = 'completed'
+            student.sessions_completed += 1
+            student.save()
+            messages.success(request, "✅ Meeting confirmed as completed!")
+        else:
+            appointment.status = 'cancelled'
+            messages.info(request, "Meeting confirmed as not completed.")
+        appointment.save()
         
-        if not market:
-            messages.error(request, "This consultant is not currently available.")
-            return redirect('student_dashboard')
+    elif action == 'dispute':
+        remark = request.POST.get('dispute_remark', '').strip()
         
-        # Get all feedback for this consultant
-        from .models import Feedback
-        feedbacks = Feedback.objects.filter(
-            consultant=consultant
-        ).select_related('student__user').order_by('-created_at')
+        if not remark:
+            messages.error(request, "Please provide a reason for your dispute.")
+            return redirect('student_appointments')
         
-        # Calculate average rating
-        average_rating = 0
-        if feedbacks.exists():
-            total = sum(f.rating for f in feedbacks)
-            average_rating = total / feedbacks.count()
+        if len(remark) < 10:
+            messages.error(request, "Please provide a more detailed explanation (at least 10 characters).")
+            return redirect('student_appointments')
         
-        context = {
-            'consultant': consultant,
-            'market': market,
-            'feedbacks': feedbacks,
-            'average_rating': average_rating,
-        }
+        appointment.student_dispute_remark = remark
+        appointment.status = 'disputed'
+        appointment.disputed_at = timezone.now()
+        appointment.save()
         
-        return render(request, 'ConsultApp/consultant-details.html', context)
+        messages.warning(
+            request, 
+            "⚠️ Dispute submitted. An administrator will review this case."
+        )
+    else:
+        messages.error(request, "Invalid action.")
+    
+    return redirect('student_appointments')
+
+
+@login_required
+@user_passes_test(is_admin)
+@require_POST
+def admin_resolve_dispute(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id, status='disputed')
+    
+    decision = request.POST.get('decision')
+    
+    if decision == 'mark_completed':
+        appointment.status = 'completed'
+        student = appointment.student
+        student.sessions_completed += 1
+        student.save()
+        messages.success(request, "✅ Dispute resolved: Meeting marked as completed.")
         
-    except Consultant.DoesNotExist:
-        messages.error(request, "Consultant not found.")
-        return redirect('student_dashboard')
+    elif decision == 'mark_not_completed':
+        appointment.status = 'cancelled'
+        messages.success(request, "Dispute resolved: Meeting marked as not completed.")
+        
+    else:
+        messages.error(request, "Invalid decision.")
+        return redirect('admin_dashboard')
+    
+    appointment.save()
+    return redirect('admin_dashboard')
+
+@login_required
+@user_passes_test(is_admin)
+@require_POST
+def admin_resolve_dispute(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id, status='disputed')
+    
+    decision = request.POST.get('decision')
+    
+    if decision == 'mark_completed':
+        appointment.status = 'completed'
+        student = appointment.student
+        student.sessions_completed += 1
+        student.save()
+        messages.success(request, "✅ Dispute resolved: Meeting marked as completed.")
+        
+    elif decision == 'mark_not_completed':
+        appointment.status = 'cancelled'
+        messages.success(request, "Dispute resolved: Meeting marked as not completed.")
+        
+    else:
+        messages.error(request, "Invalid decision.")
+        return redirect('admin_dashboard')
+    
+    appointment.save()
+    return redirect('admin_dashboard')

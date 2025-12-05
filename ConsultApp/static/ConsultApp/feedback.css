@@ -1,0 +1,109 @@
+.feedback-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+.feedback-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.feedback-content h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+}
+.star-rating {
+  display: flex;
+  gap: 8px;
+  font-size: 36px;
+  justify-content: center;
+  margin: 20px 0;
+}
+.star {
+  cursor: pointer;
+  color: #ddd;
+  transition: color 0.2s;
+}
+.star.active {
+  color: #ffc107;
+}
+.star:hover {
+  color: #ffb300;
+}
+.feedback-comment {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  margin-top: 15px;
+}
+.feedback-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+.btn-submit-feedback {
+  background: #4caf50;
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+.btn-submit-feedback:hover {
+  background: #45a049;
+}
+.btn-cancel-feedback {
+  background: #f44336;
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.btn-cancel-feedback:hover {
+  background: #da190b;
+}
+.feedback-given {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.status-badge.disputed {
+  background: #f8d7da;
+  color: #721c24;
+}
+.dispute-info-box {
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 4px;
+}
+.dispute-info-box p {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #856404;
+}

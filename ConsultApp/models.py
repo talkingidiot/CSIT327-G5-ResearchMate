@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.conf import settings
 from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
+from .storage_backends import VerificationStorage
 
 # Validator for names (letters, spaces, hyphens only)
 name_validator = RegexValidator(
@@ -96,6 +97,8 @@ class Appointment(models.Model):
         ('confirmed', 'Confirmed'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
+        ('pending_student_review', 'Pending Student Review'),
+        ('disputed', 'Disputed'),
     ]
 
     consultant = models.ForeignKey(Consultant, on_delete=models.CASCADE, related_name="consultant_appointments")
@@ -104,15 +107,28 @@ class Appointment(models.Model):
     date = models.DateField()
     time = models.TimeField()
     duration_minutes = models.IntegerField(default=60)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending') 
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
     research_title = models.CharField(max_length=200, validators=[alphanumeric_validator], blank=True)
+    
+    consultant_marked_as = models.CharField(
+        max_length=20, 
+        choices=[('completed', 'Completed'), ('not_completed', 'Not Completed')],
+        null=True,
+        blank=True,
+        help_text="Consultant's assessment of meeting status"
+    )
+    student_dispute_remark = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Student's explanation if disputing the meeting status"
+    )
+    disputed_at = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
         return f"{self.student.user.get_full_name()} — {self.topic}"
 
 
 class Feedback(models.Model):
-    """Feedback from students about completed appointments"""
     appointment = models.OneToOneField(
         Appointment, 
         on_delete=models.CASCADE, 
@@ -146,7 +162,16 @@ class Verification(models.Model):
     expertise = models.CharField(max_length=200, validators=[alphanumeric_validator])
     workplace = models.CharField(max_length=200, validators=[alphanumeric_validator], blank=True)
     qualification = models.TextField(blank=True)
-    proof_document = models.FileField(upload_to='verification_docs/', blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
+    valid_id = models.FileField(
+        upload_to='verification_docs/', storage=VerificationStorage(), blank=True, null=True
+    )
+    license = models.FileField(
+        upload_to='verification_docs/', storage=VerificationStorage(), blank=True, null=True
+    )
+    profile_photo = models.FileField(
+        upload_to='verification_docs/', storage=VerificationStorage(), blank=True, null=True
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(blank=True, null=True)
@@ -188,11 +213,9 @@ class Market(models.Model):
         return f"{self.consultant.user.get_full_name()} — {self.profession} ({self.expertise})"
     
     def get_available_days_list(self):
-        """Returns a list of available days"""
         if self.available_days:
             return [day.strip() for day in self.available_days.split(',')]
         return []
     
     def is_available_on_day(self, day_name):
-        """Check if consultant is available on a specific day (e.g., 'monday')"""
         return day_name.lower() in self.get_available_days_list()

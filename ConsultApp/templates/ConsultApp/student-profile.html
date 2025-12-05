@@ -5,18 +5,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Student Profile</title>
-  <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
+  <link rel="stylesheet" href="{% static 'ConsultApp/student-dashboard.css'%}">
   <link rel="stylesheet" href="{% static 'ConsultApp/student-profile.css'%}">
-  <style>
-    input[readonly] {
-      background-color: #f5f5f5;
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-  </style>
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
@@ -62,7 +54,20 @@
 
     <div class="profile-grid">
       <div class="profile-card">
-        <div class="profile-avatar">ST</div>
+        <div class="avatar-wrapper">
+          <img 
+              src="{{ avatar_url|default:'' }}" 
+              alt="Profile" 
+              class="profile-avatar-img"
+              id="userAvatarImg"
+              style="{% if not avatar_url %}display: none;{% endif %}"
+              onerror="this.style.display='none'; document.getElementById('initialsAvatar').style.display='flex';"
+          >
+
+          <div class="profile-avatar" id="initialsAvatar" style="{% if avatar_url %}display: none;{% endif %} margin: 0;">
+            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+          </div>
+      </div>
         <h3 id="displayName">{{ student.user.get_full_name|default:"Student" }}</h3>
           <div class="info-item">
             <div class="info-label">Email</div>
@@ -94,7 +99,7 @@
       <div class="form-card">
         <div class="form-header">
             <h2>Profile Information</h2>
-            <button type="button" id="editBtn" class="btn-primary" onclick="enableEditing()">
+            <button type="button" id="editBtn" class="btn-edit" onclick="enableEditing()">
                 Edit Profile
             </button>
         </div>
@@ -105,9 +110,28 @@
                 {% endif %}
             {% endfor %}
         {% endif %}
-        <form method="POST" action="{% url 'student_profile' %}">
+        <form method="POST" action="{% url 'student_profile' %}" enctype="multipart/form-data">
           {% csrf_token %}
-          
+            <div class="avatar-upload-container" id="avatarUploadField">
+              <label for="avatar_upload">Update Profile Picture</label>
+              <input type="file" name="avatar_upload" id="avatar_upload" accept="image/*">
+              <small>Max size: 2MB</small>
+
+              {% if avatar_url %}
+              <div style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px;">
+                <button 
+                  type="submit" 
+                  name="delete_avatar" 
+                  value="true" 
+                  class="btn-edit" 
+                  style="background-color: #ef4444; color: white; border: none; font-size: 0.9rem;"
+                  onclick="return confirm('Are you sure you want to remove your profile photo?');"
+                >
+                  Remove Photo
+                </button>
+              </div>
+              {% endif %}
+            </div>
           <div class="form-group">
             <label for="fullName">Full Name <span style="color: #999; font-size: 12px;">(Cannot be changed)</span></label>
             <input type="text" name="fullName" id="fullName" value="{{ student.user.get_full_name }}" readonly>
@@ -165,8 +189,8 @@
           </div>
 
           <div class="form-actions" id="actionButtons" style="display: none;">
-            <button type="submit" class="btn-primary">💾 Save Changes</button>
-            <button type="button" class="btn-secondary" onclick="cancelEditing()">Cancel</button>
+            <button type="submit" class="btn-edit">💾 Save Changes</button>
+            <button type="button" class="btn-edit" onclick="cancelEditing()">Cancel</button>
           </div>
         </form>
       </div>
@@ -252,8 +276,6 @@
     }
 
     departmentSelect.addEventListener('change', updateProgramOptions);
-    
-    // Initialize on page load
     updateProgramOptions();
 
     function enableEditing() {
@@ -262,6 +284,7 @@
       document.getElementById('department').disabled = false;
       document.getElementById('program').disabled = false;
       document.getElementById('yearLevel').disabled = false;
+      document.getElementById('avatarUploadField').style.display = 'block';
     }
 
     function cancelEditing() {
@@ -270,9 +293,12 @@
       document.getElementById('department').disabled = true;
       document.getElementById('program').disabled = true;
       document.getElementById('yearLevel').disabled = true;
+      
+      const uploadField = document.getElementById('avatarUploadField');
+      uploadField.style.display = 'none';
+      document.getElementById('avatar_upload').value = ""; 
     }
     
-    // Disable fields initially
     document.getElementById('department').disabled = true;
     document.getElementById('program').disabled = true;
     document.getElementById('yearLevel').disabled = true;

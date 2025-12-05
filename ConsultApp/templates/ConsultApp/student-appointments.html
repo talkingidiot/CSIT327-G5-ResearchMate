@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="{% static 'ConsultApp/student-dashboard.css'%}">
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
@@ -31,7 +30,7 @@
 
     <div id="detailsModal" class="modal-overlay">
       <div class="modal">
-        <h2>Appointment Details</h2>
+        <h2>📋 Appointment Details</h2>
         <div id="detailsContent"></div>
         <div class="modal-actions">
           <button class="btn-close" onclick="closeModal()">Close</button>
@@ -45,7 +44,55 @@
         <p>Are you sure you want to cancel this appointment?</p>
         <div class="modal-actions">
           <button class="btn-close" onclick="closeCancelModal()">No</button>
-          <button id="cancelConfirmBtn" class="btn-danger">Cancel</button>
+          <button id="cancelConfirmBtn" class="btn-danger">Cancel Appointment</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="reviewModal" class="modal-overlay">
+      <div class="modal">
+        <h2>📋 Review Meeting Status</h2>
+        <div class="modal-content" id="reviewContent">
+        </div>
+        
+        <div class="consultant-status-box" id="consultantStatusBox">
+        </div>
+        
+        <div id="confirmSection" style="margin-top: 20px;">
+          <p style="color: #666;">Do you agree with the consultant's assessment?</p>
+          <form id="confirmForm" method="POST" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="confirm">
+            <button type="submit" class="btn-confirm-modal">✅ Yes, I Confirm</button>
+          </form>
+          <button class="btn-close" onclick="showDisputeForm()" style="background: #f44336;">⚠️ No, I Want to Dispute</button>
+        </div>
+        
+        <div id="disputeSection" class="dispute-section" style="display: none;">
+          <h3>⚠️ Submit Your Dispute</h3>
+          <p>Please explain why you're disputing this meeting status. Be specific and honest.</p>
+          <form id="disputeForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="dispute">
+            <textarea 
+              name="dispute_remark" 
+              id="disputeRemark"
+              class="dispute-textarea"
+              placeholder="Examples:&#10;- Meeting did not happen at all&#10;- Consultant was absent without notice&#10;- We had technical issues and couldn't connect&#10;- Meeting was very brief (less than agreed time)&#10;- Consultant canceled but marked as complete"
+              required
+              minlength="10"
+              maxlength="500"
+            ></textarea>
+            <div class="char-count"><span id="charCount">0</span>/500 characters (minimum 10)</div>
+            <div class="modal-actions">
+              <button type="button" class="btn-close" onclick="hideDisputeForm()">← Back</button>
+              <button type="submit" class="btn-submit-dispute">Submit Dispute</button>
+            </div>
+          </form>
+        </div>
+        
+        <div class="modal-actions" id="mainModalActions">
+          <button class="btn-close" onclick="closeReviewModal()">Close</button>
         </div>
       </div>
     </div>
@@ -72,8 +119,10 @@
           <option value="">All Statuses</option>
           <option value="pending">Pending</option>
           <option value="confirmed">Confirmed</option>
+          <option value="pending_student_review">Pending Your Review</option>
           <option value="cancelled">Cancelled</option>
           <option value="completed">Completed</option>
+          <option value="disputed">Disputed</option>
         </select>
         <select name="consultant_filter" id="consultantFilter">
           <option value="">All Consultants</option>
@@ -84,13 +133,15 @@
           {% endfor %}
         </select>
       </div>
-      <a href="{% url 'book_appointment' %}" class="btn-new-booking">+ New Appointment</a>
     </div>
 
     <div class="history-grid">
       {% if appointments %}
         {% for booking in appointments %}
-          <div class="booking-card" data-status="{{ booking.status }}" data-consultant="{{ booking.consultant.user.id }}">
+          <div class="booking-card" 
+               data-status="{{ booking.status }}" 
+               data-consultant="{{ booking.consultant.user.id }}"
+               data-appointment-id="{{ booking.id }}">
             <div class="booking-header">
               <div class="consultant-info">
                 <h3>{{ booking.consultant.user.get_full_name }}</h3>
@@ -107,10 +158,14 @@
                 <span class="status-badge pending">⏳ Pending Approval</span>
               {% elif booking.status == "confirmed" %}
                 <span class="status-badge confirmed">✅ Confirmed</span>
+              {% elif booking.status == "pending_student_review" %}
+                <span class="status-badge pending-review">⏳ Awaiting Your Review</span>
               {% elif booking.status == "cancelled" %}
                 <span class="status-badge cancelled">❌ Cancelled</span>
               {% elif booking.status == "completed" %}
                 <span class="status-badge completed">🏁 Completed</span>
+              {% elif booking.status == "disputed" %}
+                <span class="status-badge disputed">⚠️ Disputed</span>
               {% endif %}
             </div>
 
@@ -131,9 +186,50 @@
                 <span class="label">Duration:</span>
                 <span class="value">{{ booking.duration_minutes }} minutes</span>
               </div>
+              
+              {% if booking.status == 'pending_student_review' %}
+                <div class="detail-row" style="border-top: 1px solid #eee; margin-top: 8px; padding-top: 8px;">
+                  <span class="label">Consultant marked as:</span>
+                  <span class="value">
+                    {% if booking.consultant_marked_as == 'completed' %}
+                      ✅ Completed
+                    {% else %}
+                      ❌ Not Completed
+                    {% endif %}
+                  </span>
+                </div>
+              {% endif %}
+              
+              {% if booking.status == 'disputed' %}
+                <div class="detail-row" style="border-top: 1px solid #eee; margin-top: 8px; padding-top: 8px;">
+                  <span class="label">Your dispute reason:</span>
+                  <span class="value" style="color: #d32f2f; font-style: italic;">
+                    "{{ booking.student_dispute_remark }}"
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="value" style="color: #666; font-size: 13px;">
+                    ⏳ Admin is reviewing your dispute
+                  </span>
+                </div>
+              {% endif %}
             </div>
 
             <div class="booking-actions">
+              {% if booking.status == "pending_student_review" %}
+                <button class="btn-details btn-review"
+                  onclick="openReviewModal(
+                    '{{ booking.id }}',
+                    '{{ booking.topic }}',
+                    '{{ booking.date|date:"M d, Y" }}',
+                    '{{ booking.time|time:"g:i A" }}',
+                    '{{ booking.duration_minutes }}',
+                    '{{ booking.consultant.user.get_full_name }}',
+                    '{{ booking.consultant_marked_as }}'
+                  )">
+                  📋 View & Review
+                </button>
+              {% else %}
                 <button class="btn-details"
                   onclick="openDetailsModal(
                     '{{ booking.id }}',
@@ -146,6 +242,8 @@
                   )">
                   📋 View Details
                 </button>
+              {% endif %}
+              
               {% if booking.status == "pending" %}
                 <button class="btn-cancel"
                         data-url="{% url 'cancel_appointment' booking.id %}"
@@ -157,7 +255,7 @@
           </div>
         {% endfor %}
       {% else %}
-        <p style="text-align:center; opacity:0.7; grid-column: 1/-1;">You have no appointments yet. <a href="{% url 'book_appointment' %}">Book your first consultation!</a></p>
+        <p style="text-align:center; opacity:0.7; grid-column: 1/-1;">You have no appointments yet.</a></p>
       {% endif %}
     </div>
 
@@ -190,17 +288,65 @@
 
       statusFilter.addEventListener('change', applyFilters);
       consultantFilter.addEventListener('change', applyFilters);
+      
+      const disputeTextarea = document.getElementById('disputeRemark');
+      const charCount = document.getElementById('charCount');
+      
+      if (disputeTextarea) {
+        disputeTextarea.addEventListener('input', function() {
+          charCount.textContent = this.value.length;
+        });
+      }
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const reviewId = urlParams.get('review');
+      
+      if (reviewId) {
+        console.log('Review ID found:', reviewId);
+        
+        const targetCard = document.querySelector(`[data-appointment-id="${reviewId}"]`);
+        console.log('Target card found:', targetCard); 
+        
+        if (targetCard) {
+          const reviewButton = targetCard.querySelector('.btn-review');
+          console.log('Review button found:', reviewButton);
+          
+          if (reviewButton) {
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            targetCard.style.boxShadow = '0 0 20px rgba(255, 193, 7, 0.6)';
+            setTimeout(() => {
+              targetCard.style.boxShadow = '';
+            }, 2000);
+            
+            setTimeout(() => {
+              console.log('Clicking review button...');
+              reviewButton.click();
+            }, 500);
+          } else {
+            console.error('Review button not found in card');
+            alert('This appointment is not available for review. Please refresh the page.');
+          }
+        } else {
+          console.error('Card not found for ID:', reviewId);
+          alert('Appointment not found. It may have been updated. Please refresh the page.');
+        }
+        
+        setTimeout(() => {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }, 1000);
+      }
     });
 
     function openDetailsModal(id, topic, date, time, duration, status, consultant) {
         const html = `
-          <p><strong>Appointment ID:</strong> ${id}</p>
-          <p><strong>Consultant:</strong> ${consultant}</p>
-          <p><strong>Purpose:</strong> ${topic}</p>
-          <p><strong>Date:</strong> ${date}</p>
-          <p><strong>Time:</strong> ${time}</p>
-          <p><strong>Duration:</strong> ${duration} minutes</p>
-          <p><strong>Status:</strong> ${status}</p>
+          <p><strong>Appointment ID:</strong> <span>${id}</span></p>
+          <p><strong>Consultant:</strong> <span>${consultant}</span></p>
+          <p><strong>Purpose:</strong> <span>${topic}</span></p>
+          <p><strong>Date:</strong> <span>${date}</span></p>
+          <p><strong>Time:</strong> <span>${time}</span></p>
+          <p><strong>Duration:</strong> <span>${duration} minutes</span></p>
+          <p><strong>Status:</strong> <span>${status}</span></p>
         `;
         document.getElementById("detailsContent").innerHTML = html;
         document.getElementById("detailsModal").style.display = "flex";
@@ -209,6 +355,7 @@
     function closeModal() {
         document.getElementById("detailsModal").style.display = "none";
     }
+    
     let cancelUrl = "";
 
     function openCancelModal(button) {
@@ -226,6 +373,67 @@
       }
     });
 
+    let currentAppointmentId = null;
+
+    function openReviewModal(id, topic, date, time, duration, consultant, markedAs) {
+      currentAppointmentId = id;
+      
+      const contentHtml = `
+        <p><strong>Appointment ID:</strong> <span>${id}</span></p>
+        <p><strong>Consultant:</strong> <span>${consultant}</span></p>
+        <p><strong>Purpose:</strong> <span>${topic}</span></p>
+        <p><strong>Date:</strong> <span>${date}</span></p>
+        <p><strong>Time:</strong> <span>${time}</span></p>
+        <p><strong>Duration:</strong> <span>${duration} minutes</span></p>
+      `;
+      
+      document.getElementById("reviewContent").innerHTML = contentHtml;
+      
+      const statusClass = markedAs === 'completed' ? 'status-completed' : 'status-not-completed';
+      const statusIcon = markedAs === 'completed' ? '✅' : '❌';
+      const statusText = markedAs === 'completed' ? 'Completed' : 'Not Completed';
+      
+      const statusBoxHtml = `
+        <h3>Consultant's Assessment:</h3>
+        <span class="status-badge-large ${statusClass}">
+          ${statusIcon} Marked as ${statusText}
+        </span>
+      `;
+      
+      document.getElementById("consultantStatusBox").innerHTML = statusBoxHtml;
+      document.getElementById("confirmForm").action = `/appointment/confirm-or-dispute/${id}/`;
+      document.getElementById("disputeForm").action = `/appointment/confirm-or-dispute/${id}/`;
+      document.getElementById("confirmSection").style.display = "block";
+      document.getElementById("disputeSection").style.display = "none";
+      document.getElementById("mainModalActions").style.display = "flex";
+      document.getElementById("disputeRemark").value = "";
+      document.getElementById("charCount").textContent = "0";
+      
+      document.getElementById("reviewModal").style.display = "flex";
+    }
+
+    function closeReviewModal() {
+      document.getElementById("reviewModal").style.display = "none";
+      currentAppointmentId = null;
+    }
+
+    function showDisputeForm() {
+      document.getElementById("confirmSection").style.display = "none";
+      document.getElementById("disputeSection").style.display = "block";
+      document.getElementById("mainModalActions").style.display = "none";
+    }
+
+    function hideDisputeForm() {
+      document.getElementById("confirmSection").style.display = "block";
+      document.getElementById("disputeSection").style.display = "none";
+      document.getElementById("mainModalActions").style.display = "flex";
+    }
+
+    window.onclick = function(e) {
+      if (e.target.classList.contains('modal-overlay')) {
+        e.target.style.display = "none";
+      }
+    };
   </script>
 </body>
 </html>

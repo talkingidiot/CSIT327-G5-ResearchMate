@@ -8,16 +8,14 @@
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
       <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+      <a href="{% url 'admin_profile' %}">👤 Profile</a>
       <a href="{% url 'admin_students' %}">👥 Students</a>
       <a href="{% url 'admin_consultants' %}" class="active">👩‍🏫 Consultants</a>
-      <a href="{% url 'admin_reports' %}">📊 Reports</a>
-      <a href="{% url 'admin_profile' %}">👤 Profile</a>
     </div>
 
     <div class="user-section">
@@ -29,15 +27,12 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <!-- Page Header -->
     <div class="page-header">
       <h1>Manage Consultants</h1>
       <p>View, verify, and manage consultants in the system</p>
     </div>
 
-    <!-- Consultants Section -->
     <div class="section-card">
       <div class="section-header">
         <h2>Consultant List</h2>
@@ -58,28 +53,30 @@
           {% for consultant in consultants %}
           <tr>
             <td><strong>{{ consultant.user.first_name }} {{ consultant.user.last_name }}</strong></td>
-            <td>{% if consultant.expertise %}{{ consultant.expertise }}{% else %}N/A{% endif %}</td>
+            <td>{% if consultant.expertise %}{{ consultant.expertise }}{% else %}Not Set{% endif %}</td>
             <td>{{ consultant.user.email }}</td>
             <td>
               {% if consultant.is_verified %}
                 {% with verification=consultant.user.verification_set.all|first %}
-                  {% if verification.qualification %}{{ verification.qualification|truncatewords:5 }}{% else %}N/A{% endif %}
+                  {% if verification.qualification %}{{ verification.qualification|truncatewords:5 }}{% else %}Not Set{% endif %}
                 {% endwith %}
               {% else %}
-                N/A
+                Not Set
               {% endif %}
             </td>
             <td>
               {% if consultant.is_verified %}
                 <span class="status-badge verified"><span class="dot"></span> verified</span>
-              {% elif consultant.user.is_active %}
+              {% elif consultant.has_pending_verification %}
                 <span class="status-badge pending"><span class="dot"></span> pending</span>
+              {% elif consultant.user.is_active %}
+                <span class="status-badge unverified"><span class="dot"></span> not verified</span>
               {% else %}
                 <span class="status-badge inactive"><span class="dot"></span> inactive</span>
               {% endif %}
             </td>
             <td>
-              <a href="{% url 'consultant_profile_view' consultant.user.id %}" class="btn-view-details">👁 View Details</a>
+              <a href="{% url 'consultant_profile_view' consultant.user.id %}" class="btn-view-details">View Details</a>
             </td>
           </tr>
           {% empty %}

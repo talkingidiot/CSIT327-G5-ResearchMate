@@ -4,12 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Consultant — Assigned Students</title>
+  <title>Consultant — Students</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/consultant.css'%}">
   <link rel="stylesheet" href="{% static 'ConsultApp/consultant-dashboard.css'%}">
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
@@ -30,28 +29,34 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <!-- Page Header -->
     <div class="page-header">
-      <h1>Assigned Students</h1>
-      <p>View and manage students assigned to you</p>
+      <h1>Students</h1>
+      <p>View students who had sessions with you</p>
     </div>
 
-    <!-- Results Count -->
     <div class="filter-section">
       <div class="results-count">
         {{ students|length }} assigned student{{ students|length|pluralize }}
       </div>
     </div>
 
-    <!-- Students Grid -->
     <div class="students-grid">
       {% if students %}
         {% for student in students %}
           <div class="student-card">
-            <div class="student-avatar">
-              {{ student.user.first_name|slice:":1"|upper }}{{ student.user.last_name|slice:":1"|upper }}
+            <div class="student-card-avatar-wrapper">
+              <img 
+                  src="{{ student.avatar_url|default:'' }}" 
+                  alt="Student" 
+                  class="list-avatar-img" 
+                  style="{% if not student.avatar_url %}display: none;{% endif %}"
+                  onerror="this.style.display='none'"
+              >
+              
+              <div class="student-card-initials">
+                  {{ student.user.first_name|slice:":1"|upper }}{{ student.user.last_name|slice:":1"|upper }}
+              </div>
             </div>
             <h3>{{ student.user.get_full_name }}</h3>
             <p class="program">{{ student.student_program|default:"Program not specified" }}</p>
@@ -96,10 +101,6 @@
                   </div>
                 {% endif %}
               {% endwith %}
-            </div>
-
-            <div class="student-actions">
-              <button class="btn-view" onclick="alert('Student profile view coming soon!')">👁️ View Details</button>
             </div>
           </div>
         {% endfor %}

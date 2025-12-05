@@ -8,16 +8,14 @@
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
       <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+      <a href="{% url 'admin_profile' %}">👤 Profile</a>
       <a href="{% url 'admin_students' %}" class="active">👥 Students</a>
       <a href="{% url 'admin_consultants' %}">👩‍🏫 Consultants</a>
-      <a href="{% url 'admin_reports' %}">📊 Reports</a>
-      <a href="{% url 'admin_profile' %}">👤 Profile</a>
     </div>
 
     <div class="user-section">
@@ -29,15 +27,12 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <!-- Page Header -->
     <div class="page-header">
       <h1>Manage Students</h1>
       <p>View and manage all registered students</p>
     </div>
 
-    <!-- Students Section -->
     <div class="section-card">
       <div class="section-header">
         <h2>Student List</h2>
@@ -58,18 +53,18 @@
           {% for student in students %}
           <tr>
             <td><strong>{{ student.user.first_name }} {{ student.user.last_name }}</strong></td>
-            <td>{% if student.student_program %}{{ student.student_program }}{% else %}N/A{% endif %}</td>
+            <td>{% if student.student_program %}{{ student.student_program }}{% else %}Not Set{% endif %}</td>
             <td>
               {% if student.student_year_level and student.student_year_level > 0 %}
                 {{ student.student_year_level }}{% if student.student_year_level == 1 %}st{% elif student.student_year_level == 2 %}nd{% elif student.student_year_level == 3 %}rd{% else %}th{% endif %} Year
               {% else %}
-                N/A
+                Not Set
               {% endif %}
             </td>
             <td>{{ student.user.email }}</td>
             <td><strong>{{ student.sessions_completed }}</strong></td>
             <td>
-              <a href="{% url 'student_profile_view' student.user.id %}" class="btn-view-details">👁 View Details</a>
+              <a href="{% url 'student_profile_view' student.user.id %}" class="btn-view-details">View Details</a>
             </td>
           </tr>
           {% empty %}

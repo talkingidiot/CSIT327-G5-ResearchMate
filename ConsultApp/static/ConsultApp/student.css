@@ -1,6 +1,9 @@
+/* =========================================
+   1. ROOT VARIABLES & RESET
+   ========================================= */
 :root {
   --navy: #003366;
-  --light-bg: #f5f3ed;
+  --light-bg: #f9eabd;
   --card-bg: #ffffff;
   --text-dark: #2c3e50;
   --text-muted: #6c757d;
@@ -20,6 +23,9 @@ body {
   color: var(--text-dark);
 }
 
+/* =========================================
+   2. NAVIGATION
+   ========================================= */
 .top-nav {
   background: var(--card-bg);
   padding: 16px 40px;
@@ -104,6 +110,9 @@ body {
   color: white;
 }
 
+/* =========================================
+   3. LAYOUT & FILTERS
+   ========================================= */
 .main-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -166,6 +175,9 @@ body {
   font-weight: 600;
 }
 
+/* =========================================
+   4. BOOKING CARDS
+   ========================================= */
 .history-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -218,23 +230,6 @@ body {
   font-weight: 600;
 }
 
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.status-badge.completed {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
 .booking-details {
   margin-bottom: 20px;
 }
@@ -262,6 +257,52 @@ body {
   text-align: right;
 }
 
+/* =========================================
+   5. STATUS BADGES
+   ========================================= */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Base Statuses */
+.status-badge.upcoming { background: #fff8e1; color: #f57c00; }
+.status-badge.confirmed { background: #e8f5e9; color: #2e7d32; }
+.status-badge.completed { background: #e0e7ff; color: #5a67d8; }
+.status-badge.cancelled { background: #fee; color: #e53e3e; }
+.status-badge.pending { background: #fffbea; color: #d69e2e; }
+
+/* Review & Dispute Statuses (From Input 1) */
+.status-badge.pending-review {
+  background: #fff3cd;
+  color: #856404;
+}
+.status-badge.disputed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Large Statuses for Modal */
+.status-badge-large {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.status-completed { background: #d4edda; color: #155724; }
+.status-not-completed { background: #f8d7da; color: #721c24; }
+
+/* =========================================
+   6. BUTTONS
+   ========================================= */
 .booking-actions {
   display: flex;
   gap: 10px;
@@ -279,7 +320,6 @@ body {
   font-weight: 700;
   transition: all 0.3s ease;
 }
-
 .btn-details:hover {
   background: #004080;
   transform: translateY(-2px);
@@ -297,12 +337,243 @@ body {
   font-weight: 700;
   transition: all 0.3s ease;
 }
-
 .btn-feedback:hover {
   background: var(--navy);
   color: white;
 }
 
+.btn-new-booking {
+  padding: 10px 20px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+.btn-new-booking:hover {
+  background: #004080;
+  transform: translateY(-2px);
+}
+
+.btn-cancel {
+  padding: 10px 20px;
+  background: transparent;
+  color: #c62828;
+  border: 2px solid #c62828;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+.btn-cancel:hover {
+  background: #c62828;
+  color: white;
+}
+
+/* Review & Dispute Buttons (From Input 1) */
+.btn-confirm {
+  background: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-right: 8px;
+}
+.btn-dispute {
+  background: #f44336;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* =========================================
+   7. MESSAGES & ALERTS
+   ========================================= */
+.messages-container {
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+
+.message {
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+}
+.message.success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+.message.error { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+.message.info, .message.debug, .message.warning { background-color: #d1ecf1; color: #0c5460; border-color: #bee5eb; }
+
+/* =========================================
+   8. ENHANCED MODAL SYSTEM (From Input 1)
+   ========================================= */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  width: 90%;
+  max-width: 600px; /* Enhanced size for dispute forms */
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.modal h2 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 2px solid #4caf50;
+  padding-bottom: 12px;
+}
+
+.modal-content {
+  margin: 20px 0;
+}
+
+.modal-content p {
+  margin: 12px 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-content strong {
+  color: #555;
+  min-width: 140px;
+}
+
+/* Consultant Status Box inside Modal */
+.consultant-status-box {
+  background: #f8f9fa;
+  border-left: 4px solid #ffc107;
+  padding: 16px;
+  margin: 16px 0;
+  border-radius: 4px;
+}
+
+.consultant-status-box h3 {
+  margin: 0 0 8px 0;
+  color: #856404;
+  font-size: 16px;
+}
+
+/* Dispute Form in Modal */
+.dispute-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid #eee;
+}
+
+.dispute-section h3 {
+  color: #d32f2f;
+  margin-bottom: 12px;
+}
+
+.dispute-section p {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.dispute-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  margin-bottom: 8px;
+}
+
+.dispute-textarea:focus {
+  outline: none;
+  border-color: #f44336;
+}
+
+.char-count {
+  font-size: 12px;
+  color: #999;
+  text-align: right;
+  margin-bottom: 16px;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.btn-close {
+  background: #6c757d;
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-confirm-modal {
+  background: #4caf50;
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-submit-dispute {
+  background: #f44336;
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-danger {
+  background: #f44336;
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* =========================================
+   9. MISC / EMPTY STATES
+   ========================================= */
 .empty-state {
   text-align: center;
   padding: 80px 20px;
@@ -332,191 +603,29 @@ body {
     gap: 16px;
     padding: 16px 20px;
   }
-
   .nav-links {
     flex-wrap: wrap;
     justify-content: center;
   }
-
   .main-content {
     padding: 20px;
   }
-
   .page-header h1 {
     font-size: 28px;
   }
-
   .history-grid {
     grid-template-columns: 1fr;
   }
-
   .filter-section {
     flex-direction: column;
     gap: 16px;
     align-items: stretch;
   }
-
   .filter-controls {
     flex-direction: column;
     width: 100%;
   }
-
   .filter-controls select {
     width: 100%;
   }
-}
-
-.btn-new-booking {
-  padding: 10px 20px;
-  background: var(--navy);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
-  transition: all 0.3s ease;
-}
-
-.btn-new-booking:hover {
-  background: #004080;
-  transform: translateY(-2px);
-}
-
-.status-badge.upcoming {
-  background: #fff8e1;
-  color: #f57c00;
-}
-
-.status-badge.confirmed {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-/* Cancel button */
-.btn-cancel {
-  padding: 10px 20px;
-  background: transparent;
-  color: #c62828;
-  border: 2px solid #c62828;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 700;
-  transition: all 0.3s ease;
-}
-
-.btn-cancel:hover {
-  background: #c62828;
-  color: white;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-.status-badge.pending { 
-  background: #fffbea; 
-  color: #d69e2e; 
-  border: 1px solid #d69e2e; 
-}
-.status-badge.confirmed { 
-  background: #e6ffed; 
-  color: #38a169; 
-  border: 1px solid #38a169; 
-}
-.status-badge.cancelled { 
-  background: #fee; 
-  color: #e53e3e; 
-  border: 1px solid #e53e3e; 
-}
-.status-badge.completed { 
-  background: #e0e7ff; 
-  color: #5a67d8; 
-  border: 1px solid #5a67d8; 
-}
-
-.messages-container {
-  margin-bottom: 20px;
-  margin-top: 10px;
-}
-
-.message {
-  padding: 12px 20px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  border: 1px solid transparent;
-  font-size: 0.95rem;
-}
-
-.message.success {
-  background-color: #d4edda;
-  color: #155724;
-  border-color: #c3e6cb;
-}
-
-.message.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border-color: #f5c6cb;
-}
-
-.message.info,
-.message.debug,
-.message.warning {
-  background-color: #d1ecf1;
-  color: #0c5460;
-  border-color: #bee5eb;
-}
-
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.45);
-  backdrop-filter: blur(2px);
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
-
-.modal {
-  background: #fff;
-  padding: 25px;
-  width: 420px;
-  border-radius: 12px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-.modal h2 {
-  margin-bottom: 15px;
-  font-size: 22px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-  gap: 10px;
-}
-
-.btn-close {
-  padding: 8px 18px;
-  background: #a4a4a4;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.btn-danger {
-  padding: 8px 18px;
-  background: #c82333;
-  color: white !important;
-  border-radius: 6px;
-  cursor: pointer;
 }
