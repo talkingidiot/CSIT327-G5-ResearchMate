@@ -42,6 +42,14 @@
 
   <main class="main-content">
     
+    {% if messages %}
+      <div class="messages-container">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    
     <div class="page-header">
       <h1>Consultation History</h1>
       <p>View your completed and cancelled sessions</p>
@@ -60,6 +68,8 @@
           <option value="all">All Statuses</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
+          <option value="pending_student_review">Pending Student Review</option>
+          <option value="disputed">Pending Admin Review</option>
         </select>
       </div>
       <div class="results-count">
@@ -84,6 +94,10 @@
                 <span class="status-badge completed">🏁 Completed</span>
               {% elif appointment.status == 'cancelled' %}
                 <span class="status-badge cancelled">❌ Cancelled</span>
+              {% elif appointment.status == 'pending_student_review' %}
+                <span class="status-badge pending-review">⏳ Pending Student Review</span>
+              {% elif appointment.status == 'disputed' %}
+                <span class="status-badge disputed">⚠️ Pending Admin Review</span>
               {% endif %}
             </div>
 
@@ -104,6 +118,43 @@
                 <span class="label">Duration:</span>
                 <span class="value">{{ appointment.duration_minutes }} minutes</span>
               </div>
+              
+              {% if appointment.status == 'pending_student_review' %}
+                <div class="detail-row">
+                  <span class="label">You marked as:</span>
+                  <span class="value">
+                    {% if appointment.consultant_marked_as == 'completed' %}
+                      ✅ Completed
+                    {% else %}
+                      ❌ Not Completed
+                    {% endif %}
+                  </span>
+                </div>
+              {% endif %}
+              
+              {% if appointment.status == 'disputed' %}
+                <div class="detail-row" style="border-top: 1px solid #eee; margin-top: 8px; padding-top: 8px;">
+                  <span class="label">You marked as:</span>
+                  <span class="value">
+                    {% if appointment.consultant_marked_as == 'completed' %}
+                      ✅ Completed
+                    {% else %}
+                      ❌ Not Completed
+                    {% endif %}
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Student's Dispute:</span>
+                  <span class="value" style="color: #d32f2f; font-style: italic;">
+                    "{{ appointment.student_dispute_remark }}"
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="value" style="color: #856404; font-size: 13px; background: #fff3cd; padding: 6px 10px; border-radius: 4px;">
+                    ⏳ Admin is reviewing this case
+                  </span>
+                </div>
+              {% endif %}
             </div>
 
             <div class="booking-actions">

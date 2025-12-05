@@ -5,28 +5,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Book Appointment — ResearchMate</title>
-  <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css' %}">
-  <link rel="stylesheet" href="{% static 'ConsultApp/profile.css' %}">
-  <link rel="stylesheet" href="{% static 'ConsultApp/book.css' %}">
-  <style>
-    .available-days {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .day-badge {
-      padding: 4px 12px;
-      background: #e6ffed;
-      color: #38a169;
-      border-radius: 12px;
-      font-size: 0.85rem;
-      font-weight: 500;
-    }
-  </style>
+  <link rel="stylesheet" href="{% static 'ConsultApp/appointment.css' %}">
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
@@ -46,14 +27,12 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
     <div class="page-header">
       <h1>📅 Book a Research Consultant</h1>
       <p>Choose a verified consultant and schedule your appointment</p>
     </div>
 
-    <!-- ERROR/SUCCESS MESSAGES -->
     {% if messages %}
       <div style="max-width: 900px; margin: 0 auto 20px;">
         {% for message in messages %}
@@ -64,50 +43,69 @@
       </div>
     {% endif %}
 
-    <!-- Booking Layout -->
     <div class="profile-grid">
-      <!-- Consultant Info Card (Left Side) -->
       <div class="profile-card">
         <h3>📋 Consultant Information</h3>
+        
         {% if consultant and market %}
-          <div class="consultant-card">
-            <img src="{% static 'ConsultApp/default-profile.png' %}" alt="Consultant">
-            <h4>{{ consultant.user.get_full_name }}</h4>
-            <p><strong>Expertise:</strong> {{ market.expertise }}</p>
-            <p><strong>Profession:</strong> {{ market.profession }}</p>
-            <p><strong>Rate:</strong> ₱{{ market.rate_per_hour }}/hour</p>
-            <p><strong>Available Hours:</strong> {{ market.available_from|time:"g:i A" }} - {{ market.available_to|time:"g:i A" }}</p>
-            
-            {% if market.available_days %}
-            <p><strong>Available Days:</strong></p>
-            <div class="available-days">
-              {% for day in market.get_available_days_list %}
-                <span class="day-badge">{{ day|title }}</span>
-              {% endfor %}
-            </div>
-            {% endif %}
-            
-            <p style="margin-top: 12px;"><strong>Location:</strong> {{ market.meeting_place }}</p>
-            {% if market.description %}
-              <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">{{ market.description }}</p>
-            {% endif %}
+          <img src="{% static 'ConsultApp/default-profile.png' %}" 
+               alt="Consultant" 
+               class="profile-avatar" 
+               style="object-fit: cover; padding: 0; border: 4px solid #f5f3ed;">
+          
+          <div style="margin-bottom: 20px;">
+              <h4 style="color: var(--navy); font-size: 18px; margin: 0;">{{ consultant.user.get_full_name }}</h4>
+              <span class="role">{{ market.profession }}</span>
           </div>
+
+          <div class="info-item">
+            <div class="info-label">Expertise</div>
+            <div class="info-value">{{ market.expertise }}</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">Hourly Rate</div>
+            <div class="info-value">₱{{ market.rate_per_hour }}/hour</div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">Available Hours</div>
+            <div class="info-value">
+              {{ market.available_from|time:"g:i A" }} - {{ market.available_to|time:"g:i A" }}
+            </div>
+          </div>
+
+          {% if market.available_days %}
+          <div class="info-item">
+            <div class="info-label">Available Days</div>
+            <div class="info-value" style="margin-top: 5px;">
+              <div class="available-days">
+                {% for day in market.get_available_days_list %}
+                  <span class="day-badge">{{ day|title }}</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="info-item">
+            <div class="info-label">Location</div>
+            <div class="info-value">{{ market.meeting_place }}</div>
+          </div>
+
         {% elif consultants %}
-          <p>Select a consultant from the dropdown to see their details.</p>
+          <p style="color: var(--text-muted); padding-top: 20px;">Select a consultant from the dropdown to see their details.</p>
         {% else %}
-          <p>No verified consultants available at the moment.</p>
+          <p style="color: var(--text-muted); padding-top: 20px;">No verified consultants available at the moment.</p>
         {% endif %}
       </div>
 
-      <!-- Booking Form (Right Side) -->
       <div class="form-card">
         <h2>Appointment Details</h2>
         
-        <!-- FORM ACTION MUST BE CORRECT -->
         <form method="POST" action="{% if consultant %}{% url 'book_appointment_with_consultant' consultant.user.id %}{% else %}{% url 'book_appointment' %}{% endif %}">
           {% csrf_token %}
           
-          <!-- Consultant Selection -->
           {% if consultant %}
             <div class="form-group">
               <label>Consultant</label>
@@ -125,22 +123,19 @@
             </div>
           {% endif %}
 
-          <!-- Topic -->
           <div class="form-group">
             <label for="topic">Consultation Topic *</label>
             <input type="text" name="topic" id="topic" placeholder="e.g., Research Methodology, Data Analysis" required>
           </div>
 
-          <!-- Research Title (Optional) -->
           <div class="form-group">
             <label for="research_title">Research Title (Optional)</label>
             <input type="text" name="research_title" id="research_title" placeholder="Your research title">
           </div>
 
-          <!-- Date -->
           <div class="form-group">
             <label for="date">Date *</label>
-            <input type="date" name="date" id="date" required min="{{ today }}">
+            <input type="date" name="date" id="date" required min="{{ tomorrow }}">
             {% if market and market.available_days %}
             <small style="color: #666; display: block; margin-top: 4px;">
               Available on: 
@@ -151,7 +146,6 @@
             {% endif %}
           </div>
 
-          <!-- Time Selection -->
           <div class="form-group">
             <label for="start_time">Start Time *</label>
             {% if slots %}
@@ -171,7 +165,6 @@
             {% endif %}
           </div>
 
-          <!-- Duration -->
           <div class="form-group">
             <label for="duration_hours">Duration *</label>
             <select id="duration_hours" name="duration_hours" required>
@@ -181,7 +174,6 @@
             </select>
           </div>
 
-          <!-- Total Cost Display -->
           {% if market %}
           <div class="form-group">
             <label>Estimated Total Cost:</label>
@@ -191,7 +183,6 @@
           </div>
           {% endif %}
 
-          <!-- Form Actions -->
           <div class="form-actions">
             <button type="submit" class="btn-primary">📅 Submit Booking Request</button>
             <button type="button" class="btn-secondary" onclick="window.location.href='{% url 'student_dashboard' %}'">Cancel</button>
@@ -218,7 +209,6 @@
       updateTotalCost();
     }
 
-    // Format time select options to 12-hour format
     const timeSelect = document.getElementById('start_time');
     if (timeSelect && timeSelect.tagName === 'SELECT') {
       const options = timeSelect.querySelectorAll('option');
@@ -234,22 +224,6 @@
         }
       });
     }
-
-    // Disable unavailable dates
-    {% if unavailable_dates %}
-    const unavailableDates = {{ unavailable_dates|safe }};
-    const dateInput = document.getElementById('date');
-    
-    if (dateInput) {
-      dateInput.addEventListener('input', function() {
-        const selectedDate = this.value;
-        if (unavailableDates.includes(selectedDate)) {
-          alert('This consultant is not available on the selected date. Please choose another date.');
-          this.value = '';
-        }
-      });
-    }
-    {% endif %}
     {% endif %}
   </script>
 </body>

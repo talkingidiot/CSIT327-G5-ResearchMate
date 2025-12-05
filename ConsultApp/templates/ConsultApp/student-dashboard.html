@@ -7,126 +7,6 @@
   <title>ResearchMate — Student Dashboard</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/student-dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'ConsultApp/card-grid.css' %}">
-  <style>
-    .available-days-inline {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-top: 4px;
-    }
-    .day-badge-small {
-      padding: 2px 8px;
-      background: #e6ffed;
-      color: #38a169;
-      border-radius: 8px;
-      font-size: 0.75rem;
-      font-weight: 500;
-    }
-    .feedback-section {
-      margin-top: 24px;
-      padding-top: 24px;
-      border-top: 2px solid #f0f0f0;
-    }
-    .feedback-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .feedback-header h3 {
-      margin: 0;
-      font-size: 18px;
-      color: #333;
-    }
-    .feedback-stats {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      padding: 12px;
-      background: #f8f9fa;
-      border-radius: 8px;
-    }
-    .average-rating {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .rating-number {
-      font-size: 32px;
-      font-weight: 700;
-      color: #ffc107;
-    }
-    .rating-stars {
-      color: #ffc107;
-      font-size: 20px;
-    }
-    .total-reviews {
-      color: #666;
-      font-size: 14px;
-    }
-    .feedback-list {
-      max-height: 400px;
-      overflow-y: auto;
-      padding-right: 8px;
-    }
-    .feedback-item {
-      background: #ffffff;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-    .feedback-item:last-child {
-      margin-bottom: 0;
-    }
-    .feedback-item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .feedback-student {
-      font-weight: 600;
-      color: #333;
-      font-size: 14px;
-    }
-    .feedback-rating {
-      color: #ffc107;
-      font-size: 16px;
-    }
-    .feedback-date {
-      font-size: 12px;
-      color: #999;
-      margin-bottom: 8px;
-    }
-    .feedback-comment {
-      color: #555;
-      font-size: 14px;
-      line-height: 1.5;
-      font-style: italic;
-    }
-    .no-feedback {
-      text-align: center;
-      padding: 32px;
-      color: #999;
-      font-style: italic;
-    }
-    .feedback-list::-webkit-scrollbar {
-      width: 6px;
-    }
-    .feedback-list::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 3px;
-    }
-    .feedback-list::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 3px;
-    }
-    .feedback-list::-webkit-scrollbar-thumb:hover {
-      background: #555;
-    }
-  </style>
 </head>
 <body>
   <nav class="top-nav">
@@ -148,15 +28,12 @@
     </div>
   </nav>
 
-  <!-- ===== MAIN CONTENT ===== -->
   <main class="main-content">
-    <!-- Page Header -->
     <header class="page-header">
       <h1>Welcome back, <span id="welcomeName">{{ student_name }}</span>!</h1>
       <p>Find a research consultant and manage your bookings</p>
     </header>
 
-    <!-- SUCCESS/ERROR MESSAGES -->
     {% if messages %}
       <div style="margin-bottom: 20px;">
         {% for message in messages %}
@@ -170,8 +47,45 @@
       </div>
     {% endif %}
 
+    {% if pending_reviews %}
+    <div class="pending-review-alert">
+      <h3>⚠️ Action Required: {{ pending_reviews|length }} Meeting{% if pending_reviews|length > 1 %}s{% endif %} Pending Your Review</h3>
+      <p style="margin: 0 0 16px 0; color: #856404;">
+        Your consultant has marked the following meeting{{ pending_reviews|length|pluralize }} as completed or not completed. 
+        Please confirm or dispute the status.
+      </p>
+      
+      {% for appointment in pending_reviews %}
+      <div class="pending-review-item">
+        <div class="review-header">
+          <div class="review-info">
+            <h4>{{ appointment.consultant.user.get_full_name }}</h4>
+            <p><strong>Topic:</strong> {{ appointment.topic }}</p>
+            <p><strong>Date:</strong> {{ appointment.date|date:"M d, Y" }} at {{ appointment.time|time:"g:i A" }}</p>
+          </div>
+          <div class="consultant-marked {% if appointment.consultant_marked_as == 'completed' %}marked-completed{% else %}marked-not-completed{% endif %}">
+            {% if appointment.consultant_marked_as == 'completed' %}
+              ✅ Marked as Completed
+            {% else %}
+              ❌ Marked as Not Completed
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="review-actions">
+          <form action="{% url 'student_confirm_or_dispute' appointment.id %}" method="POST" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="confirm">
+            <button type="submit" class="btn-quick-confirm">✅ Confirm</button>
+          </form>
+          <a href="{% url 'student_appointments' %}?review={{ appointment.id }}" class="btn-quick-view">📋 View & Dispute</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="dashboard-grid">
-      <!-- ===== LEFT COLUMN ===== -->
       <section>
         <div class="search-card">
           <h2>🔍 Find Your Research Consultant</h2>
@@ -193,30 +107,36 @@
           <div class="stat-box"><h4>Cancelled</h4><div class="number">{{ stats.cancelled }}</div></div>
         </div>
 
-        <!-- ===== Recommended Consultants ===== -->
         <section class="consultants-section">
           <h2>Recommended Consultants</h2>
           {% if recommended_consultants %}
             <div class="consultants-grid">
               {% for market in recommended_consultants %}
                 <div class="consultant-card">
-                  <img 
-                    src="{% if market.consultant.profile_image %}{{ market.consultant.profile_image.url }}{% else %}{% static 'ConsultApp/default-profile.png' %}{% endif %}" 
-                    alt="{{ market.consultant.user.get_full_name }}"
-                  >
+                  <div class="consultant-avatar-wrapper">
+                    <img 
+                      src="{{ market.consultant.avatar_url|default:'' }}" 
+                      alt="{{ market.consultant.user.get_full_name }}"
+                      class="consultant-avatar-img"
+                      style="{% if not market.consultant.avatar_url %}display: none;{% endif %}"
+                      onerror="this.style.display='none'"
+                    >
+                    
+                    <div class="consultant-initials">
+                      {{ market.consultant.user.first_name|slice:":1"|upper }}{{ market.consultant.user.last_name|slice:":1"|upper }}
+                    </div>
+                </div>
                   <h4>{{ market.consultant.user.get_full_name }}</h4>
                   <p>{{ market.expertise|default:"No expertise listed" }}</p>
                   <p class="rate">💰 ₱{{ market.rate_per_hour }} / hour</p>
                   <p class="meeting">📍 {{ market.meeting_place }}</p>
 
-                  <!-- View Details Button -->
                   <a href="{% url 'consultant_details' market.consultant.user.id %}" class="btn-view-details">
                     View Details
                   </a>
                   
-                  <!-- Book Now Button -->
                   <a href="{% url 'book_appointment_with_consultant' market.consultant.user.id %}" class="btn-primary" style="display: inline-block; padding: 10px 20px; background: #4caf50; color: white; text-decoration: none; border-radius: 8px; text-align: center; margin-top: 8px;">
-                    📅 Book Now
+                    Book Now
                   </a>
                 </div>
               {% endfor %}
@@ -227,11 +147,22 @@
         </section>
       </section>
 
-      <!-- ===== RIGHT SIDEBAR ===== -->
       <aside class="sidebar-column">
         <div class="profile-card">
           <div class="profile-header">
-            <div class="profile-avatar">{{ student_name|slice:":2"|upper }}</div>
+            <div class="dashboard-avatar-wrapper">
+              <img 
+                src="{{ avatar_url|default:'' }}" 
+                alt="Profile" 
+                class="dashboard-avatar-img"
+                style="{% if not avatar_url %}display: none;{% endif %}"
+                onerror="this.style.display='none'; document.getElementById('dashboardInitials').style.display='flex';"
+              >
+
+              <div class="profile-avatar" id="dashboardInitials" style="{% if avatar_url %}display: none;{% endif %}">
+                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+              </div>
+            </div>
             <div class="profile-name">
               <h3 id="profileName">{{ student_name }}</h3>
               <p>Student</p>
@@ -257,8 +188,13 @@
                   Consultation with {{ session.consultant.user.get_full_name }} at {{ session.time|time:"g:i A" }}
                   <span style="display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 4px; font-size: 0.85em;
                         {% if session.status == 'pending' %}background: #fffbea; color: #d69e2e;
-                        {% elif session.status == 'confirmed' %}background: #e6ffed; color: #38a169;{% endif %}">
-                    {{ session.get_status_display }}
+                        {% elif session.status == 'confirmed' %}background: #e6ffed; color: #38a169;
+                        {% elif session.status == 'pending_student_review' %}background: #fff3cd; color: #856404;{% endif %}">
+                    {% if session.status == 'pending_student_review' %}
+                      ⚠️ Review Needed
+                    {% else %}
+                      {{ session.get_status_display }}
+                    {% endif %}
                   </span>
                 </div>
               </div>
@@ -270,9 +206,5 @@
       </aside>
     </div>
   </main>
-
-  <script>
-    // Simple script - just for closing messages if needed
-  </script>
 </body>
 </html>

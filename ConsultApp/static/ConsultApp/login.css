@@ -1,0 +1,407 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #fdf5e6;
+  min-height: 100vh;
+  padding: 40px 20px;
+}
+
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.header h1 {
+  color: #001f54;
+  font-size: 42px;
+  margin-bottom: 10px;
+}
+
+.header p {
+  color: #001f54;
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+.container {
+  background: white;
+  border: 3px solid #001f54;
+  border-radius: 10px;
+  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 900px;
+  min-height: 710px;
+  margin: 0 auto;
+}
+
+.form-container {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transition: all 0.6s ease-in-out;
+}
+
+.sign-in-container {
+  left: 0;
+  width: 50%;
+  z-index: 2;
+}
+
+.sign-up-container {
+  left: 0;
+  width: 50%;
+  opacity: 0;
+  z-index: 1;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+
+.container.right-panel-active .sign-in-container {
+  transform: translateX(100%);
+}
+
+.container.right-panel-active .sign-up-container {
+  transform: translateX(100%);
+  opacity: 1;
+  z-index: 5;
+  animation: 0.6s;
+}
+
+.no-transition,
+.no-transition * {
+    transition: none !important;
+    animation: none !important;
+}
+
+@keyframes show {
+  0%, 49.99% {
+    opacity: 0;
+    z-index: 1;
+  }
+  50%, 100% {
+    opacity: 1;
+    z-index: 5;
+  }
+}
+
+form {
+  background: white;
+  display: flex;
+  flex-direction: column;
+  padding: 0 50px;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+form h2 {
+  color: #001f54;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+form .subtitle {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.role-selection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.role-btn {
+  padding: 15px 20px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  color: #666;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.role-btn:hover {
+  border-color: #001f54;
+  color: #001f54;
+  background: #fdf5e6;
+}
+
+.role-btn.active {
+  background: #001f54;
+  color: #fdf5e6;
+  border-color: #001f54;
+}
+
+.input-group {
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.input-group label {
+  display: block;
+  color: #001f54;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+input {
+  background: #fdf5e6;
+  border: 2px solid #e0e0e0;
+  padding: 14px 15px;
+  width: 100%;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  color: #001f54;
+}
+
+input:focus {
+  outline: none;
+  border-color: #001f54;
+  background: white;
+}
+
+input.error {
+  border-color: #dc2626;
+  background: #fee;
+}
+
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrapper input {
+  padding-right: 45px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+  color: #666;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-password:hover {
+  color: #001f54;
+}
+
+.toggle-password svg {
+  width: 20px;
+  height: 20px;
+}
+
+.error-message {
+  color: #dc2626;
+  margin-top: 6px;
+  display: none;
+  text-align: left;
+}
+
+.error-message p {
+  font-size: 16px; 
+  margin: 0;
+  font-weight: 500;
+}
+
+.error-message.show {
+  display: block;
+}
+
+.forgot-password {
+  text-align: right;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.forgot-password a {
+  color: #001f54;
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+button.submit-btn {
+  border: none;
+  background: #001f54;
+  color: #fdf5e6;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 16px 45px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 100%;
+}
+
+button.submit-btn:hover {
+  background: #003380;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 31, 84, 0.3);
+}
+
+button.submit-btn:active {
+  transform: translateY(0);
+}
+
+.link-text {
+  color: #666;
+  font-size: 13px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.link-text a {
+  color: #001f54;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.link-text a:hover {
+  text-decoration: underline;
+}
+
+.overlay-container {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  transition: transform 0.6s ease-in-out;
+  z-index: 100;
+}
+
+.container.right-panel-active .overlay-container {
+  transform: translateX(-100%);
+}
+
+.overlay {
+  background: #001f54;
+  background: linear-gradient(to right, #001f54, #003380);
+  color: #fdf5e6;
+  position: relative;
+  left: -100%;
+  height: 100%;
+  width: 200%;
+  transform: translateX(0);
+  transition: transform 0.6s ease-in-out;
+}
+
+.container.right-panel-active .overlay {
+  transform: translateX(50%);
+}
+
+.overlay-panel {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 0 40px;
+  text-align: center;
+  top: 0;
+  height: 100%;
+  width: 50%;
+  transform: translateX(0);
+  transition: transform 0.6s ease-in-out;
+}
+
+.overlay-left {
+  transform: translateX(-20%);
+}
+
+.container.right-panel-active .overlay-left {
+  transform: translateX(0);
+}
+
+.overlay-right {
+  right: 0;
+  transform: translateX(0);
+}
+
+.container.right-panel-active .overlay-right {
+  transform: translateX(20%);
+}
+
+.overlay-panel .icon {
+  font-size: 80px;
+  margin-bottom: 30px;
+}
+
+.overlay-panel h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.overlay-panel p {
+  font-size: 16px;
+  line-height: 1.8;
+  margin-bottom: 30px;
+  opacity: 0.95;
+}
+
+@media (max-width: 768px) {
+  .container {
+    min-height: 600px;
+  }
+
+  form {
+    padding: 0 30px;
+  }
+
+  .header h1 {
+    font-size: 32px;
+  }
+
+  .overlay-container {
+    display: none;
+  }
+
+  .sign-in-container,
+  .sign-up-container {
+    width: 100%;
+  }
+
+  .container.right-panel-active .sign-in-container {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}

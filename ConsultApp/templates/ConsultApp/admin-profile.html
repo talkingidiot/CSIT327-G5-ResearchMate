@@ -7,13 +7,6 @@
   <title>ResearchMate — Profile Management</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-profile.css' %}">
-  <style>
-    input[readonly] {
-      background-color: #f5f5f5;
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-  </style>
 </head>
 <body>
   <nav class="top-nav">
@@ -21,10 +14,9 @@
     
     <div class="nav-links">
       <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+      <a href="{% url 'admin_profile' %}" class="active">👤 Profile</a>
       <a href="{% url 'admin_students' %}">👥 Students</a>
       <a href="{% url 'admin_consultants' %}">👩‍🏫 Consultants</a>
-      <a href="{% url 'admin_reports' %}">📊 Reports</a>
-      <a href="{% url 'admin_profile' %}" class="active">👤 Profile</a>
     </div>
 
     <div class="user-section">
@@ -60,7 +52,22 @@
 
     <div class="profile-grid">
       <div class="profile-card">
-        <div class="profile-avatar">AD</div>
+        <div class="avatar-wrapper">
+          <img 
+            src="{{ avatar_url|default:'' }}" 
+            alt="Profile" 
+            class="profile-avatar-img"
+            id="adminAvatarImg"
+            style="{% if not avatar_url %}display: none;{% endif %}"
+            onerror="this.style.display='none'; document.getElementById('adminInitials').style.display='flex';"
+          >
+
+          <div class="profile-avatar-initials" id="adminInitials" style="{% if avatar_url %}display: none;{% endif %}">
+            {% with first=admin_user.first_name|slice:":1"|upper last=admin_user.last_name|slice:":1"|upper %}
+              {{ first }}{{ last }}
+            {% endwith %}
+          </div>
+        </div>
         <h3 id="displayName">{{ admin_name }}</h3>
         <p class="role">{{ admin_role }}</p>
 
@@ -75,12 +82,11 @@
         </div>
       </div>
 
-      <!-- Edit Form -->
       <div class="form-card">
         <div class="form-header">
             <h2>Profile Information</h2>
-            <button type="button" id="editBtn" class="btn-primary" onclick="enableEditing()" style="padding: 8px 16px; font-size: 13px;">
-                ✏️ Edit Profile
+            <button type="button" id="editBtn" class="btn-primary" onclick="enableEditing()">
+              Edit Profile
             </button>
         </div>
 
@@ -96,6 +102,24 @@
           {% csrf_token %}
           <fieldset id="formFields" disabled style="border: none; padding: 0; margin: 0;">
           
+          <div class="form-group file-upload-box" id="uploadContainer" style="display: none;">
+            <label for="avatar_upload" style="display:block; margin-bottom:8px; font-weight:600; color:#475569;">Update Photo</label>
+            <input type="file" name="avatar_upload" id="avatar_upload" accept="image/*">
+            <small style="display:block; margin-top:5px; color:#64748b;">Max size: 2MB</small>
+
+            {% if avatar_url %}
+            <button 
+              type="submit" 
+              name="delete_avatar" 
+              value="true" 
+              class="btn-delete"
+              onclick="return confirm('Are you sure you want to remove your profile photo?');"
+            >
+              Remove Photo
+            </button>
+            {% endif %}
+          </div>
+
           <div class="form-group">
             <label for="adminName">Full Name <span style="color: #999; font-size: 12px;">(Cannot be changed)</span></label>
             <input type="text" id="adminName" name="full_name" value="{{ admin_name }}" readonly>
@@ -107,14 +131,19 @@
           </div>
           
           <div class="form-group">
-            <label for="adminContact">Contact Number</label>
-            <input type="text" id="adminContact" name="contact" value="{{ admin_contact }}">
-            {% for message in messages %}
-                {% if 'contact_error' in message.tags %}
-                  <p style="color: #dc2626; font-size: 13px; margin-top: 5px;">{{ message }}</p>
-                {% endif %}
-            {% endfor %}
-          </div>
+              <label for="adminContact">Contact Number (Philippine)</label>
+              <input type="tel" id="adminContact" name="contact" 
+                    value="{{ admin_contact }}"
+                    pattern="09[0-9]{9}"
+                    maxlength="11"
+                    title="Must be 11 digits starting with 09">
+              <p style="color: #666; font-size: 12px; margin-top: 4px;">Format: 09XXXXXXXXX (11 digits)</p>
+              {% for message in messages %}
+                  {% if 'contact_error' in message.tags %}
+                    <p style="color: #dc2626; font-size: 13px; margin-top: 5px;">{{ message }}</p>
+                  {% endif %}
+              {% endfor %}
+           </div>
 
           </fieldset>
 
@@ -128,26 +157,32 @@
   </main>
   
 <script>
-    function enableEditing() {
-      document.getElementById('editBtn').style.display = 'none';
-      document.getElementById('actionButtons').style.display = 'flex';
-      // Only enable contact number, not name/email
-      document.getElementById('adminContact').disabled = false;
-    }
+  function enableEditing() {
+    document.getElementById('editBtn').style.display = 'none';
+    document.getElementById('actionButtons').style.display = 'flex';
+    document.getElementById('formFields').disabled = false;
+    document.getElementById('uploadContainer').style.display = 'block'; 
+  }
 
-    function cancelEditing() {
-      document.getElementById('editBtn').style.display = 'block';
-      document.getElementById('actionButtons').style.display = 'none';
-      document.getElementById('adminContact').disabled = true;
-    }
-    
-    {% if messages %}
-        {% for message in messages %}
-            {% if 'error' in message.tags %}
-                enableEditing();
-            {% endif %}
-        {% endfor %}
-    {% endif %}
+  function cancelEditing() {
+    document.getElementById('editBtn').style.display = 'block';
+    document.getElementById('actionButtons').style.display = 'none';
+    document.getElementById('formFields').disabled = true;
+    document.getElementById('uploadContainer').style.display = 'none';
+    document.getElementById('avatar_upload').value = ""; 
+  }
+  
+  document.getElementById('adminContact').addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+  });
+  
+  {% if messages %}
+    {% for message in messages %}
+      {% if 'error' in message.tags %}
+        enableEditing();
+      {% endif %}
+    {% endfor %}
+  {% endif %}
 </script>
 </body>
 </html>

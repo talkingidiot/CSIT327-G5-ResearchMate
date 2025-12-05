@@ -28,6 +28,9 @@ urlpatterns = [
     path('consultant-history/', views.consultant_history_view, name='consultant_history'),
     path('appointment/update/<int:appointment_id>/', views.update_appointment_status, name='update_appointment_status'),
     path('market/toggle/<int:market_id>/', views.toggle_market_status, name='toggle_market_status'),
+    
+    # NEW: Consultant marking meeting status
+    path('appointment/mark-status/<int:appointment_id>/', views.mark_meeting_status, name='mark_meeting_status'),
 
     # Student
     path('student-appointments/', views.student_appointments_view, name='student_appointments'),
@@ -39,6 +42,9 @@ urlpatterns = [
     path("appointments/cancel/<int:appointment_id>/", views.cancel_appointment, name="cancel_appointment"),
     path('submit-feedback/', views.submit_feedback, name='submit_feedback'),
     path('consultant-details/<int:consultant_user_id>/', views.consultant_details, name='consultant_details'),
+    
+    # NEW: Student confirm or dispute
+    path('appointment/confirm-or-dispute/<int:appointment_id>/', views.student_confirm_or_dispute, name='student_confirm_or_dispute'),
 
     # Admin
     path('admin-consultants/', views.admin_consultants_view, name='admin_consultants'),
@@ -48,6 +54,9 @@ urlpatterns = [
     path('admin-student-details/<int:student_id>/', views.student_profile_admin_view, name='student_profile_view'),
     path('admin-sync-sessions/', views.sync_sessions_completed, name='sync_sessions_completed'),
     path('admin-consultant-details/<int:consultant_id>/', views.consultant_profile_admin_view, name='consultant_profile_view'),
+    
+    # NEW: Admin resolve dispute (CORRECT PATH - KEEP THIS ONE)
+    path('dashboard/admin/resolve-dispute/<int:appointment_id>/', views.admin_resolve_dispute, name='admin_resolve_dispute'),
 
     # Verification (Admin Actions)
     path("approve-consultant/<int:verification_id>/", views.approve_consultant, name="approve_consultant"),

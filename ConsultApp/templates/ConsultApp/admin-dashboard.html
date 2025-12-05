@@ -8,16 +8,14 @@
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
       <a href="{% url 'admin_dashboard' %}" class="active">📊 Dashboard</a>
+      <a href="{% url 'admin_profile' %}">👤 Profile</a>
       <a href="{% url 'admin_students' %}">👥 Students</a>
       <a href="{% url 'admin_consultants' %}">👨‍💼 Consultants</a>
-      <a href="{% url 'admin_profile' %}">👤 Profile</a>
-      <a href="{% url 'admin_reports' %}">📊 Reports</a>
     </div>
 
     <div class="user-section">
@@ -29,25 +27,22 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <!-- Page Header -->
     <div class="page-header">
       <h1>Admin Dashboard</h1>
       <p>Manage users, approvals, and system overview</p>
     </div>
 
-    <!-- Stats Grid -->
     <div class="stats-grid">
       <div class="stat-card">
         <span class="icon">👥</span>
         <div class="number">{{ total_students|default:"0" }}</div>
-        <div class="label">Total Users</div>
+        <div class="label">Total Students</div>
       </div>
       <div class="stat-card">
         <span class="icon">👨‍💼</span>
         <div class="number">{{ total_consultants|default:"0" }}</div>
-        <div class="label">Active Consultants</div>
+        <div class="label">Total Consultants</div>
       </div>
       <div class="stat-card">
         <span class="icon">⏳</span>
@@ -60,6 +55,84 @@
         <div class="label">Total Appointments</div>
       </div>
     </div>
+
+    {% if disputed_appointments %}
+    <div class="section-card disputed-section">
+      <div class="section-header">
+        <h2>⚠️ Disputed Appointments</h2>
+        <span class="count-badge">{{ disputed_appointments|length }}</span>
+      </div>
+      
+      {% for appointment in disputed_appointments %}
+        <div class="disputed-card">
+          <div class="disputed-header">
+            <div>
+              <h3 style="margin: 0; color: #d32f2f;">
+                Dispute #{{ appointment.id }}
+              </h3>
+              <p style="margin: 4px 0 0 0; color: #666; font-size: 14px;">
+                Disputed on {{ appointment.disputed_at|date:"M d, Y - g:i A" }}
+              </p>
+            </div>
+          </div>
+          
+          <div class="disputed-info">
+            <div class="info-item">
+              <span class="info-label">Student</span>
+              <span class="info-value">{{ appointment.student.user.get_full_name }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Consultant</span>
+              <span class="info-value">{{ appointment.consultant.user.get_full_name }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Topic</span>
+              <span class="info-value">{{ appointment.topic }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Date & Time</span>
+              <span class="info-value">
+                {{ appointment.date|date:"M d, Y" }} at {{ appointment.time|time:"g:i A" }}
+              </span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Consultant marked as</span>
+              <span class="info-value">
+                {% if appointment.consultant_marked_as == 'completed' %}
+                  ✅ Completed
+                {% else %}
+                  ❌ Not Completed
+                {% endif %}
+              </span>
+            </div>
+          </div>
+          
+          <div class="dispute-remark">
+            <strong>Student's Dispute Reason:</strong><br>
+            "{{ appointment.student_dispute_remark }}"
+          </div>
+          
+          <div class="resolve-actions">
+            <form method="POST" action="{% url 'admin_resolve_dispute' appointment.id %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="decision" value="mark_completed">
+              <button type="submit" class="btn-resolve-complete">
+                ✅ Mark as Completed
+              </button>
+            </form>
+            
+            <form method="POST" action="{% url 'admin_resolve_dispute' appointment.id %}" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="decision" value="mark_not_completed">
+              <button type="submit" class="btn-resolve-incomplete">
+                ❌ Mark as Not Completed
+              </button>
+            </form>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
     <div class="section-card">
       <div class="section-header">
@@ -101,7 +174,6 @@
       {% endif %}
     </div>
 
-    <!-- Recent Users Section -->
     <div class="section-card">
       <div class="section-header">
         <h2>Recent Users</h2>

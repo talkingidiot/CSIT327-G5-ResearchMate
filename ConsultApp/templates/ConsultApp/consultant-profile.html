@@ -5,15 +5,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Consultant Profile</title>
-  <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
+  <link rel="stylesheet" href="{% static 'ConsultApp/consultant-dashboard.css'%}">
   <link rel="stylesheet" href="{% static 'ConsultApp/consultant-profile.css'%}">
-  <style>
-    input[readonly] {
-      background-color: #f5f5f5;
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-  </style>
 </head>
 <body>
   <nav class="top-nav">
@@ -63,28 +56,43 @@
 
     <div class="profile-grid">
       <div class="profile-card">
-        <div class="profile-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+        <div class="avatar-wrapper">
+            <img 
+              src="{{ avatar_url|default:'' }}" 
+              alt="Profile" 
+              class="profile-avatar-img"
+              id="userAvatarImg"
+              style="{% if not avatar_url %}display: none;{% endif %}"
+              onerror="
+                this.style.display='none'; 
+                document.getElementById('initialsAvatar').style.display='flex'; 
+                document.getElementById('removeAvatarSection').style.display='none'; /* Hide remove button */
+              ">
+              <div class="profile-avatar" id="initialsAvatar" style="{% if avatar_url %}display: none;{% endif %}">
+                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+              </div>
+        </div>
         <h3>{{ user.first_name }} {{ user.last_name }}</h3>
-        <p class="role">Research Consultant</p>
+        <p class="role" style="color: #666; margin-bottom: 20px;">Research Consultant</p>
 
-        <div class="info-item">
+        <div class="info-item" style="width: 100%; text-align: left;">
           <div class="info-label">Email</div>
           <div class="info-value">{{ user.email }}</div>
         </div>
 
-        <div class="info-item">
+        <div class="info-item" style="width: 100%; text-align: left;">
           <div class="info-label">Contact</div>
           <div class="info-value">{{ profile.contact_number|default:"Not set" }}</div>
         </div>
 
-        <div class="info-item">
+        <div class="info-item" style="width: 100%; text-align: left;">
           <div class="info-label">Expertise</div>
           <div class="info-value">{{ profile.expertise|default:"Not set" }}</div>
         </div>
       </div>
 
       <div class="form-card">
-        <div class="header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="header-row">
           <h2>Profile Information</h2>
           <button type="button" id="editBtn" class="btn-primary" onclick="enableEditing()">
             Edit Profile
@@ -94,32 +102,54 @@
         {% if messages %}
             {% for message in messages %}
                 {% if 'success' in message.tags or 'general_error' in message.tags %}
-                  <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
                 {% endif %}
             {% endfor %}
         {% endif %}
 
-        <form method="POST" id="profileForm">
+        <form method="POST" id="profileForm" enctype="multipart/form-data">
           {% csrf_token %}
 
           <fieldset id="formFields" disabled style="border: none; padding: 0; margin: 0;">
               
-              <div class="form-group">
-                <label for="fullName">Full Name <span style="color: #999; font-size: 12px;">(Cannot be changed)</span></label>
-                <input type="text" id="fullName" name="full_name" value="{{ user.first_name }} {{ user.last_name }}" readonly>
+              <div class="avatar-upload-container" id="avatarUploadField">
+                <label for="avatar_upload">Update Profile Picture</label>
+                <input type="file" name="avatar_upload" id="avatar_upload" accept="image/*">
+                <small style="display:block; color: #666; margin-top:5px;">Max size: 2MB</small>
+
+                <div id="removeAvatarSection" style="margin-top: 12px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+                  <button type="submit" name="remove_avatar" value="true" class="btn-remove-photo" onclick="return confirm('Are you sure you want to remove your profile photo?');">
+                    Remove Current Photo
+                  </button>
+                </div>
               </div>
 
               <div class="form-group">
-                <label for="email">Email Address <span style="color: #999; font-size: 12px;">(Cannot be changed)</span></label>
-                <input type="email" id="email" name="email" value="{{ user.email }}" readonly>
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" name="full_name" value="{{ user.first_name }} {{ user.last_name }}">
+                {% for message in messages %}
+                    {% if 'full_name_error' in message.tags %}
+                        <small class="error-text">⚠ {{ message }}</small>
+                    {% endif %}
+                {% endfor %}
+              </div>
+
+              <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" value="{{ user.email }}">
+                {% for message in messages %}
+                    {% if 'email_error' in message.tags %}
+                        <small class="error-text">⚠ {{ message }}</small>
+                    {% endif %}
+                {% endfor %}
               </div>
               
               <div class="form-group">
-                <label for="contactNumber">Contact Number</label>
-                <input type="text" id="contactNumber" name="contact_number" placeholder="Not set" value="{{ profile.contact_number|default_if_none:'' }}">
+                <label for="contactNumber">Contact Number (Philippines)</label>
+                <input type="tel" id="contactNumber" name="contact_number" placeholder="09XXXXXXXXX (11 digits)" value="{{ profile.contact_number|default_if_none:'' }}">
                 {% for message in messages %}
                     {% if 'contact_number_error' in message.tags %}
-                      <p style="color: #dc2626; font-size: 13px; margin-top: 5px;">{{ message }}</p>
+                        <small class="error-text">⚠ {{ message }}</small>
                     {% endif %}
                 {% endfor %}
               </div>
@@ -129,7 +159,7 @@
                 <input type="text" id="expertise" name="expertise" placeholder="Not set" value="{{ profile.expertise|default_if_none:'' }}">
                 {% for message in messages %}
                     {% if 'expertise_error' in message.tags %}
-                      <p style="color: #dc2626; font-size: 13px; margin-top: 5px;">{{ message }}</p>
+                        <small class="error-text">⚠ {{ message }}</small>
                     {% endif %}
                 {% endfor %}
               </div>
@@ -139,37 +169,40 @@
                 <input type="text" id="workplace" name="workplace" placeholder="Not set" value="{{ profile.workplace|default_if_none:'' }}">
                 {% for message in messages %}
                     {% if 'workplace_error' in message.tags %}
-                      <p style="color: #dc2626; font-size: 13px; margin-top: 5px;">{{ message }}</p>
+                        <small class="error-text">⚠ {{ message }}</small>
                     {% endif %}
                 {% endfor %}
               </div>
           </fieldset>
 
           <div class="form-actions" id="actionButtons" style="display: none; margin-top: 20px;">
-            <button type="submit" class="btn-primary">💾 Save Changes</button>
+            <button type="submit" class="btn-primary">Save Changes</button>
             <button type="button" class="btn-secondary" onclick="cancelEditing()">Cancel</button>
           </div>
         </form>
       </div>
     </div>
   </main>
+  
   <script>
     function enableEditing() {
       document.getElementById('editBtn').style.display = 'none';
       document.getElementById('actionButtons').style.display = 'flex';
-      // Enable only non-readonly fields
-      document.getElementById('contactNumber').disabled = false;
-      document.getElementById('expertise').disabled = false;
-      document.getElementById('workplace').disabled = false;
+      document.getElementById('formFields').disabled = false;
+      document.getElementById('avatarUploadField').style.display = 'block';
     }
 
     function cancelEditing() {
       document.getElementById('editBtn').style.display = 'block';
       document.getElementById('actionButtons').style.display = 'none';
-      document.getElementById('contactNumber').disabled = true;
-      document.getElementById('expertise').disabled = true;
-      document.getElementById('workplace').disabled = true;
+      document.getElementById('formFields').disabled = true;
+      document.getElementById('avatarUploadField').style.display = 'none';
+      document.getElementById('avatar_upload').value = ""; 
     }
+    
+    document.getElementById('contactNumber').addEventListener('input', function(e) {
+      this.value = this.value.replace(/[^0-9]/g, '');
+    });
     
     {% if messages %}
         {% for message in messages %}
@@ -178,6 +211,6 @@
             {% endif %}
         {% endfor %}
     {% endif %}
-</script>
+  </script>
 </body>
 </html>

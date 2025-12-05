@@ -6,107 +6,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ResearchMate — Verification Details</title>
   <link rel="stylesheet" href="{% static 'ConsultApp/admin-dashboard.css'%}">
-  <style>
-    .document-item {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 15px;
-      background: #f9f9f9;
-      margin-top: 15px;
-    }
-    
-    .document-item h4 {
-      margin: 0 0 10px 0;
-      font-size: 14px;
-      color: #555;
-      font-weight: 600;
-    }
-    
-    .proof-img {
-      width: 100%;
-      max-width: 500px;
-      height: auto;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
-    
-    .proof-img:hover {
-      transform: scale(1.02);
-    }
-    
-    .document-link {
-      display: inline-block;
-      padding: 10px 16px;
-      background: #4CAF50;
-      color: white;
-      text-decoration: none;
-      border-radius: 6px;
-      font-size: 14px;
-      transition: background 0.3s;
-    }
-    
-    .document-link:hover {
-      background: #45a049;
-    }
-    
-    .no-documents {
-      text-align: center;
-      padding: 30px;
-      color: #999;
-      font-style: italic;
-    }
-
-    /* Modal styles for image preview */
-    .image-modal {
-      display: none;
-      position: fixed;
-      z-index: 9999;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.9);
-    }
-    
-    .image-modal-content {
-      margin: auto;
-      display: block;
-      max-width: 90%;
-      max-height: 90%;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-    
-    .image-modal-close {
-      position: absolute;
-      top: 20px;
-      right: 35px;
-      color: #f1f1f1;
-      font-size: 40px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    
-    .image-modal-close:hover {
-      color: #bbb;
-    }
-  </style>
 </head>
 <body>
-  <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
       <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+      <a href="{% url 'admin_profile' %}">👤 Profile</a>
       <a href="{% url 'admin_students' %}">👥 Students</a>
       <a href="{% url 'admin_consultants' %}">👨‍💼 Consultants</a>
-      <a href="{% url 'admin_profile' %}">👤 Profile</a>
-      <a href="{% url 'admin_reports' %}">📊 Reports</a>
     </div>
 
     <div class="user-section">
@@ -118,14 +27,12 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="main-content">
     <div class="page-header">
       <h1>Consultant Verification</h1>
       <p>Review application details and documents</p>
     </div>
 
-    <!-- Your existing verification content -->
     <div class="verification-details">
       <div class="detail-section">
         <h3>👤 Personal Information</h3>
@@ -157,23 +64,40 @@
           <label>Qualification</label>
           <p>{{ verification.qualification|default:"N/A" }}</p>
         </div>
+        <div class="detail-item" style="grid-column: 1 / -1;">
+            <label>Short Bio</label>
+            <div style="background: #f9f9f9; padding: 15px; border-radius: 6px; border: 1px solid #eee;">
+                {{ verification.bio|default:"No bio provided."|linebreaks }}
+            </div>
+        </div>
       </div>
 
       <div class="detail-section">
-        <h3>📎 Uploaded Document</h3>
-        {% if verification.proof_document %}
+        <h3>📎 Uploaded Documents</h3>
+
+        {% if verification.valid_id %}
           <div class="document-item">
-            <h4>📄 Submitted Document</h4>
-            {% if verification.proof_document.url|lower|slice:"-4:" == ".jpg" or verification.proof_document.url|lower|slice:"-4:" == ".png" or verification.proof_document.url|lower|slice:"-5:" == ".jpeg" or verification.proof_document.url|lower|slice:"-4:" == ".gif" or verification.proof_document.url|lower|slice:"-5:" == ".webp" %}
-              <img src="{{ verification.proof_document.url }}" alt="Verification Document" class="proof-img" onclick="openImageModal('{{ verification.proof_document.url }}')">
-            {% else %}
-              <a href="{{ verification.proof_document.url }}" target="_blank" class="document-link">📄 View Document</a>
-            {% endif %}
+            <h4>🆔 Valid ID</h4>
+            <a href="{{ verification.valid_id.url }}" target="_blank">View Document</a>
           </div>
-        {% else %}
-          <div class="no-documents">
-            <p>No document uploaded.</p>
+        {% endif %}
+
+        {% if verification.license %}
+          <div class="document-item">
+            <h4>🎓 Professional License</h4>
+            <a href="{{ verification.license.url }}" target="_blank">View Document</a>
           </div>
+        {% endif %}
+
+        {% if verification.profile_photo %}
+          <div class="document-item">
+            <h4>👤 Profile Photo</h4>
+            <a href="{{ verification.profile_photo.url }}" target="_blank">View Document</a>
+          </div>
+        {% endif %}
+        
+        {% if not verification.valid_id and not verification.license and not verification.profile_photo %}
+            <p style="color: #999;">No documents uploaded.</p>
         {% endif %}
       </div>
 
@@ -185,7 +109,11 @@
         </div>
         <div class="detail-item">
           <label>Status</label>
-          <p>{{ verification.status|title }}</p>
+          <p>
+            <span class="status-badge {{ verification.status }}">
+                {{ verification.status|title }}
+            </span>
+          </p>
         </div>
         {% if verification.reviewed_at %}
         <div class="detail-item">
@@ -195,30 +123,35 @@
         {% endif %}
       </div>
 
-      <div style="margin-top: 20px; text-align: center;">
+      <div style="margin-top: 30px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
         {% if verification.status == 'pending' %}
           <form method="POST" action="{% url 'approve_consultant' verification.id %}" style="display: inline;">
             {% csrf_token %}
-            <button type="submit" class="btn-approve">✓ Approve</button>
+            <button type="submit" class="btn-approve" onclick="return confirm('Are you sure you want to approve this consultant? This will make their profile public.')">
+                ✓ Approve Application
+            </button>
           </form>
 
-          <form method="POST" action="{% url 'reject_consultant' verification.id %}" style="display: inline;">
+          <form method="POST" action="{% url 'reject_consultant' verification.id %}" style="display: inline; margin-left: 10px;">
             {% csrf_token %}
-            <button type="submit" class="btn-reject">✗ Reject</button>
+            <button type="submit" class="btn-reject" onclick="return confirm('Are you sure you want to reject this application?')">
+                ✗ Reject Application
+            </button>
           </form>
         {% endif %}
 
-        <a href="{% url 'admin_dashboard' %}">
-          <button type="button" class="btn-view-details">⬅ Back to Dashboard</button>
-        </a>
+        <div style="margin-top: 20px;">
+            <a href="{% url 'admin_dashboard' %}" style="text-decoration: none;">
+            <button type="button" class="btn-view-details" style="background: #6c757d; color: white;">⬅ Back to Dashboard</button>
+            </a>
+        </div>
       </div>
     </div>
   </main>
 
-  <!-- Image Modal -->
-  <div id="imageModal" class="image-modal" onclick="closeImageModal()">
-    <span class="image-modal-close" onclick="closeImageModal()">&times;</span>
-    <img class="image-modal-content" id="modalImage">
+  <div id="imageModal" class="image-modal" onclick="closeImageModal()" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);">
+    <span class="image-modal-close" onclick="closeImageModal()" style="position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+    <img class="image-modal-content" id="modalImage" style="margin: auto; display: block; width: 80%; max-width: 700px; margin-top: 60px;">
   </div>
 
   <script>
@@ -232,6 +165,12 @@
     function closeImageModal() {
       document.getElementById("imageModal").style.display = "none";
     }
+    
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            closeImageModal();
+        }
+    });
   </script>
 </body>
 </html>

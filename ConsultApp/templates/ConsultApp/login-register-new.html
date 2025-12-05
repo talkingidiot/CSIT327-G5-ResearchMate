@@ -15,7 +15,6 @@
     </div>
     
     <div class="container {% if request.GET.show_signup == 'true' %}right-panel-active no-transition{% endif %}" id="container">
-      <!-- Sign In Form -->
       <div class="form-container sign-in-container">
         <form method="POST" action="{% url 'login' %}">
           {% csrf_token %}
@@ -23,9 +22,9 @@
           <p class="subtitle">Access your ResearchMate account</p>
           <div class="error-message" id="generalLoginError" style="display:none; color: red; margin-bottom: 10px; text-align: center;"></div>
           <div class="input-group">
-            <label for="loginEmail">Email Address</label>
-            <input type="email" id="loginEmail" name="email" placeholder="e.g. your.email@example.com" value="{{ request.POST.email|default:'' }}">
-              <div class="error-message" id="loginEmailError"></div>
+            <label for="loginEmail">Email Address</label>
+            <input type="email" id="loginEmail" name="login_email" placeholder="e.g. your.email@example.com" value="{{ request.POST.login_email|default:'' }}">
+            <div class="error-message" id="loginEmailError"></div>
           </div>
 
           <div class="input-group">
@@ -55,7 +54,6 @@
         </form>
       </div>
 
-      <!-- Sign Up Form -->
       <div class="form-container sign-up-container">
         <form method="POST" action="{% url 'register' %}">
           {% csrf_token %}
@@ -79,9 +77,9 @@
           </div>
 
           <div class="input-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="e.g. your.email@example.com" value="{{ request.POST.email|default:'' }}">
-            <div class="error-message" id="emailError"></div>
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="signup_email" placeholder="e.g. your.email@example.com" value="{{ request.POST.signup_email|default:'' }}">
+            <div class="error-message" id="emailError"></div>
           </div>
 
           <div class="input-group">

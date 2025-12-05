@@ -87,7 +87,8 @@
         <div class="appointment-card" 
              data-status="{{ appointment.status }}" 
              data-date="{{ appointment.date|date:'Y-m-d' }}"
-             data-js-date="{{ appointment.date|date:'Y-m-d' }}">
+             data-js-date="{{ appointment.date|date:'Y-m-d' }}"
+             data-time="{{ appointment.time|time:'H:i' }}">
           
             <div class="status-wrapper">
                 {% if appointment.status == "pending" %}
@@ -149,6 +150,20 @@
                     <button type="submit" class="btn-reject">❌ Reject</button>
                 </form>
             </div>
+            {% elif appointment.status == 'confirmed' %}
+              <!-- Show mark status buttons only if appointment time has passed -->
+              <div class="mark-status-row" data-appointment-id="{{ appointment.id }}" style="display: none;">
+                <form action="{% url 'mark_meeting_status' appointment.id %}" method="POST" style="display: inline;">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="completed">
+                  <button type="submit" class="btn-mark-complete">✅ Mark Completed</button>
+                </form>
+                <form action="{% url 'mark_meeting_status' appointment.id %}" method="POST" style="display: inline;">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="not_completed">
+                  <button type="submit" class="btn-mark-incomplete">❌ Not Completed</button>
+                </form>
+              </div>
             {% endif %}
           </div>
         </div>
@@ -165,6 +180,24 @@
       const dateFilter = document.getElementById('dateFilter');
       const cards = document.querySelectorAll('.appointment-card');
       const countSpan = document.getElementById('visibleCount');
+      const now = new Date();
+      const today = now.toISOString().split('T')[0];
+      const currentTime = now.getHours() * 60 + now.getMinutes(); 
+
+      cards.forEach(card => {
+        const appointmentDate = card.dataset.jsDate;
+        const appointmentTime = card.dataset.time; 
+        const markStatusRow = card.querySelector('.mark-status-row');
+        
+        if (markStatusRow && appointmentTime) {
+          const [hours, minutes] = appointmentTime.split(':').map(Number);
+          const appointmentMinutes = hours * 60 + minutes;
+          
+          if (appointmentDate < today || (appointmentDate === today && appointmentMinutes <= currentTime)) {
+            markStatusRow.style.display = 'flex';
+          }
+        }
+      });
 
       function applyFilters() {
           const selectedStatus = statusFilter.value;
@@ -188,7 +221,6 @@
               dateMatch = (cardDate < today);
             }
 
-            // Final Decision
             if (statusMatch && dateMatch) {
               card.style.display = 'block';
               visibleCount++;
@@ -200,14 +232,10 @@
           countSpan.textContent = visibleCount;
       }
 
-      // Attach event listeners
       statusFilter.addEventListener('change', applyFilters);
       dateFilter.addEventListener('change', applyFilters);
-
-      // 4. ADDED: Run filter once on load to fix the count
       applyFilters();
 
-      // Modal Logic
       const modal = document.getElementById("detailsModal");
       
       window.openDetails = function(btn) {
