@@ -16,6 +16,11 @@ phone_validator = RegexValidator(
     message='Only numbers, spaces, hyphens, parentheses, and plus signs are allowed.'
 )
 
+list_string_validator = RegexValidator(
+    regex=r'^[a-zA-Z0-9\s\-,]+$', 
+    message='Only letters, numbers, spaces, hyphens, and commas are allowed.'
+)
+
 # Validator for alphanumeric with spaces (no special chars except spaces and hyphens)
 alphanumeric_validator = RegexValidator(
     regex=r'^[a-zA-Z0-9\s\-]+$',
@@ -61,7 +66,7 @@ class User(AbstractUser):
 class Consultant(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     contact_number = models.CharField(max_length=20, validators=[phone_validator])
-    expertise = models.CharField(max_length=100, validators=[alphanumeric_validator])
+    expertise = models.CharField(max_length=1000, validators=[list_string_validator], blank=True)
     workplace = models.CharField(max_length=150, validators=[alphanumeric_validator])
     is_verified = models.BooleanField(default=False)
 

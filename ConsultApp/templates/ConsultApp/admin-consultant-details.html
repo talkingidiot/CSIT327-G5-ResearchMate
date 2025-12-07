@@ -64,14 +64,10 @@
         <div class="detail-box">
           <label>Verification Status</label>
           <p>
-            {% if consultant_status == 'verified' %}
-              <span class="status-badge verified"><span class="dot"></span> verified</span>
-            {% elif consultant_status == 'pending' %}
-              <span class="status-badge pending"><span class="dot"></span> pending</span>
-            {% elif consultant_status == 'not_verified' %}
-              <span class="status-badge unverified"><span class="dot"></span> not verified</span>
+            {% if is_verified %}
+              <span class="status-badge verified"><span class="dot"></span> Verified</span>
             {% else %}
-              <span class="status-badge inactive"><span class="dot"></span> inactive</span>
+              <span class="status-badge pending"><span class="dot"></span> Not Verified</span>
             {% endif %}
           </p>
         </div>

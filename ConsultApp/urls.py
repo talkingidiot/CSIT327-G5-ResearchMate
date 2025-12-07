@@ -40,7 +40,6 @@ urlpatterns = [
     path('book-appointment/', views.book_appointment, name='book_appointment'),
     path('book-appointment/<int:consultant_id>/', views.book_appointment, name='book_appointment_with_consultant'),
     path("appointments/cancel/<int:appointment_id>/", views.cancel_appointment, name="cancel_appointment"),
-    path('submit-feedback/', views.submit_feedback, name='submit_feedback'),
     path('consultant-details/<int:consultant_user_id>/', views.consultant_details, name='consultant_details'),
     
     # NEW: Student confirm or dispute

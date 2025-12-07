@@ -93,7 +93,7 @@
 
       <div class="form-card">
         <div class="header-row">
-          <h2>Profile Information</h2>
+          <h2>Profile Informatioa</h2>
           <button type="button" id="editBtn" class="btn-primary" onclick="enableEditing()">
             Edit Profile
           </button>
@@ -155,8 +155,17 @@
               </div>
 
               <div class="form-group">
-                <label for="expertise">Expertise / Specialization</label>
-                <input type="text" id="expertise" name="expertise" placeholder="Not set" value="{{ profile.expertise|default_if_none:'' }}">
+                <label>Expertise / Specialization</label>
+                <div class="expertise-grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 5px;">
+                    {% for option in expertise_options %}
+                    <label class="expertise-option-card" style="display: flex; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: #fff;">
+                      <input type="checkbox" name="expertise" value="{{ option }}" 
+                        style="margin-right: 10px; width: 18px; height: 18px;"
+                        {% if option in current_expertise_list %}checked{% endif %}
+                        disabled> <span style="font-size: 0.95rem;">{{ option }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
                 {% for message in messages %}
                     {% if 'expertise_error' in message.tags %}
                         <small class="error-text">⚠ {{ message }}</small>
@@ -190,6 +199,8 @@
       document.getElementById('actionButtons').style.display = 'flex';
       document.getElementById('formFields').disabled = false;
       document.getElementById('avatarUploadField').style.display = 'block';
+      const checkboxes = document.querySelectorAll('input[name="expertise"]');
+      checkboxes.forEach(cb => cb.disabled = false);
     }
 
     function cancelEditing() {
@@ -198,6 +209,9 @@
       document.getElementById('formFields').disabled = true;
       document.getElementById('avatarUploadField').style.display = 'none';
       document.getElementById('avatar_upload').value = ""; 
+      const checkboxes = document.querySelectorAll('input[name="expertise"]');
+      checkboxes.forEach(cb => cb.disabled = true);
+      window.location.reload(); 
     }
     
     document.getElementById('contactNumber').addEventListener('input', function(e) {

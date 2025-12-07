@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'ConsultApp',
     'storages',
+    'anymail',
 ]
 
 MIDDLEWARE = [
@@ -81,7 +82,7 @@ WSGI_APPLICATION = 'ResearchMate.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default="postgresql://postgres.hqqgsbwkqfguzpapcjnl:IMResearchmate@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require",
+        default=os.environ.get('DATABASE_URL'),
         conn_max_age=500,
         ssl_require=True,
     )
@@ -142,18 +143,28 @@ AUTH_USER_MODEL = 'ConsultApp.User'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = 'jianmarc.ceniza@gmail.com'  
-EMAIL_HOST_PASSWORD = 'earq dcoc hurp llje'  
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Email API Configuration (Brevo)
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+
+ANYMAIL = {
+    "BREVO_API_KEY": os.environ.get('BREVO_API_KEY'),
+}
+
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER') 
+SERVER_EMAIL = os.environ.get('EMAIL_HOST_USER')
 
 # Supabase S3 Connection Details
-AWS_ACCESS_KEY_ID = '83a024a58c04e6e1eaa6d9ff1f3b3a9e'
-AWS_SECRET_ACCESS_KEY = 'c5729187b6533dcb6ced99b9b82c175134cce3e5b4c59e03528abc59cdcd6d7a'
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_S3_ENDPOINT_URL = 'https://hqqgsbwkqfguzpapcjnl.storage.supabase.co/storage/v1/s3'
 AWS_S3_REGION_NAME = 'ap-southeast-1'
 
