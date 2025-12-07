@@ -100,7 +100,8 @@
         <select id="statusFilter">
           <option value="all">All Statuses</option>
           <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
+          <option value="cancelled">Cancelled by You</option>
+          <option value="rejected">Rejected by Consultant</option>
           <option value="disputed">Pending Admin Review</option>
         </select>
       </div>
@@ -126,7 +127,9 @@
               {% if appointment.status == 'completed' %}
                 <span class="status-badge completed">🏁 Completed</span>
               {% elif appointment.status == 'cancelled' %}
-                <span class="status-badge cancelled">❌ Cancelled</span>
+                <span class="status-badge cancelled">❌ Cancelled by You</span>
+              {% elif appointment.status == 'rejected' %}
+                <span class="status-badge cancelled">🚫 Rejected by Consultant</span>
               {% elif appointment.status == 'disputed' %}
                 <span class="status-badge disputed">⚠️ Pending Admin Review</span>
               {% endif %}
@@ -268,7 +271,6 @@
         }
     };
 
-    // Feedback Modal Functions
     const feedbackModal = document.getElementById('feedbackModal');
     const stars = document.querySelectorAll('.star');
     let selectedRating = 0;

@@ -74,7 +74,6 @@ def get_avatar_url(user_id):
 
 # Validation helper functions
 def validate_name(name):
-    """Validate name: only letters, spaces, hyphens. Max 100 chars."""
     if not name or not name.strip():
         return False, "Name cannot be empty."
     if not re.match(r'^[a-zA-Z\s\-]+$', name):
@@ -84,17 +83,15 @@ def validate_name(name):
     return True, ""
 
 def validate_contact(contact):
-    """Validate contact: digits, spaces, hyphens, parentheses, plus. Max 20 chars."""
     if not contact or not contact.strip():
         return False, "Contact number cannot be empty."
     if not re.match(r'^[\d\s\-\(\)\+]+$', contact):
         return False, "Contact number can only contain numbers, spaces, hyphens, parentheses, and plus signs."
-    if len(contact) > 20:
+    if len(contact) > 11:
         return False, "Contact number is too long (maximum 20 characters)."
     return True, ""
 
 def validate_text_field(text, field_name, max_length=100, allow_empty=False):
-    """Validate text field: alphanumeric, spaces, hyphens only."""
     if not text or not text.strip():
         if allow_empty:
             return True, ""
@@ -466,6 +463,14 @@ def consultant_profile_view(request):
         timestamp = request.session.get('avatar_version', int(datetime.now().timestamp()))
         avatar_url = f"{base_avatar_url}?t={timestamp}"
         
+    EXPERTISE_OPTIONS = [
+        "Research Methodology", "Data Analysis", "Statistical Analysis", 
+        "Qualitative Research", "Quantitative Research", "Machine Learning", 
+        "Artificial Intelligence", "Web Development", "Mobile Development", 
+        "Database Design", "Cybersecurity", "Network Administration", 
+        "UI/UX Design", "System Analysis", "Software Engineering", "Thesis Writing"
+    ]
+    
     total_fields = 6  
     completed = 0
     missing_fields = []
@@ -536,17 +541,17 @@ def consultant_profile_view(request):
         full_name = request.POST.get("full_name", "").strip()
         email = request.POST.get("email", "").strip()
         contact_number = request.POST.get("contact_number", "").strip()
-        expertise = request.POST.get("expertise", "").strip()
         workplace = request.POST.get("workplace", "").strip()
+        expertise_list = request.POST.getlist("expertise")
+        expertise_str = ", ".join(expertise_list)
+        
         errors = False
 
-        # Validate name
         is_valid_name, name_error = validate_name(full_name)
         if not is_valid_name:
             messages.error(request, name_error, extra_tags="full_name_error")
             errors = True
 
-        # Validate email
         if not email:
             messages.error(request, "Email cannot be empty.", extra_tags="email_error")
             errors = True
@@ -554,19 +559,18 @@ def consultant_profile_view(request):
             messages.error(request, "This email is already in use by another account.", extra_tags="email_error")
             errors = True
 
-        # Validate contact
         if contact_number:
             if not re.match(r'^09[0-9]{9}$', contact_number):
                 messages.error(request, "Contact number must be exactly 11 digits starting with 09 (e.g., 09123456789).", extra_tags="contact_number_error")
                 errors = True
 
-        # Validate expertise
-        is_valid_exp, exp_error = validate_text_field(expertise, "Expertise", max_length=100)
-        if not is_valid_exp:
-            messages.error(request, exp_error, extra_tags="expertise_error")
+        if len(expertise_str) > 1000: 
+            messages.error(request, "Too many expertise selected.", extra_tags="expertise_error")
+            errors = True
+        if not expertise_list:
+            messages.error(request, "Please select at least one expertise.", extra_tags="expertise_error")
             errors = True
 
-        # Validate workplace
         is_valid_work, work_error = validate_text_field(workplace, "Workplace", max_length=150)
         if not is_valid_work:
             messages.error(request, work_error, extra_tags="workplace_error")
@@ -587,7 +591,7 @@ def consultant_profile_view(request):
             user.save()
 
             profile.contact_number = contact_number
-            profile.expertise = expertise
+            profile.expertise = expertise_str
             profile.workplace = workplace
             profile.save()
 
@@ -601,12 +605,19 @@ def consultant_profile_view(request):
         except Exception as e:
             messages.error(request, f"An unexpected error occurred: {e}", extra_tags="general_error")
             return redirect("consultant_profile")
+    
+    current_expertise_list = []
+    if profile.expertise:
+        current_expertise_list = [x.strip() for x in profile.expertise.split(',')]
+
     context = {
         "user": user,
         "profile": profile,
         "completion_percentage": completion_percentage,
         "missing_fields": missing_fields,
         "avatar_url": avatar_url,
+        "expertise_options": EXPERTISE_OPTIONS, 
+        "current_expertise_list": current_expertise_list, 
     }
     return render(request, "ConsultApp/consultant-profile.html", context)
 
@@ -617,35 +628,35 @@ def consultant_verification_view(request):
     try:
         consultant = Consultant.objects.get(user=consultant_user)
         if consultant.is_verified:
-            messages.info(request, "You are already verified!")
+            messages.info(request, "You are already a verified consultant!")
             return redirect('consultant_dashboard')
     except Consultant.DoesNotExist:
-        pass
+        consultant = Consultant.objects.create(user=consultant_user)
 
     has_pending_verification = Verification.objects.filter(
-        consultant=consultant_user, status='pending'
+        consultant=consultant_user, 
+        status='pending'
     ).exists()
 
-    context = {
-        'has_pending_verification': has_pending_verification,
-        'user_full_name': consultant_user.get_full_name(),
-        'submitted_data': {} 
-    }
-
     if request.method == "POST":
+        if has_pending_verification:
+            messages.warning(request, "You already have a verification request under review.")
+            return redirect('consultant_dashboard')
+
         full_name = request.POST.get("fullName", "").strip()
         contact = request.POST.get("contact", "").strip()
         expertise_list = request.POST.getlist("expertise")
         workplace = request.POST.get("workplace", "").strip()
         qualification = request.POST.get("qualification", "").strip()
         bio = request.POST.get("bio", "").strip()
+        
         valid_id = request.FILES.get("validId")
         license_doc = request.FILES.get("license")
         profile_photo = request.FILES.get("profilePhoto")
         
         uploaded_files = [f for f in [valid_id, license_doc, profile_photo] if f]
 
-        context['submitted_data'] = {
+        submitted_data_for_error = {
             'contact': contact,
             'workplace': workplace,
             'qualification': qualification,
@@ -658,39 +669,37 @@ def consultant_verification_view(request):
         if not full_name or not re.match(r'^[a-zA-Z\s\-]+$', full_name):
             messages.error(request, "Full name is required and must contain only letters, spaces, and hyphens.")
             errors = True
-            
         if not contact or not re.match(r'^09[0-9]{9}$', contact):
             messages.error(request, "Contact number must be exactly 11 digits starting with 09.")
             errors = True
-            
         if not expertise_list:
             messages.error(request, "Please select at least one area of expertise.")
             errors = True
-            
-        if not workplace or not re.match(r'^[A-Za-z0-9\s\-\.]+$', workplace):
-            messages.error(request, "Workplace is required and must be valid.")
+        if not workplace:
+            messages.error(request, "Workplace is required.")
             errors = True
-            
-        if not qualification or not re.match(r'^[A-Za-z0-9\s\-\.,]+$', qualification):
-            messages.error(request, "Qualification is required and must be valid.")
+        if not qualification:
+            messages.error(request, "Qualification is required.")
             errors = True
-            
         if not uploaded_files:
-            messages.error(request, "Please upload at least one document (Valid ID, License, or Photo).")
+            messages.error(request, "Please upload at least one document.")
             errors = True
         else:
             for file_obj in uploaded_files:
                 if file_obj.size > 5 * 1024 * 1024:
                     messages.error(request, f"The file '{file_obj.name}' is too large. Max size is 5MB.")
                     errors = True
-
                 allowed_types = ['image/jpeg', 'image/png', 'application/pdf']
                 if file_obj.content_type not in allowed_types:
-                    messages.error(request, f"The file '{file_obj.name}' has an invalid format. Only JPG, PNG, or PDF are allowed.")
+                    messages.error(request, f"The file '{file_obj.name}' has an invalid format.")
                     errors = True
         
         if errors:
-            return render(request, "ConsultApp/consultant-verification.html", context)
+            return render(request, "ConsultApp/consultant-verification.html", {
+                'has_pending_verification': has_pending_verification,
+                'user_full_name': consultant_user.get_full_name(),
+                'submitted_data': submitted_data_for_error
+            })
 
         expertise_str = ", ".join(expertise_list)
 
@@ -701,7 +710,7 @@ def consultant_verification_view(request):
             workplace=workplace,
             qualification=qualification,
             bio=bio,
-            valid_id=valid_id,         
+            valid_id=valid_id,        
             license=license_doc,       
             profile_photo=profile_photo, 
             status='pending',
@@ -709,6 +718,24 @@ def consultant_verification_view(request):
 
         messages.success(request, "Verification submitted successfully! Please wait for admin approval.")
         return redirect('consultant_dashboard')
+    
+    prefilled_data = {}  
+    
+    if consultant:
+        if consultant.contact_number:
+            prefilled_data['contact'] = consultant.contact_number
+        
+        if consultant.workplace:
+            prefilled_data['workplace'] = consultant.workplace
+
+        if consultant.expertise:
+            prefilled_data['expertise_list'] = [x.strip() for x in consultant.expertise.split(',')]
+
+    context = {
+        'has_pending_verification': has_pending_verification,
+        'user_full_name': consultant_user.get_full_name(),
+        'submitted_data': prefilled_data 
+    }
 
     return render(request, "ConsultApp/consultant-verification.html", context)
 
@@ -1226,7 +1253,7 @@ def book_appointment(request, consultant_id=None):
         start_min = available_from.hour * 60 + available_from.minute
         end_min = available_to.hour * 60 + available_to.minute
         cur = start_min
-        while cur + 60 <= end_min:
+        while cur + 60 <= end_min: 
             hh = cur // 60
             mm = cur % 60
             slots.append(f"{hh:02d}:{mm:02d}")

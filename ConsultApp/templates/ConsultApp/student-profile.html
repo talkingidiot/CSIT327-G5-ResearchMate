@@ -133,13 +133,13 @@
               {% endif %}
             </div>
           <div class="form-group">
-            <label for="fullName">Full Name <span style="color: #999; font-size: 12px;">(Cannot be changed)</span></label>
-            <input type="text" name="fullName" id="fullName" value="{{ student.user.get_full_name }}" readonly>
+            <label for="fullName">Full Name</label>
+            <input type="text" name="fullName" id="fullName" value="{{ student.user.get_full_name }}">
           </div>
 
           <div class="form-group">
-            <label for="email">Email Address <span style="color: #999; font-size: 12px;">(Cannot be changed)</span></label>
-            <input type="email" name="email" id="email" value="{{ student.user.email }}" readonly>
+            <label for="email">Email Address</label>
+            <input type="email" name="email" id="email" value="{{ student.user.email }}">
           </div>
 
           <div class="form-group">
@@ -189,7 +189,7 @@
           </div>
 
           <div class="form-actions" id="actionButtons" style="display: none;">
-            <button type="submit" class="btn-edit">💾 Save Changes</button>
+            <button type="submit" class="btn-edit">Save Changes</button>
             <button type="button" class="btn-edit" onclick="cancelEditing()">Cancel</button>
           </div>
         </form>
@@ -281,6 +281,8 @@
     function enableEditing() {
       document.getElementById('editBtn').style.display = 'none';
       document.getElementById('actionButtons').style.display = 'flex';
+      document.getElementById('fullName').disabled = false;
+      document.getElementById('email').disabled = false;
       document.getElementById('department').disabled = false;
       document.getElementById('program').disabled = false;
       document.getElementById('yearLevel').disabled = false;
@@ -290,6 +292,8 @@
     function cancelEditing() {
       document.getElementById('editBtn').style.display = 'block';
       document.getElementById('actionButtons').style.display = 'none';
+      document.getElementById('fullName').disabled = true;
+      document.getElementById('email').disabled = true;
       document.getElementById('department').disabled = true;
       document.getElementById('program').disabled = true;
       document.getElementById('yearLevel').disabled = true;
@@ -298,7 +302,9 @@
       uploadField.style.display = 'none';
       document.getElementById('avatar_upload').value = ""; 
     }
-    
+
+    document.getElementById('fullName').disabled = true;
+    document.getElementById('email').disabled = true;
     document.getElementById('department').disabled = true;
     document.getElementById('program').disabled = true;
     document.getElementById('yearLevel').disabled = true;

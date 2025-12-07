@@ -48,10 +48,17 @@
         <h3>📋 Consultant Information</h3>
         
         {% if consultant and market %}
-          <img src="{% static 'ConsultApp/default-profile.png' %}" 
-               alt="Consultant" 
-               class="profile-avatar" 
-               style="object-fit: cover; padding: 0; border: 4px solid #f5f3ed;">
+          <div class="consultant-avatar-wrapper">
+            {% if consultant.avatar_url %}
+              <img src="{{ consultant.avatar_url }}" 
+                  alt="{{ consultant.user.get_full_name }}" 
+                  class="consultant-avatar-img">
+            {% else %}
+              <div class="consultant-initials">
+                {{ consultant.user.first_name|first|upper }}{{ consultant.user.last_name|first|upper }}
+              </div>
+            {% endif %}
+          </div>
           
           <div style="margin-bottom: 20px;">
               <h4 style="color: var(--navy); font-size: 18px; margin: 0;">{{ consultant.user.get_full_name }}</h4>
@@ -110,11 +117,15 @@
             <div class="form-group">
               <label>Consultant</label>
               <input type="text" value="{{ consultant.user.get_full_name }}" disabled>
+              <input type="hidden" name="consultant_id" value="{{ consultant.user.id }}">
+              <small style="display:block; margin-top:5px;">
+                <a href="{% url 'book_appointment' %}" style="color: var(--navy); text-decoration: underline;">Change Consultant</a>
+              </small>
             </div>
           {% else %}
             <div class="form-group">
               <label for="consultant_id">Select Consultant *</label>
-              <select name="consultant_id" id="consultant_id" required>
+              <select name="consultant_id" id="consultant_id" required onchange="loadConsultantDetails(this)">
                 <option value="">-- Choose Consultant --</option>
                 {% for c in consultants %}
                   <option value="{{ c.user.id }}">{{ c.user.get_full_name }} — {{ c.expertise }}</option>
@@ -193,6 +204,17 @@
   </main>
 
   <script>
+    function loadConsultantDetails(selectElement) {
+        const consultantId = selectElement.value;
+        if (consultantId) {
+          const baseUrl = "{% url 'book_appointment' %}"; 
+          
+          const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+          
+          window.location.href = cleanBaseUrl + consultantId + "/";
+        }
+    }
+
     {% if market %}
     const ratePerHour = {{ market.rate_per_hour|default:0 }};
     const durationSelect = document.getElementById("duration_hours");
@@ -219,7 +241,7 @@
           let hours = parseInt(parts[0]);
           const minutes = parts[1];
           const ampm = hours >= 12 ? 'PM' : 'AM';
-          hours = hours % 12 || 12;
+          hours = hours % 12 || 12; 
           option.textContent = `${hours}:${minutes} ${ampm}`;
         }
       });
