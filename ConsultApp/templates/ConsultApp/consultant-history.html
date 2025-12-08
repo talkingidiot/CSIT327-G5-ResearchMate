@@ -14,18 +14,18 @@
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
-      <a href="{% url 'consultant_dashboard' %}">🏠 Dashboard</a>
+      <a href="{% url 'consultant_dashboard' %}">🏠︎ Dashboard</a>
       <a href="{% url 'consultant_profile' %}">👤 My Profile</a>
       <a href="{% url 'consultant_students' %}">🧑‍🎓 Students</a>
-      <a href="{% url 'consultant_appointments' %}">📅 Appointments</a>
-      <a href="{% url 'consultant_history' %}" class="active">📜 History</a>
+      <a href="{% url 'consultant_appointments' %}">🗓 Appointments</a>
+      <a href="{% url 'consultant_history' %}" class="active">⏱ History</a>
     </div>
 
     <div class="user-section">
       <span class="consultant-label">Consultant</span>
       <form method="POST" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" class="logout-btn">🚪 Logout</button>
+        <button type="submit" class="logout-btn">➜] Logout</button>
       </form>
     </div>
   </nav>
@@ -40,6 +40,7 @@
         <p><strong>Time:</strong> <span id="modalTime"></span></p>
         <p><strong>Duration:</strong> <span id="modalDuration"></span> minutes</p>
         <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+        <p id="modalRatingRow" style="display:none;"><strong>Student Rating:</strong> <span id="modalRating"></span></p>
       </div>
       <div class="modal-actions">
         <button class="btn-close" onclick="closeModal()">Close</button>
@@ -138,6 +139,23 @@
                 <span class="value">{{ appointment.duration_minutes }} minutes</span>
               </div>
               
+              {% if appointment.status == 'completed' and appointment.feedback %}
+                <div class="detail-row" style="border-top: 2px solid #e8f5e9; margin-top: 12px; padding-top: 12px;">
+                  <span class="label">Student Rating:</span>
+                  <span class="value" style="color: #f39c12; font-weight: 700;">
+                    ⭐ {{ appointment.feedback.rating }}/5
+                  </span>
+                </div>
+                {% if appointment.feedback.comment %}
+                  <div class="detail-row">
+                    <span class="label">Feedback:</span>
+                    <span class="value" style="font-style: italic; color: #555; font-size: 13px;">
+                      "{{ appointment.feedback.comment|truncatewords:15 }}"
+                    </span>
+                  </div>
+                {% endif %}
+              {% endif %}
+              
               {% if appointment.status == 'pending_student_review' %}
                 <div class="detail-row">
                   <span class="label">You marked as:</span>
@@ -184,7 +202,9 @@
                 data-date="{{ appointment.date|date:'M d, Y' }}"
                 data-time="{{ appointment.time|time:'g:i A' }}"
                 data-duration="{{ appointment.duration_minutes }}"
-                data-status="{{ appointment.status|title }}">
+                data-status="{% if appointment.status == 'completed' %}Completed{% elif appointment.status == 'cancelled' and appointment.was_disputed %}Not Completed{% elif appointment.status == 'cancelled' %}Cancelled by Student{% elif appointment.status == 'rejected' %}Rejected by You{% elif appointment.status == 'pending_student_review' %}Pending Student Review{% elif appointment.status == 'disputed' %}Pending Admin Review{% else %}{{ appointment.status|title }}{% endif %}"
+                data-rating="{% if appointment.feedback %}{{ appointment.feedback.rating }}{% endif %}"
+                data-has-rating="{% if appointment.status == 'completed' and appointment.feedback %}true{% else %}false{% endif %}">
                 📄 View Details
               </button>
             </div>
@@ -259,6 +279,18 @@
         document.getElementById("modalTime").textContent = btn.dataset.time;
         document.getElementById("modalDuration").textContent = btn.dataset.duration;
         document.getElementById("modalStatus").textContent = btn.dataset.status;
+        
+        const hasRating = btn.dataset.hasRating === 'true';
+        const ratingRow = document.getElementById("modalRatingRow");
+        
+        if (hasRating) {
+            const rating = btn.dataset.rating;
+            document.getElementById("modalRating").innerHTML = `⭐ ${rating}/5`;
+            ratingRow.style.display = 'block';
+        } else {
+            ratingRow.style.display = 'none';
+        }
+        
         modal.style.display = "flex";
     }
 

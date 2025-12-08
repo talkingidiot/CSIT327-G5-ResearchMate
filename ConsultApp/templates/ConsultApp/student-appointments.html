@@ -13,17 +13,17 @@
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
-      <a href="{% url 'student_dashboard' %}">🏠 Dashboard</a>
+      <a href="{% url 'student_dashboard' %}">🏠︎ Dashboard</a>
       <a href="{% url 'student_profile' %}">👤 Profile</a>
-      <a href="{% url 'student_appointments' %}" class="active">📅 Appointments</a>
-      <a href="{% url 'student_history' %}">📜 History</a>
+      <a href="{% url 'student_appointments' %}" class="active">🗓 Appointments</a>
+      <a href="{% url 'student_history' %}">⏱ History</a>
     </div>
 
     <div class="user-section">
       <span class="student-label">Student</span>
       <form method="POST" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" class="logout-btn">🚪 Logout</button>
+        <button type="submit" class="logout-btn">➜] Logout</button>
       </form>
     </div>
   </nav>
@@ -158,7 +158,7 @@
               {% if booking.status == "pending" %}
                 <span class="status-badge pending">⏳ Pending Approval</span>
               {% elif booking.status == "confirmed" %}
-                <span class="status-badge confirmed">✅ Confirmed</span>
+                <span class="status-badge confirmed">✔ Confirmed</span>
               {% elif booking.status == "pending_student_review" %}
                 <span class="status-badge pending-review">⏳ Awaiting Your Review</span>
               {% elif booking.status == "cancelled" %}

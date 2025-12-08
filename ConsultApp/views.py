@@ -20,6 +20,7 @@ from django.urls import reverse
 from django.db.models import Q
 import re
 import mimetypes
+import json
 
 User = get_user_model()
 
@@ -1310,11 +1311,6 @@ def student_appointments_view(request):
 
 @login_required
 def book_appointment(request, consultant_id=None):
-    student = Student.objects.filter(user=request.user).first()
-    if not student:
-        messages.error(request, "Student profile not found.")
-        return redirect('student_dashboard')
-
     def get_market_for_consultant(consultant_obj):
         return Market.objects.filter(
             consultant=consultant_obj, 
@@ -1352,24 +1348,15 @@ def book_appointment(request, consultant_id=None):
 
     def attach_avatar(person, timestamp):
         try:
-            files = supabase.storage.from_("avatars").list(f"{person.user.id}")
-            
-            has_image = False
-            if files:
-                for f in files:
-                    if f.get('name') == 'profile.png':
-                        has_image = True
-                        break
-            
-            if has_image:
-                url = get_avatar_url(person.user.id)
-                person.avatar_url = f"{url}?t={timestamp}"
-            else:
-                person.avatar_url = None
-                
+            person.avatar_url = None 
         except Exception as e:
             print(f"Error checking avatar for {person.user.id}: {e}")
             person.avatar_url = None
+
+    student = Student.objects.filter(user=request.user).first()
+    if not student:
+        messages.error(request, "Student profile not found.")
+        return redirect('student_dashboard')
 
     consultant = None
     market = None
@@ -1380,7 +1367,6 @@ def book_appointment(request, consultant_id=None):
         try:
             consultant = Consultant.objects.get(user__id=target_consultant_id, is_verified=True)
             market = get_market_for_consultant(consultant)
-            
             attach_avatar(consultant, timestamp)
             
             if not market:
@@ -1409,7 +1395,6 @@ def book_appointment(request, consultant_id=None):
             if market:
                 slots = generate_hourly_slots(market.available_from, market.available_to)
 
-            import json
             context = {
                 "consultant": consultant,
                 "market": market,
@@ -1448,7 +1433,6 @@ def book_appointment(request, consultant_id=None):
             if market:
                 unavailable_dates = get_unavailable_dates(market)
             
-            import json
             return {
                 "consultant": consultant,
                 "market": market,
@@ -1474,8 +1458,8 @@ def book_appointment(request, consultant_id=None):
             duration_hours = 1
 
         try:
-            date_obj = dt_datetime.strptime(date_str, "%Y-%m-%d").date()
-            start_time_obj = dt_datetime.strptime(start_time_str, "%H:%M").time()
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+            start_time_obj = datetime.strptime(start_time_str, "%H:%M").time()
         except ValueError:
             messages.error(request, "⚠️ Invalid date or time format.")
             return render(request, "ConsultApp/book_appointment.html", get_error_context())
@@ -1492,18 +1476,24 @@ def book_appointment(request, consultant_id=None):
                 messages.error(request, "⚠️ For same-day bookings, please select a future time.")
                 return render(request, "ConsultApp/book_appointment.html", get_error_context())
 
-        existing_student_booking = Appointment.objects.filter(
+        start_dt = datetime.combine(date_obj, start_time_obj)
+        end_dt = start_dt + timedelta(hours=duration_hours)
+        end_time_obj = end_dt.time()
+        student_conflicts = Appointment.objects.filter(
             student=student,
             date=date_obj,
             status__in=['pending', 'confirmed']
-        ).exists()
-        
-        if existing_student_booking:
-            messages.error(request, "⚠️ You already have a consultation scheduled for this date.")
-            return render(request, "ConsultApp/book_appointment.html", get_error_context())
+        )
+
+        for ap in student_conflicts:
+            ap_start = datetime.combine(date_obj, ap.time)
+            ap_end = ap_start + timedelta(minutes=ap.duration_minutes or 60)
+            
+            if (start_dt < ap_end) and (end_dt > ap_start):
+                messages.error(request, f"⚠️ You are already busy from {ap.time.strftime('%H:%M')} to {ap_end.strftime('%H:%M')}.")
+                return render(request, "ConsultApp/book_appointment.html", get_error_context())
 
         day_name = date_obj.strftime('%A').lower()
-        
         available_days_list = market.get_available_days_list
         available_days_lower = [day.strip().lower() for day in available_days_list]
         
@@ -1513,9 +1503,6 @@ def book_appointment(request, consultant_id=None):
 
         available_from = market.available_from
         available_to = market.available_to
-        start_dt = dt_datetime.combine(date_obj, start_time_obj)
-        end_dt = start_dt + timedelta(hours=duration_hours)
-        end_time_obj = end_dt.time()
 
         if not (available_from <= start_time_obj and end_time_obj <= available_to):
             messages.error(request, f"⚠️ Selected time is outside available hours ({available_from.strftime('%I:%M %p')} - {available_to.strftime('%I:%M %p')}).")
@@ -1528,7 +1515,7 @@ def book_appointment(request, consultant_id=None):
             status__in=['pending', 'confirmed']
         )
         for ap in existing_appts:
-            ap_start = dt_datetime.combine(date_obj, ap.time)
+            ap_start = datetime.combine(date_obj, ap.time)
             ap_end = ap_start + timedelta(minutes=ap.duration_minutes or 60)
             if (start_dt < ap_end) and (end_dt > ap_start):
                 conflicts.append(ap)
@@ -1553,6 +1540,7 @@ def book_appointment(request, consultant_id=None):
             return redirect('student_dashboard')
             
         except Exception as e:
+            print(e)
             messages.error(request, "⚠️ Database error. Unable to book.")
             return render(request, "ConsultApp/book_appointment.html", get_error_context())
 
@@ -1565,7 +1553,6 @@ def book_appointment(request, consultant_id=None):
         slots = generate_hourly_slots(market.available_from, market.available_to)
         unavailable_dates = get_unavailable_dates(market)
 
-    import json
     return render(request, "ConsultApp/book_appointment.html", {
         "consultant": consultant,
         "market": market,

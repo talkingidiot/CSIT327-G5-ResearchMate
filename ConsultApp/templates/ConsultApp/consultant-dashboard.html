@@ -12,18 +12,18 @@
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
-      <a href="{% url 'consultant_dashboard' %}" class="active">🏠 Dashboard</a>
+      <a href="{% url 'consultant_dashboard' %}" class="active">🏠︎ Dashboard</a>
       <a href="{% url 'consultant_profile' %}">👤 My Profile</a>
       <a href="{% url 'consultant_students' %}">🧑‍🎓 Students</a>
-      <a href="{% url 'consultant_appointments' %}">📅 Appointments</a>
-      <a href="{% url 'consultant_history' %}">📜 History</a>
+      <a href="{% url 'consultant_appointments' %}">🗓 Appointments</a>
+      <a href="{% url 'consultant_history' %}">⏱ History</a>
     </div>
 
     <div class="user-section">
       <span class="consultant-label">Consultant</span>
       <form method="POST" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" class="logout-btn">🚪 Logout</button>
+        <button type="submit" class="logout-btn">➜] Logout</button>
       </form>
     </div>
   </nav>
@@ -57,7 +57,7 @@
     {% elif pending_verification %}
       <div class="verify-banner">
         <div class="text">
-          <h3>⏳ Verification Pending</h3>
+          <h3>ⴵ Verification Pending</h3>
           <p>Your verification request has been submitted. Please wait for admin approval.</p>
         </div>
       </div>
@@ -81,20 +81,20 @@
 
     <div class="stats-overview">
       <div class="stat-card pending">
-        <div class="stat-card-icon">⏳</div>
+        <div class="stat-card-icon">ⴵ</div>
           <div class="stat-card-label">Pending Requests</div>
             <div class="stat-card-value">{{ pending_appointments|length|default:0 }}</div>
       </div>
 
       <div class="stat-card confirmed">
-        <div class="stat-card-icon">✅</div>
+        <div class="stat-card-icon">✔</div>
           <div class="stat-card-label">Confirmed</div>
             <div class="stat-card-value">{{ appointments|length|default:0 }}</div>
       </div>
 
       <div class="stat-card students">
         <div class="stat-card-icon">👥</div>
-          <div class="stat-card-label">Assigned Students</div>
+          <div class="stat-card-label">Students</div>
             <div class="stat-card-value">{{ students|length|default:0 }}</div>
       </div>
 
@@ -109,7 +109,7 @@
       <div>
         {% if pending_appointments %}
         <div class="section-card" style="background: linear-gradient(135deg, #fffbea 0%, #fff4d6 100%); border-left: 5px solid #001f54;">
-          <h2>🕒 Pending Appointment Requests</h2>
+          <h2>ⴵ Pending Appointment Requests</h2>
           <p style="margin-bottom: 16px; color: #744210; font-weight: 500;">You have {{ pending_appointments|length }} appointment request(s) waiting for your approval.</p>
           <div class="items-grid">
             {% for appointment in pending_appointments %}
@@ -249,7 +249,7 @@
 
             <div class="edit-button-container">
               <button class="btn-edit-enhanced" onclick="window.location.href='{% url 'consultant_market' %}'">
-                <span class="btn-icon">✏️</span>
+                <span class="btn-icon">-ˋˏ✄┈┈┈┈</span>
                 <span>Edit Your Listing</span>
                 <span class="btn-arrow">→</span>
               </button>
@@ -259,7 +259,7 @@
         {% endif %}
         
         <div class="section-card">
-          <h2>📅 Confirmed Appointments</h2>
+          <h2>✔ Confirmed Appointments</h2>
           <div class="items-grid">
             {% if appointments %}
               {% for appointment in appointments %}

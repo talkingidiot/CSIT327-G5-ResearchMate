@@ -13,18 +13,18 @@
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
-      <a href="{% url 'consultant_dashboard' %}">🏠 Dashboard</a>
+      <a href="{% url 'consultant_dashboard' %}">🏠︎ Dashboard</a>
       <a href="{% url 'consultant_profile' %}">👤 My Profile</a>
       <a href="{% url 'consultant_students' %}" class="active">🧑‍🎓 Students</a>
-      <a href="{% url 'consultant_appointments' %}">📅 Appointments</a>
-      <a href="{% url 'consultant_history' %}">📜 History</a>
+      <a href="{% url 'consultant_appointments' %}">🗓 Appointments</a>
+      <a href="{% url 'consultant_history' %}">⏱ History</a>
     </div>
 
     <div class="user-section">
       <span class="consultant-label">Consultant</span>
       <form method="POST" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" class="logout-btn">🚪 Logout</button>
+        <button type="submit" class="logout-btn">➜] Logout</button>
       </form>
     </div>
   </nav>
@@ -32,7 +32,7 @@
   <main class="main-content">
     <div class="page-header">
       <h1>Students</h1>
-      <p>View students who had sessions with you</p>
+      <p>View students who have sessions with you</p>
     </div>
 
     <div class="filter-section">

@@ -14,17 +14,17 @@
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
-      <a href="{% url 'student_dashboard' %}">🏠 Dashboard</a>
+      <a href="{% url 'student_dashboard' %}">🏠︎ Dashboard</a>
       <a href="{% url 'student_profile' %}">👤 Profile</a>
-      <a href="{% url 'student_appointments' %}">📅 Appointments</a>
-      <a href="{% url 'student_history' %}" class="active">📜 History</a>
+      <a href="{% url 'student_appointments' %}">🗓 Appointments</a>
+      <a href="{% url 'student_history' %}" class="active">⏱ History</a>
     </div>
 
     <div class="user-section">
       <span class="student-label">Student</span>
       <form method="POST" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" class="logout-btn">🚪 Logout</button>
+        <button type="submit" class="logout-btn">➜] Logout</button>
       </form>
     </div>
   </nav>
@@ -171,7 +171,7 @@
                     '{{ appointment.date|date:"M d, Y" }}',
                     '{{ appointment.time|time:"g:i A" }}',
                     '{{ appointment.duration_minutes }}',
-                    '{{ appointment.status|title }}',
+                    '{% if appointment.status == "completed" %}Completed{% elif appointment.status == "cancelled" and appointment.was_disputed %}Not Completed{% elif appointment.status == "cancelled" %}Cancelled by You{% elif appointment.status == "rejected" %}Rejected by Consultant{% elif appointment.status == "disputed" %}Pending Admin Review{% else %}{{ appointment.status|title }}{% endif %}',
                     '{{ appointment.consultant.user.get_full_name }}'
                 )">
                 📄 View Details

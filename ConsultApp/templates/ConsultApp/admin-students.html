@@ -12,7 +12,7 @@
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
-      <a href="{% url 'admin_dashboard' %}">📊 Dashboard</a>
+      <a href="{% url 'admin_dashboard' %}">🏠︎ Dashboard</a>
       <a href="{% url 'admin_profile' %}">👤 Profile</a>
       <a href="{% url 'admin_students' %}" class="active">👥 Students</a>
       <a href="{% url 'admin_consultants' %}">👩‍🏫 Consultants</a>
@@ -22,7 +22,7 @@
       <span class="admin-label">Admin</span>
       <form method="POST" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" class="logout-btn">🚪 Logout</button>
+        <button type="submit" class="logout-btn">➜] Logout</button>
       </form>
     </div>
   </nav>
