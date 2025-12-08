@@ -32,8 +32,15 @@
 
   <div id="detailsModal" class="modal-overlay" style="display:none;">
     <div class="modal">
-      <h2>Session Details</h2>
-      <div id="detailsContent"></div>
+      <h2>Appointment Details</h2>
+      <div class="modal-content">
+        <p><strong>Student:</strong> <span id="modalStudent"></span></p>
+        <p><strong>Topic:</strong> <span id="modalTopic"></span></p>
+        <p><strong>Date:</strong> <span id="modalDate"></span></p>
+        <p><strong>Time:</strong> <span id="modalTime"></span></p>
+        <p><strong>Duration:</strong> <span id="modalDuration"></span> minutes</p>
+        <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+      </div>
       <div class="modal-actions">
         <button class="btn-close" onclick="closeModal()">Close</button>
       </div>
@@ -68,6 +75,8 @@
           <option value="all">All Statuses</option>
           <option value="completed">Completed</option>
           <option value="cancelled">Cancelled</option>
+          <option value="not_completed">Not Completed</option>
+          <option value="rejected">Rejected by Consultant</option>
           <option value="pending_student_review">Pending Student Review</option>
           <option value="disputed">Pending Admin Review</option>
         </select>
@@ -81,7 +90,7 @@
       {% if appointments %}
         {% for appointment in appointments %}
           <div class="booking-card" 
-               data-status="{{ appointment.status }}" 
+               data-status="{% if appointment.status == 'cancelled' and appointment.was_disputed %}not_completed{% else %}{{ appointment.status }}{% endif %}" 
                data-date="{{ appointment.date|date:'Y-m-d' }}">
             
             <div class="booking-header">
@@ -92,10 +101,20 @@
               
               {% if appointment.status == 'completed' %}
                 <span class="status-badge completed">🏁 Completed</span>
+
               {% elif appointment.status == 'cancelled' %}
-                <span class="status-badge cancelled">❌ Cancelled</span>
+                {% if appointment.was_disputed %}
+                  <span class="status-badge cancelled">❌ Not Completed</span>
+                {% else %}
+                  <span class="status-badge cancelled">❌ Cancelled by Student</span>
+                {% endif %}
+
+              {% elif appointment.status == 'rejected' %}
+                <span class="status-badge cancelled">🚫 Rejected by You</span>
+
               {% elif appointment.status == 'pending_student_review' %}
                 <span class="status-badge pending-review">⏳ Pending Student Review</span>
+
               {% elif appointment.status == 'disputed' %}
                 <span class="status-badge disputed">⚠️ Pending Admin Review</span>
               {% endif %}
@@ -159,15 +178,13 @@
 
             <div class="booking-actions">
               <button class="btn-details"
-                onclick="openDetails(
-                    '{{ appointment.id }}',
-                    '{{ appointment.topic }}',
-                    '{{ appointment.date|date:"M d, Y" }}',
-                    '{{ appointment.time|time:"g:i A" }}',
-                    '{{ appointment.duration_minutes }}',
-                    '{{ appointment.status|title }}',
-                    '{{ appointment.student.user.get_full_name }}'
-                )">
+                onclick="openDetails(this)"
+                data-student="{{ appointment.student.user.get_full_name }}"
+                data-topic="{{ appointment.topic }}"
+                data-date="{{ appointment.date|date:'M d, Y' }}"
+                data-time="{{ appointment.time|time:'g:i A' }}"
+                data-duration="{{ appointment.duration_minutes }}"
+                data-status="{{ appointment.status|title }}">
                 📄 View Details
               </button>
             </div>
@@ -190,22 +207,33 @@
             const selectedTime = timeFilter.value;
             const selectedStatus = statusFilter.value;
             const today = new Date();
+            today.setHours(0, 0, 0, 0);
             let visibleCount = 0;
 
             cards.forEach(card => {
                 const cardStatus = card.dataset.status;
-                const cardDate = new Date(card.dataset.date);
+                const dateStr = card.dataset.date;
+                
+                const cardDate = new Date(dateStr);
+                
+                if (isNaN(cardDate.getTime())) {
+                    console.error('Invalid date:', dateStr);
+                    card.style.display = 'none';
+                    return;
+                }
+                
+                cardDate.setHours(0, 0, 0, 0);
 
-                // 1. Check Status
                 let statusMatch = (selectedStatus === 'all') || (cardStatus === selectedStatus);
 
-                // 2. Check Time
                 let timeMatch = true;
                 if (selectedTime !== 'all') {
                     const daysAgo = parseInt(selectedTime);
-                    const timeLimit = new Date();
+                    const timeLimit = new Date(today);
                     timeLimit.setDate(today.getDate() - daysAgo);
-                    timeMatch = cardDate >= timeLimit;
+                    timeLimit.setHours(0, 0, 0, 0);
+                    
+                    timeMatch = cardDate >= timeLimit && cardDate <= today;
                 }
 
                 if (statusMatch && timeMatch) {
@@ -224,17 +252,13 @@
 
     const modal = document.getElementById("detailsModal");
 
-    function openDetails(id, topic, date, time, duration, status, studentName) {
-        const html = `
-          <p><strong>Session ID:</strong> ${id}</p>
-          <p><strong>Student:</strong> ${studentName}</p>
-          <p><strong>Topic:</strong> ${topic}</p>
-          <p><strong>Date:</strong> ${date}</p>
-          <p><strong>Time:</strong> ${time}</p>
-          <p><strong>Duration:</strong> ${duration} minutes</p>
-          <p><strong>Final Status:</strong> ${status}</p>
-        `;
-        document.getElementById("detailsContent").innerHTML = html;
+    function openDetails(btn) {
+        document.getElementById("modalStudent").textContent = btn.dataset.student;
+        document.getElementById("modalTopic").textContent = btn.dataset.topic;
+        document.getElementById("modalDate").textContent = btn.dataset.date;
+        document.getElementById("modalTime").textContent = btn.dataset.time;
+        document.getElementById("modalDuration").textContent = btn.dataset.duration;
+        document.getElementById("modalStatus").textContent = btn.dataset.status;
         modal.style.display = "flex";
     }
 

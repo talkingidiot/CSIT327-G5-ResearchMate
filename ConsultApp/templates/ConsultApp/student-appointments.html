@@ -31,7 +31,7 @@
     <div id="detailsModal" class="modal-overlay">
       <div class="modal">
         <h2>📋 Appointment Details</h2>
-        <div id="detailsContent"></div>
+        <div class="modal-content" id="detailsContent"></div>
         <div class="modal-actions">
           <button class="btn-close" onclick="closeModal()">Close</button>
         </div>
@@ -133,7 +133,7 @@
           {% endfor %}
         </select>
       </div>
-      <a href="{% url 'book_appointment' %}" class="btn-new-booking">+ New Appointment</a>
+      {% comment %} <a href="{% url 'book_appointment' %}" class="btn-new-booking">+ New Appointment</a> {% endcomment %}
     </div>
 
     <div class="history-grid">
@@ -342,13 +342,13 @@
 
     function openDetailsModal(id, topic, date, time, duration, status, consultant) {
         const html = `
-          <p><strong>Appointment ID:</strong> <span>${id}</span></p>
-          <p><strong>Consultant:</strong> <span>${consultant}</span></p>
-          <p><strong>Purpose:</strong> <span>${topic}</span></p>
-          <p><strong>Date:</strong> <span>${date}</span></p>
-          <p><strong>Time:</strong> <span>${time}</span></p>
-          <p><strong>Duration:</strong> <span>${duration} minutes</span></p>
-          <p><strong>Status:</strong> <span>${status}</span></p>
+          <p><strong>Appointment ID:</strong> ${id}</p>
+          <p><strong>Consultant:</strong> ${consultant}</p>
+          <p><strong>Purpose:</strong> ${topic}</p>
+          <p><strong>Date:</strong> ${date}</p>
+          <p><strong>Time:</strong> ${time}</p>
+          <p><strong>Duration:</strong> ${duration} minutes</p>
+          <p><strong>Status:</strong> ${status}</p>
         `;
         document.getElementById("detailsContent").innerHTML = html;
         document.getElementById("detailsModal").style.display = "flex";
@@ -381,12 +381,12 @@
       currentAppointmentId = id;
       
       const contentHtml = `
-        <p><strong>Appointment ID:</strong> <span>${id}</span></p>
-        <p><strong>Consultant:</strong> <span>${consultant}</span></p>
-        <p><strong>Purpose:</strong> <span>${topic}</span></p>
-        <p><strong>Date:</strong> <span>${date}</span></p>
-        <p><strong>Time:</strong> <span>${time}</span></p>
-        <p><strong>Duration:</strong> <span>${duration} minutes</span></p>
+        <p><strong>Appointment ID:</strong> ${id}</p>
+        <p><strong>Consultant:</strong> ${consultant}</p>
+        <p><strong>Purpose:</strong> ${topic}</p>
+        <p><strong>Date:</strong> ${date}</p>
+        <p><strong>Time:</strong> ${time}</p>
+        <p><strong>Duration:</strong> ${duration} minutes</p>
       `;
       
       document.getElementById("reviewContent").innerHTML = contentHtml;

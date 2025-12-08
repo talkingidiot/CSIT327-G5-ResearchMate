@@ -76,8 +76,8 @@ body {
   padding: 8px 16px;
   border: 2px solid var(--navy);
   border-radius: 8px;
-  background: transparent;
-  color: var(--navy);
+  background: var(--navy);
+  color: white;
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
@@ -328,4 +328,34 @@ body {
   .form-actions {
     flex-direction: column;
   }
+}
+
+.consultant-avatar-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.consultant-avatar-img {
+  width: 120px;          
+  height: 120px;         
+  border-radius: 50%;    
+  object-fit: cover;     
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 51, 102, 0.15);
+}
+
+.consultant-initials {
+  width: 120px;
+  height: 120px;
+  background: var(--navy);
+  color: white;
+  border-radius: 50%;   
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  font-weight: 800;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 51, 102, 0.15);
 }

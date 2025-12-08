@@ -151,7 +151,6 @@
                 </form>
             </div>
             {% elif appointment.status == 'confirmed' %}
-              <!-- Show mark status buttons only if appointment time has passed -->
               <div class="mark-status-row" data-appointment-id="{{ appointment.id }}" style="display: none;">
                 <form action="{% url 'mark_meeting_status' appointment.id %}" method="POST" style="display: inline;">
                   {% csrf_token %}

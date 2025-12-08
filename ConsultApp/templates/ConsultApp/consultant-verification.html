@@ -60,15 +60,24 @@
           <div class="form-group">
             <label for="fullName">Full Name *</label>
             <input type="text" id="fullName" name="fullName" value="{{ user_full_name }}" 
+              class="{% if field_errors.fullName %}input-error{% endif %}"
               pattern="[A-Za-z\s\-]+" title="Only letters, spaces, and hyphens allowed" required>
-            </div>
+            {% if field_errors.fullName %}
+                <span class="field-error">{{ field_errors.fullName }}</span>
+            {% endif %}
+          </div>
 
           <div class="form-group">
             <label for="contact">Contact Number (Philippine) *</label>
             <input type="tel" id="contact" name="contact" 
+              class="{% if field_errors.contact %}input-error{% endif %}"
               value="{{ submitted_data.contact|default:'' }}" 
               placeholder="09XXXXXXXXX" required >
-            <p class="file-hint">Format: 09XXXXXXXXX (11 digits)</p>
+            {% if field_errors.contact %}
+                <span class="field-error">{{ field_errors.contact }}</span>
+            {% else %}
+                <p class="file-hint">Format: 09XXXXXXXXX (11 digits)</p>
+            {% endif %}
           </div>
         </div>
 
@@ -77,102 +86,40 @@
           
           <div class="form-group">
             <label>Expertise / Specialization * (Select all that apply)</label>
-            <div class="expertise-grid" id="expertiseGrid">
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Research Methodology"
-                {% if 'Research Methodology' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>📊 Research Methodology</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Data Analysis"
-                {% if 'Data Analysis' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>📈 Data Analysis</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Statistical Analysis"
-                {% if 'Statistical Analysis' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>📉 Statistical Analysis</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Qualitative Research"
-                {% if 'Qualitative Research' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>💬 Qualitative Research</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Quantitative Research"
-                {% if 'Quantitative Research' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>🔢 Quantitative Research</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Machine Learning"
-                {% if 'Machine Learning' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>🤖 Machine Learning</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Artificial Intelligence"
-                {% if 'Artificial Intelligence' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>🧠 Artificial Intelligence</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Web Development"
-                {% if 'Web Development' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>🌐 Web Development</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Mobile Development"
-                {% if 'Mobile Development' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>📱 Mobile Development</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Database Design"
-                {% if 'Database Design' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>🗄️ Database Design</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Cybersecurity"
-                {% if 'Cybersecurity' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>🔒 Cybersecurity</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Network Administration"
-                {% if 'Network Administration' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>🌐 Network Administration</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="UI/UX Design"
-                {% if 'UI/UX Design' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>🎨 UI/UX Design</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="System Analysis"
-                {% if 'System Analysis' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>⚙️ System Analysis</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Software Engineering"
-                {% if 'Software Engineering' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>💻 Software Engineering</span>
-              </label>
-              <label class="expertise-option">
-                <input type="checkbox" name="expertise" value="Thesis Writing"
-                {% if 'Thesis Writing' in submitted_data.expertise_list %}checked{% endif %}>
-                <span>✍️ Thesis Writing</span>
-              </label>
-            </div>
-            <p class="error-message" id="expertiseError" style="display: none;">Please select at least one expertise</p>
+              <div class="expertise-grid" id="expertiseGrid">
+                {% for option in expertise_options %}
+                  <label class="expertise-option">
+                    <input type="checkbox" name="expertise" value="{{ option }}"
+                      {% if option in submitted_data.expertise_list %}checked{% endif %}>
+                    <span>{{ option }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            {% if field_errors.expertise %}
+                <span class="field-error">{{ field_errors.expertise }}</span>
+            {% endif %}
           </div>
 
           <div class="form-group">
             <label for="workplace">Workplace *</label>
             <input type="text" id="workplace" name="workplace" 
+              class="{% if field_errors.workplace %}input-error{% endif %}"
               value="{{ submitted_data.workplace|default:'' }}" required >
+            {% if field_errors.workplace %}
+                <span class="field-error">{{ field_errors.workplace }}</span>
+            {% endif %}
           </div>
 
           <div class="form-group">
             <label for="qualification">Qualification *</label>
             <input type="text" id="qualification" name="qualification" 
+              class="{% if field_errors.qualification %}input-error{% endif %}"
               value="{{ submitted_data.qualification|default:'' }}" required >
-              <p class="file-hint">College degree or educational background</p>
+            {% if field_errors.qualification %}
+                <span class="field-error">{{ field_errors.qualification }}</span>
+            {% else %}
+                <p class="file-hint">College degree or educational background</p>
+            {% endif %}
           </div>
 
           <div class="form-group">
@@ -184,24 +131,36 @@
 
         <div class="form-section">
           <h3>📄 Required Document</h3>
-          <p style="color: #666; margin-bottom: 15px;">Upload one of the following documents for verification:</p>
+          <p style="color: #666; margin-bottom: 15px;">Upload the following documents for verification:</p>
           
           <div class="form-group">
             <label for="validId">Upload Valid ID</label>
             <input type="file" id="validId" name="validId" accept="image/jpeg,image/jpg,image/png,.pdf" required>
-            <p class="file-hint">Government-issued ID (Driver's License, Passport, etc.) - JPG, PNG, or PDF </p>
+            {% if field_errors.validId %}
+                <span class="field-error">{{ field_errors.validId }}</span>
+            {% else %}
+                <p class="file-hint">Government-issued ID (Driver's License, Passport, etc.) - JPG, PNG, or PDF </p>
+            {% endif %}
           </div>
 
           <div class="form-group">
             <label for="license">Upload Professional License</label>
             <input type="file" id="license" name="license" accept="image/jpeg,image/jpg,image/png,.pdf" required>
-            <p class="file-hint">Professional license or certification - JPG, PNG, or PDF</p>
+            {% if field_errors.license %}
+                <span class="field-error">{{ field_errors.license }}</span>
+            {% else %}
+                <p class="file-hint">Professional license or certification - JPG, PNG, or PDF</p>
+            {% endif %}
           </div>
 
           <div class="form-group">
             <label for="profilePhoto">Upload Profile Photo with ID</label>
             <input type="file" id="profilePhoto" name="profilePhoto" accept="image/jpeg,image/jpg,image/png" required>
-            <p class="file-hint">Professional photo holding your ID (JPG or PNG, max 5MB)</p>
+            {% if field_errors.profilePhoto %}
+                <span class="field-error">{{ field_errors.profilePhoto }}</span>
+            {% else %}
+                <p class="file-hint">Professional photo holding your ID (JPG or PNG)</p>
+            {% endif %}
           </div>
         </div>
 

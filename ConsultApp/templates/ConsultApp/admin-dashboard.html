@@ -57,81 +57,84 @@
     </div>
 
     {% if disputed_appointments %}
-    <div class="section-card disputed-section">
-      <div class="section-header">
-        <h2>⚠️ Disputed Appointments</h2>
-        <span class="count-badge">{{ disputed_appointments|length }}</span>
-      </div>
-      
-      {% for appointment in disputed_appointments %}
-        <div class="disputed-card">
-          <div class="disputed-header">
-            <div>
-              <h3 style="margin: 0; color: #d32f2f;">
-                Dispute #{{ appointment.id }}
-              </h3>
-              <p style="margin: 4px 0 0 0; color: #666; font-size: 14px;">
-                Disputed on {{ appointment.disputed_at|date:"M d, Y - g:i A" }}
-              </p>
-            </div>
-          </div>
-          
-          <div class="disputed-info">
-            <div class="info-item">
-              <span class="info-label">Student</span>
-              <span class="info-value">{{ appointment.student.user.get_full_name }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Consultant</span>
-              <span class="info-value">{{ appointment.consultant.user.get_full_name }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Topic</span>
-              <span class="info-value">{{ appointment.topic }}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Date & Time</span>
-              <span class="info-value">
-                {{ appointment.date|date:"M d, Y" }} at {{ appointment.time|time:"g:i A" }}
-              </span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Consultant marked as</span>
-              <span class="info-value">
-                {% if appointment.consultant_marked_as == 'completed' %}
-                  ✅ Completed
-                {% else %}
-                  ❌ Not Completed
-                {% endif %}
-              </span>
-            </div>
-          </div>
-          
-          <div class="dispute-remark">
-            <strong>Student's Dispute Reason:</strong><br>
-            "{{ appointment.student_dispute_remark }}"
-          </div>
-          
-          <div class="resolve-actions">
-            <form method="POST" action="{% url 'admin_resolve_dispute' appointment.id %}" style="display: inline;">
-              {% csrf_token %}
-              <input type="hidden" name="decision" value="mark_completed">
-              <button type="submit" class="btn-resolve-complete">
-                ✅ Mark as Completed
-              </button>
-            </form>
-            
-            <form method="POST" action="{% url 'admin_resolve_dispute' appointment.id %}" style="display: inline;">
-              {% csrf_token %}
-              <input type="hidden" name="decision" value="mark_not_completed">
-              <button type="submit" class="btn-resolve-incomplete">
-                ❌ Mark as Not Completed
-              </button>
-            </form>
-          </div>
+      <div class="section-card disputed-section">
+        <div class="section-header">
+          <h2>⚠️ Disputed Appointments</h2>
+          <span class="count-badge">{{ disputed_appointments|length }}</span>
         </div>
-      {% endfor %}
-    </div>
+        
+        {% for appointment in disputed_appointments %}
+          <div class="disputed-card">
+            <div class="disputed-header">
+              <div>
+                <h3 style="margin: 0; color: #d32f2f;">
+                  {% if appointment.status == 'disputed' %}
+                    Dispute #{{ forloop.counter }}
+                  {% endif %}
+                </h3>
+                <p style="margin: 4px 0 0 0; color: #666; font-size: 14px;">
+                  Disputed on {{ appointment.disputed_at|date:"M d, Y - g:i A" }}
+                </p>
+              </div>
+            </div>
+            
+            <div class="dispute-details-wrapper">
+                <div class="disputed-info">
+                  <div class="info-item">
+                    <span class="info-label">Student</span>
+                    <span class="info-value">{{ appointment.student.user.get_full_name }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Consultant</span>
+                    <span class="info-value">{{ appointment.consultant.user.get_full_name }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Topic</span>
+                    <span class="info-value">{{ appointment.topic }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Date & Time</span>
+                    <span class="info-value">
+                      {{ appointment.date|date:"M d, Y" }} at {{ appointment.time|time:"g:i A" }}
+                    </span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Consultant marked as</span>
+                    <span class="info-value">
+                      {% if appointment.consultant_marked_as == 'completed' %}
+                        ✅ Completed
+                      {% else %}
+                        ❌ Not Completed
+                      {% endif %}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="dispute-remark">
+                  <strong>Student's Dispute Reason:</strong><br>
+                  "{{ appointment.student_dispute_remark }}"
+                </div>
+            </div>
+            <div class="resolve-actions">
+              <form method="POST" action="{% url 'admin_resolve_dispute' appointment.id %}" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="decision" value="mark_completed">
+                <button type="submit" class="btn-resolve-complete">
+                  Mark as Completed
+                </button>
+              </form>
+              
+              <form method="POST" action="{% url 'admin_resolve_dispute' appointment.id %}" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="decision" value="mark_not_completed">
+                <button type="submit" class="btn-resolve-incomplete">
+                  Mark as Not Completed
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
     {% endif %}
 
     <div class="section-card">
