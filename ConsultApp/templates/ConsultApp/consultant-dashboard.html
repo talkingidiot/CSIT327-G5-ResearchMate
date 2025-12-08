@@ -12,18 +12,18 @@
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
-      <a href="{% url 'consultant_dashboard' %}" class="active">🏠 Dashboard</a>
+      <a href="{% url 'consultant_dashboard' %}" class="active">🏠︎ Dashboard</a>
       <a href="{% url 'consultant_profile' %}">👤 My Profile</a>
       <a href="{% url 'consultant_students' %}">🧑‍🎓 Students</a>
-      <a href="{% url 'consultant_appointments' %}">📅 Appointments</a>
-      <a href="{% url 'consultant_history' %}">📜 History</a>
+      <a href="{% url 'consultant_appointments' %}">🗓 Appointments</a>
+      <a href="{% url 'consultant_history' %}">⏱ History</a>
     </div>
 
     <div class="user-section">
       <span class="consultant-label">Consultant</span>
       <form method="POST" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" class="logout-btn">🚪 Logout</button>
+        <button type="submit" class="logout-btn">➜] Logout</button>
       </form>
     </div>
   </nav>
@@ -38,9 +38,9 @@
       <div style="margin-bottom: 20px;">
         {% for message in messages %}
           <div style="padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; 
-                      {% if message.tags == 'success' %}background: #d4edda; color: #155724; border: 1px solid #c3e6cb;
-                      {% elif message.tags == 'error' %}background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
-                      {% else %}background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
+              {% if message.tags == 'success' %}background: #d4edda; color: #155724; border: 1px solid #c3e6cb;
+              {% elif message.tags == 'error' %}background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+              {% else %}background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;{% endif %}">
             {{ message }}
           </div>
         {% endfor %}
@@ -54,15 +54,13 @@
           <p>Your verification was approved on {{ approved_verification.reviewed_at|date:"M d, Y" }}.</p>
         </div>
       </div>
-
     {% elif pending_verification %}
       <div class="verify-banner">
         <div class="text">
-          <h3>⏳ Verification Pending</h3>
+          <h3>ⴵ Verification Pending</h3>
           <p>Your verification request has been submitted. Please wait for admin approval.</p>
         </div>
       </div>
-
     {% elif rejected_verification %}
       <div class="verify-banner" style="background: linear-gradient(135deg, #fee 0%, #fdd 100%); border-left: 5px solid #e53e3e;">
         <div class="text">
@@ -71,7 +69,6 @@
         </div>
         <a href="{% url 'consultant_verification' %}" class="btn-view-all" style="width: auto; padding: 0.75rem 1.5rem;">Resubmit Application</a>
       </div>
-
     {% else %}
       <div class="verify-banner">
         <div class="text">
@@ -84,20 +81,20 @@
 
     <div class="stats-overview">
       <div class="stat-card pending">
-        <div class="stat-card-icon">⏳</div>
+        <div class="stat-card-icon">ⴵ</div>
           <div class="stat-card-label">Pending Requests</div>
             <div class="stat-card-value">{{ pending_appointments|length|default:0 }}</div>
       </div>
 
       <div class="stat-card confirmed">
-        <div class="stat-card-icon">✅</div>
+        <div class="stat-card-icon">✔</div>
           <div class="stat-card-label">Confirmed</div>
             <div class="stat-card-value">{{ appointments|length|default:0 }}</div>
       </div>
 
       <div class="stat-card students">
         <div class="stat-card-icon">👥</div>
-          <div class="stat-card-label">Assigned Students</div>
+          <div class="stat-card-label">Students</div>
             <div class="stat-card-value">{{ students|length|default:0 }}</div>
       </div>
 
@@ -111,8 +108,8 @@
     <div class="dashboard-grid">
       <div>
         {% if pending_appointments %}
-        <div class="section-card" style="background: linear-gradient(135deg, #fffbea 0%, #fff4d6 100%); border-left: 5px solid #d69e2e;">
-          <h2>🕒 Pending Appointment Requests</h2>
+        <div class="section-card" style="background: linear-gradient(135deg, #fffbea 0%, #fff4d6 100%); border-left: 5px solid #001f54;">
+          <h2>ⴵ Pending Appointment Requests</h2>
           <p style="margin-bottom: 16px; color: #744210; font-weight: 500;">You have {{ pending_appointments|length }} appointment request(s) waiting for your approval.</p>
           <div class="items-grid">
             {% for appointment in pending_appointments %}
@@ -125,7 +122,7 @@
                       style="{% if not appointment.student.avatar_url %}display: none;{% endif %}"
                       onerror="this.style.display='none'"
                   >
-                  <div class="avatar" style="background: linear-gradient(135deg, #ffa500, #ff8c00);">
+                  <div class="avatar" style="background: #001f54;">
                     {{ appointment.student.user.first_name|slice:":1"|upper }}{{ appointment.student.user.last_name|slice:":1"|upper }}
                   </div>
                 </div>
@@ -187,7 +184,15 @@
               <div class="info-card expertise">
                 <span class="info-card-icon">🎯</span>
                 <div class="info-card-label">Expertise</div>
-                <div class="info-card-value">{{ market_listing.expertise }}</div>
+                <div class="info-card-value">
+                    {% if market_listing.expertise_list %}
+                        {% for item in market_listing.expertise_list %}
+                            <span class="expertise-pill">{{ item }}</span>
+                        {% endfor %}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
               </div>
 
               <div class="info-card hours">
@@ -244,7 +249,7 @@
 
             <div class="edit-button-container">
               <button class="btn-edit-enhanced" onclick="window.location.href='{% url 'consultant_market' %}'">
-                <span class="btn-icon">✏️</span>
+                <span class="btn-icon">-ˋˏ✄┈┈┈┈</span>
                 <span>Edit Your Listing</span>
                 <span class="btn-arrow">→</span>
               </button>
@@ -252,8 +257,9 @@
           </div>
         </div>
         {% endif %}
+        
         <div class="section-card">
-          <h2>📅 Confirmed Appointments</h2>
+          <h2>✔ Confirmed Appointments</h2>
           <div class="items-grid">
             {% if appointments %}
               {% for appointment in appointments %}
@@ -334,7 +340,7 @@
               >
 
               <div class="sidebar-profile-initials">
-                {{ consultant_name|slice:":2"|upper }}
+                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
               </div>
             </div>
 
@@ -356,13 +362,24 @@
               <span class="label">Contact:</span>
               <span class="value">{{ consultant.contact_number|default:"N/A" }}</span>
             </div>
-            <div class="info-row">
+            
+            <div class="info-row expertise-row">
               <span class="label">Expertise:</span>
-              <span class="value">{{ consultant.expertise|default:"N/A" }}</span>
+              <div class="expertise-wrapper">
+                {% if market_listing.expertise_list %}
+                    {% for item in market_listing.expertise_list %}
+                        <span class="expertise-pill">{{ item }}</span>
+                    {% endfor %}
+                {% elif consultant.expertise %}
+                    <span class="value">{{ consultant.expertise }}</span>
+                {% else %}
+                    <span class="value">Not set</span>
+                {% endif %}
+              </div>
             </div>
           </div>
 
-          <button class="btn-edit-profile" onclick="window.location.href='{% url 'consultant_profile' %}'">✏️ Edit Profile</button>
+          <button class="btn-edit-profile" onclick="window.location.href='{% url 'consultant_profile' %}'">Edit Profile</button>
           
           {% if consultant.is_verified %}
             {% if not market_listing %}

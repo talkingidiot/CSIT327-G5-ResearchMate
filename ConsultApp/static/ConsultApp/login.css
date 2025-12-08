@@ -378,6 +378,14 @@ button.submit-btn:active {
   opacity: 0.95;
 }
 
+.overlay-panel img {
+  max-width: 100%;      
+  height: auto;         
+  max-height: 500px;    
+  object-fit: contain; 
+  margin-bottom: 20px;  
+}
+
 @media (max-width: 768px) {
   .container {
     min-height: 600px;

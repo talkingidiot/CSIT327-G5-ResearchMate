@@ -4,24 +4,31 @@ from django.db import models
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from .storage_backends import VerificationStorage
 
-# Validator for names (letters, spaces, hyphens only)
+# Name Validator to allow apostrophes and dots
 name_validator = RegexValidator(
-    regex=r'^[a-zA-Z\s\-]+$',
-    message='Only letters, spaces, and hyphens are allowed.'
+    regex=r"^[a-zA-Z\s\-\.\']+$",  
+    message="Only letters, spaces, hyphens, periods, and apostrophes are allowed."
 )
 
-# Validator for contact numbers (digits, spaces, hyphens, parentheses, plus sign)
+# Contact Validator (digits, spaces, hyphens, parentheses, plus sign)
 phone_validator = RegexValidator(
     regex=r'^[\d\s\-\(\)\+]+$',
     message='Only numbers, spaces, hyphens, parentheses, and plus signs are allowed.'
 )
 
+# Items List Validator
 list_string_validator = RegexValidator(
     regex=r'^[a-zA-Z0-9\s\-,]+$', 
     message='Only letters, numbers, spaces, hyphens, and commas are allowed.'
 )
 
-# Validator for alphanumeric with spaces (no special chars except spaces and hyphens)
+# Address Validator
+address_validator = RegexValidator(
+    regex=r'^[a-zA-Z0-9\s\-\,\.\'\&]+$',
+    message="Only letters, numbers, spaces, and standard punctuation (-, ., ', &) are allowed."
+)
+
+# Alphanumeric Validator (no special chars except spaces and hyphens)
 alphanumeric_validator = RegexValidator(
     regex=r'^[a-zA-Z0-9\s\-]+$',
     message='Only letters, numbers, spaces, and hyphens are allowed.'
@@ -67,7 +74,7 @@ class Consultant(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     contact_number = models.CharField(max_length=20, validators=[phone_validator])
     expertise = models.CharField(max_length=1000, validators=[list_string_validator], blank=True)
-    workplace = models.CharField(max_length=150, validators=[alphanumeric_validator])
+    workplace = models.CharField(max_length=150, validators=[address_validator])
     is_verified = models.BooleanField(default=False)
 
     def __str__(self):
@@ -101,6 +108,7 @@ class Appointment(models.Model):
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
         ('completed', 'Completed'),
+        ('rejected', 'Rejected'),
         ('cancelled', 'Cancelled'),
         ('pending_student_review', 'Pending Student Review'),
         ('disputed', 'Disputed'),
@@ -156,16 +164,15 @@ class Feedback(models.Model):
 
 
 class Verification(models.Model):
+    consultant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
     ]
-
-    consultant = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    contact_number = models.CharField(max_length=20, validators=[phone_validator], blank=True)
-    expertise = models.CharField(max_length=200, validators=[alphanumeric_validator])
-    workplace = models.CharField(max_length=200, validators=[alphanumeric_validator], blank=True)
+    contact_number = models.CharField(max_length=20, validators=[phone_validator], blank=True, null=True)
+    expertise = models.CharField(max_length=1000, validators=[list_string_validator], blank=True, null=True)
+    workplace = models.CharField(max_length=150, validators=[address_validator], blank=True, null=True)
     qualification = models.TextField(blank=True)
     bio = models.TextField(blank=True, null=True)
     valid_id = models.FileField(
@@ -185,6 +192,7 @@ class Verification(models.Model):
         return f"{self.consultant.get_full_name()} - {self.status.capitalize()}"
 
 class Market(models.Model):
+    consultant = models.ForeignKey(Consultant, on_delete=models.CASCADE, related_name="market_listings")
     DAYS_CHOICES = [
         ('monday', 'Monday'),
         ('tuesday', 'Tuesday'),
@@ -194,11 +202,6 @@ class Market(models.Model):
         ('saturday', 'Saturday'),
         ('sunday', 'Sunday'),
     ]
-    
-    consultant = models.ForeignKey(
-        Consultant, on_delete=models.CASCADE, related_name="market_listings"
-    )
-    expertise = models.CharField(max_length=200, validators=[alphanumeric_validator])
     profession = models.CharField(max_length=100, validators=[alphanumeric_validator])
     available_from = models.TimeField()
     available_to = models.TimeField(null=True, blank=True)
@@ -215,11 +218,12 @@ class Market(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.consultant.user.get_full_name()} — {self.profession} ({self.expertise})"
+        return f"{self.consultant.user.get_full_name()} — {self.profession} ({self.consultant.expertise})"
     
+    @property
     def get_available_days_list(self):
         if self.available_days:
-            return [day.strip() for day in self.available_days.split(',')]
+            return [day.strip().lower() for day in self.available_days.split(',')]
         return []
     
     def is_available_on_day(self, day_name):

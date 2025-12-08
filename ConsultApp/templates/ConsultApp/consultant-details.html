@@ -11,16 +11,16 @@
   <nav class="top-nav">
     <div class="logo">ResearchMate</div>
     <div class="nav-links">
-      <a href="{% url 'student_dashboard' %}">🏠 Dashboard</a>
+      <a href="{% url 'student_dashboard' %}">🏠︎ Dashboard</a>
       <a href="{% url 'student_profile' %}">👤 Profile</a>
-      <a href="{% url 'student_appointments' %}">📅 Appointments</a>
-      <a href="{% url 'student_history' %}">📜 History</a>
+      <a href="{% url 'student_appointments' %}">🗓 Appointments</a>
+      <a href="{% url 'student_history' %}">⏱ History</a>
     </div>
     <div class="user-section">
       <span class="student-label">Student</span>
       <form method="POST" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" class="logout-btn">🚪 Logout</button>
+        <button type="submit" class="logout-btn">➜] Logout</button>
       </form>
     </div>
   </nav>
@@ -35,7 +35,7 @@
       <div class="info-grid">
         <div class="info-item">
           <div class="info-label">⭐ Expertise</div>
-          <div class="info-value">{{ market.expertise }}</div>
+          <div class="info-value">{{ market.consultant.expertise }}</div>
         </div>
         <div class="info-item">
           <div class="info-label">📍 Meeting Place</div>
@@ -53,7 +53,7 @@
           <div class="info-label">📅 Available Days</div>
           <div class="info-value">
             {% if market.available_days %}
-              {% for day in market.available_days.split %}
+              {% for day in market.get_available_days_list %}
                 {{ day|title }}{% if not forloop.last %}, {% endif %}
               {% endfor %}
             {% else %}

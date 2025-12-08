@@ -434,8 +434,8 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 .profile-info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 16px; 
+  margin-bottom: 24px;
 }
 
 .dashboard-avatar-wrapper {
@@ -458,11 +458,38 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
 .info-row {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  align-items: flex-start; 
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-.info-row .label { color: #666; font-weight: 600; }
-.info-row .value { color: var(--text-dark); font-weight: 600; }
+.info-row .label {
+  color: #666;
+  font-weight: 700;
+  min-width: 80px; 
+  flex-shrink: 0;
+}
+
+.info-row .value {
+  color: var(--text-dark);
+  font-weight: 600;
+  text-align: right;
+  word-break: break-word; 
+}
+
+.info-row.expertise-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  border-top: 1px dashed #eee; 
+  padding-top: 12px;
+}
+
+.info-row.expertise-row .value {
+  text-align: left;
+  font-weight: 500;
+  color: #333;
+}
 
 .btn-edit-profile, 
 .btn-primary, 
@@ -609,8 +636,38 @@ input:checked + .toggle-slider:before { transform: translateX(24px); }
   text-transform: uppercase;
   color: #666;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 12px; 
   letter-spacing: 0.5px;
+}
+
+.expertise-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+  gap: 12px; 
+  margin-top: 12px;
+}
+
+.expertise-option-card {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.expertise-option-card:hover {
+  border-color: var(--blue); 
+  background-color: var(--light-bg); 
+  transform: translateY(-2px); 
+  box-shadow: 0 4px 12px rgba(0, 31, 84, 0.08); 
+}
+
+.expertise-option-card input:checked + span {
+  color: var(--blue);
+  font-weight: 700;
 }
 
 .form-group input {
@@ -1192,4 +1249,159 @@ input:checked + .toggle-slider-enhanced:before {
   .header-subtitle {
     font-size: 12px;
   }
+}
+
+/* Appointment Card Fixes for Overlapping and Button Alignment */
+
+/* Fix overlapping by adding proper padding for badges */
+.appointment-card {
+  position: relative;
+  padding-top: 70px !important; /* Extra space for badges at top */
+}
+
+/* Status badge positioned at top-left */
+.status-wrapper {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+  max-width: 50%; /* Prevent overlap with time badge */
+}
+
+/* Time badge positioned at top-right */
+.appointment-card .time-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  max-width: 45%; /* Prevent overlap with status badge */
+}
+
+/* Appointment actions container - vertical layout */
+.appointment-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* All buttons uniform sizing */
+.appointment-actions .btn-details {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  border: none;
+  background: linear-gradient(135deg, var(--navy) 0%, #004080 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 31, 84, 0.2);
+}
+
+.appointment-actions .btn-details:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 31, 84, 0.3);
+}
+
+/* Action row for Accept/Reject buttons - side by side */
+.appointment-actions .action-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+}
+
+.appointment-actions .action-row form {
+  width: 100%;
+  margin: 0;
+}
+
+.appointment-actions .action-row .btn-accept,
+.appointment-actions .action-row .btn-reject {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+/* Mark status row for completed/not completed buttons */
+.appointment-actions .mark-status-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+}
+
+.appointment-actions .mark-status-row form {
+  width: 100%;
+  margin: 0;
+  display: inline;
+}
+
+.appointment-actions .btn-mark-complete,
+.appointment-actions .btn-mark-incomplete {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.appointment-actions .btn-mark-complete {
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.appointment-actions .btn-mark-complete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+.appointment-actions .btn-mark-incomplete {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.appointment-actions .btn-mark-incomplete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 152, 0, 0.4);
+}
+
+.expertise-pill {
+  display: inline-block;
+  background-color: transparent; 
+  color: var(--navy);           
+  padding: 0;                    
+  border-radius: 0;              
+  font-size: 15px;               
+  font-weight: 600;            
+  margin-right: 8px;             
+  margin-bottom: 4px;
+  border: none;                 
+}
+
+.expertise-pill:not(:last-child):after {
+  content: ",";
+  color: var(--navy);
+}
+
+.expertise-wrapper {
+  display: block;    
+  margin-top: 4px;
 }

@@ -13,18 +13,18 @@
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
-      <a href="{% url 'consultant_dashboard' %}">🏠 Dashboard</a>
+      <a href="{% url 'consultant_dashboard' %}">🏠︎ Dashboard</a>
       <a href="{% url 'consultant_profile' %}" class="active">👤 My Profile</a>
       <a href="{% url 'consultant_students' %}">🧑‍🎓 Students</a>
-      <a href="{% url 'consultant_appointments' %}">📅 Appointments</a>
-      <a href="{% url 'consultant_history' %}">📜 History</a>
+      <a href="{% url 'consultant_appointments' %}">🗓 Appointments</a>
+      <a href="{% url 'consultant_history' %}">⏱ History</a>
     </div>
 
     <div class="user-section">
       <span class="consultant-label">Consultant</span>
       <form method="POST" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" class="logout-btn">🚪 Logout</button>
+        <button type="submit" class="logout-btn">➜] Logout</button>
       </form>
     </div>
   </nav>
@@ -66,7 +66,7 @@
               onerror="
                 this.style.display='none'; 
                 document.getElementById('initialsAvatar').style.display='flex'; 
-                document.getElementById('removeAvatarSection').style.display='none'; /* Hide remove button */
+                document.getElementById('removeAvatarSection').style.display='none';
               ">
               <div class="profile-avatar" id="initialsAvatar" style="{% if avatar_url %}display: none;{% endif %}">
                 {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
@@ -93,7 +93,7 @@
 
       <div class="form-card">
         <div class="header-row">
-          <h2>Profile Informatioa</h2>
+          <h2>Profile Information</h2>
           <button type="button" id="editBtn" class="btn-primary" onclick="enableEditing()">
             Edit Profile
           </button>
@@ -156,20 +156,21 @@
 
               <div class="form-group">
                 <label>Expertise / Specialization</label>
-                <div class="expertise-grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 5px;">
+                <input type="text" id="expertiseViewMode" value="{{ profile.expertise|default:'' }}" placeholder="Not set" disabled>
+                  <div id="expertiseEditMode" class="expertise-grid-container" style="display: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 5px;">
                     {% for option in expertise_options %}
-                    <label class="expertise-option-card" style="display: flex; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: #fff;">
-                      <input type="checkbox" name="expertise" value="{{ option }}" 
-                        style="margin-right: 10px; width: 18px; height: 18px;"
-                        {% if option in current_expertise_list %}checked{% endif %}
-                        disabled> <span style="font-size: 0.95rem;">{{ option }}</span>
-                    </label>
+                      <label class="expertise-option-card" style="display: flex; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; background: #fff;">
+                        <input type="checkbox" name="expertise" value="{{ option }}" 
+                          style="margin-right: 10px; width: 18px; height: 18px;"
+                          {% if option in current_expertise_list %}checked{% endif %}>
+                        <span style="font-size: 0.95rem;">{{ option }}</span>
+                      </label>
                     {% endfor %}
-                </div>
+                  </div>
                 {% for message in messages %}
-                    {% if 'expertise_error' in message.tags %}
-                        <small class="error-text">⚠ {{ message }}</small>
-                    {% endif %}
+                  {% if 'expertise_error' in message.tags %}
+                    <small class="error-text">⚠ {{ message }}</small>
+                  {% endif %}
                 {% endfor %}
               </div>
 
@@ -199,6 +200,8 @@
       document.getElementById('actionButtons').style.display = 'flex';
       document.getElementById('formFields').disabled = false;
       document.getElementById('avatarUploadField').style.display = 'block';
+      document.getElementById('expertiseViewMode').style.display = 'none';
+      document.getElementById('expertiseEditMode').style.display = 'grid'; 
       const checkboxes = document.querySelectorAll('input[name="expertise"]');
       checkboxes.forEach(cb => cb.disabled = false);
     }
@@ -208,9 +211,8 @@
       document.getElementById('actionButtons').style.display = 'none';
       document.getElementById('formFields').disabled = true;
       document.getElementById('avatarUploadField').style.display = 'none';
-      document.getElementById('avatar_upload').value = ""; 
-      const checkboxes = document.querySelectorAll('input[name="expertise"]');
-      checkboxes.forEach(cb => cb.disabled = true);
+      document.getElementById('expertiseViewMode').style.display = 'block';
+      document.getElementById('expertiseEditMode').style.display = 'none';
       window.location.reload(); 
     }
     

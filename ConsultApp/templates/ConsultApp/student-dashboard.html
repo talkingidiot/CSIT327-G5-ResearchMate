@@ -13,17 +13,17 @@
     <div class="logo">ResearchMate</div>
     
     <div class="nav-links">
-      <a href="{% url 'student_dashboard' %}" class="active">🏠 Dashboard</a>
+      <a href="{% url 'student_dashboard' %}" class="active">🏠︎ Dashboard</a>
       <a href="{% url 'student_profile' %}">👤 Profile</a>
-      <a href="{% url 'student_appointments' %}">📅 Appointments</a>
-      <a href="{% url 'student_history' %}">📜 History</a>
+      <a href="{% url 'student_appointments' %}">🗓 Appointments</a>
+      <a href="{% url 'student_history' %}">⏱ History</a>
     </div>
 
     <div class="user-section">
       <span class="student-label">Student</span>
       <form method="POST" action="{% url 'logout' %}" style="display:inline;">
         {% csrf_token %}
-        <button type="submit" class="logout-btn">🚪 Logout</button>
+        <button type="submit" class="logout-btn">➜] Logout</button>
       </form>
     </div>
   </nav>
@@ -88,7 +88,7 @@
     <div class="dashboard-grid">
       <section>
         <div class="search-card">
-          <h2>🔍 Find Your Research Consultant</h2>
+          <h2>🔍︎ Find Your Research Consultant</h2>
           <form method="GET" class="search-box">
             <input 
                 type="text" 
@@ -127,7 +127,7 @@
                     </div>
                 </div>
                   <h4>{{ market.consultant.user.get_full_name }}</h4>
-                  <p>{{ market.expertise|default:"No expertise listed" }}</p>
+                  <p>{{ market.consultant.expertise|default:"No expertise listed" }}</p>
                   <p class="rate">💰 ₱{{ market.rate_per_hour }} / hour</p>
                   <p class="meeting">📍 {{ market.meeting_place }}</p>
 
@@ -135,9 +135,22 @@
                     View Details
                   </a>
                   
-                  <a href="{% url 'book_appointment_with_consultant' market.consultant.user.id %}" class="btn-primary" style="display: inline-block; padding: 10px 20px; background: #4caf50; color: white; text-decoration: none; border-radius: 8px; text-align: center; margin-top: 8px;">
-                    Book Now
-                  </a>
+                  <div style="margin-top: 8px;">
+                    {% if market.consultant.user.id in pending_consultant_ids %}
+                      <button type="button" 
+                              class="btn-primary" 
+                              {% comment %} style="width: 100%; display: inline-block; padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer;" {% endcomment %}
+                              onclick="showPendingModal('{{ market.consultant.user.get_full_name|escapejs }}')">
+                        Book Now
+                      </button>
+                    {% else %}
+                      <a href="{% url 'book_appointment_with_consultant' market.consultant.user.id %}" 
+                        class="btn-primary">
+                        {% comment %} style="display: inline-block; width: 100%; padding: 10px 20px; background: #4caf50; color: white; text-decoration: none; border-radius: 8px; text-align: center; box-sizing: border-box;"> {% endcomment %}
+                        Book Now
+                      </a>
+                    {% endif %}
+                  </div>
                 </div>
               {% endfor %}
             </div>
@@ -206,5 +219,36 @@
       </aside>
     </div>
   </main>
+  <div id="dashboardPendingModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: fadeIn 0.2s;">
+      <div style="font-size: 42px; margin-bottom: 15px;">⏳</div>
+      <h3 style="color: #001f54; margin-bottom: 10px; font-size: 1.25rem; font-weight: 700;">Pending Request</h3>
+      <p style="color: #555; margin-bottom: 25px; line-height: 1.5; font-size: 0.95rem;">
+        You already have a pending appointment with <strong id="modalConsultantName" style="color: #001f54;">this consultant</strong>. 
+        <br><br>
+        Please wait for them to accept or reject your current request before booking another session.
+      </p>
+      <button onclick="closeDashboardModal()" style="background: #001f54; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+        Okay, Got it
+      </button>
+    </div>
+  </div>
+  <script>
+    function showPendingModal(consultantName) {
+      document.getElementById('modalConsultantName').innerText = consultantName;
+      document.getElementById('dashboardPendingModal').style.display = 'flex';
+    }
+
+    function closeDashboardModal() {
+      document.getElementById('dashboardPendingModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('dashboardPendingModal');
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+  </script>
 </body>
 </html>
